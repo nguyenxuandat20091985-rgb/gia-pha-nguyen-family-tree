@@ -1,4 +1,4 @@
-const CACHE_NAME = 'gia-pha-nguyen-v13';
+const CACHE_NAME = 'gia-pha-nguyen-v14';
 const ASSETS = [
   './',
   './index.html',
