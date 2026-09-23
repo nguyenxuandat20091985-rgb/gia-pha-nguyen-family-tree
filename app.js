@@ -556,11 +556,18 @@
       return '<div class="board-section"><h3>'+title+'</h3>'+rows.map(postCardHtml).join('')+'</div>';
     }).join('') || '<p class="muted">Chưa có bài.</p>';
     list.querySelectorAll('[data-like]').forEach(b => b.onclick = () => toggleLike(b.dataset.like));
-    list.querySelectorAll('[data-comment]').forEach(b => b.onclick = () => addComment(b.dataset.comment));
+    list.querySelectorAll('[data-comment-focus]').forEach(b => b.onclick = () => {
+      const box = document.getElementById('comment-input-' + b.dataset.commentFocus);
+      if (box) { box.focus(); box.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+    });
+    list.querySelectorAll('[data-comment-send]').forEach(b => b.onclick = () => addComment(b.dataset.commentSend));
     list.querySelectorAll('[data-share]').forEach(b => b.onclick = () => sharePost(b.dataset.share));
     list.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editPost(b.dataset.edit));
     list.querySelectorAll('[data-delete]').forEach(b => b.onclick = () => deletePost(b.dataset.delete));
     list.querySelectorAll('[data-delete-comment]').forEach(b => b.onclick = () => deleteComment(b.dataset.deleteComment));
+    list.querySelectorAll('[data-comment-input]').forEach(input => input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); addComment(input.dataset.commentInput); }
+    }));
   }
   function postCardHtml(p) {
     const pid = p.id;
@@ -576,6 +583,7 @@
       '<p class="post-content">'+esc(p.content||'')+'</p>'+image+
       '<div class="post-actions"><button type="button" data-like="'+esc(pid)+'">❤️ '+likeCount+'</button><button type="button" data-comment="'+esc(pid)+'">💬 Bình luận'+(postComments.length?' · '+postComments.length:'')+'</button><button type="button" data-share="'+esc(pid)+'">↗️ Chia sẻ</button></div>'+
       (commentHtml ? '<div class="post-comments">'+commentHtml+'</div>' : '')+
+      '<div class="comment-compose"><textarea id="comment-input-'+esc(pid)+'" data-comment-input="'+esc(pid)+'" rows="1" maxlength="500" placeholder="Viết bình luận..."></textarea><button type="button" class="comment-send" data-comment-send="'+esc(pid)+'">Gửi</button></div>'+
       '</article>';
   }
   function toggleLike(postId) {
@@ -584,10 +592,11 @@
     renderBoard();
   }
   function addComment(postId) {
-    const text = prompt('💬 Viết bình luận\n\nNội dung của bạn:');
-    if (!text || !text.trim()) return;
+    const input = document.getElementById('comment-input-' + postId);
+    const text = (input?.value || '').trim();
+    if (!text) return;
     const user = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || 'Thành viên';
-    comments.push({id:cloudUid(),postId,author:user,content:text.trim(),createdAt:new Date().toISOString()});
+    comments.push({id:cloudUid(),postId,author:user,content:text,createdAt:new Date().toISOString()});
     saveBoardMeta();
     renderBoard();
   }
@@ -601,7 +610,7 @@
     p.updatedAt = new Date().toISOString();
     savePosts(); renderBoard();
   }
-  function deletePost(postId) {
+  async function deletePost(postId) {
     const p = posts.find(x => x.id === postId); if (!p) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
     if (window.GiaCloud?.state?.user && p.author !== currentUser) return alert('Anh chỉ có thể xóa bài do mình đăng.');
@@ -614,7 +623,7 @@
     } catch (e) { console.warn(e); }
     savePosts(); saveBoardMeta(); renderBoard();
   }
-  function deleteComment(commentId) {
+  async function deleteComment(commentId) {
     const c = comments.find(x => x.id === commentId); if (!c) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
     if (window.GiaCloud?.state?.user && c.author !== currentUser) return alert('Anh chỉ có thể xóa bình luận do mình viết.');
