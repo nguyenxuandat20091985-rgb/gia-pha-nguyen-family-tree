@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#8B0000" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="description" content="Gia Phả Họ Nguyễn - Cây phả hệ đẹp, thêm nhánh chính & nhánh phụ, chi tiết, ảnh" />
+  <title>Gia Phả Họ Nguyễn</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="logo.svg" />
+  <link rel="apple-touch-icon" href="logo.svg" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="header-left">
+      <img class="app-logo" id="appLogo" src="logo.svg" alt="Gia Phả Họ Nguyễn" />
+      <div class="header-titles">
+        <h1>Gia Phả Họ Nguyễn</h1>
+        <p class="subtitle">Thêm nhánh chính & nhánh phụ • Chi tiết • Ảnh</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btnAddRoot" class="btn btn-primary" title="Thêm người gốc">+ Gốc</button>
+      <button id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
+      <button id="btnExport" class="btn btn-secondary">Xuất JSON</button>
+      <button id="btnImport" class="btn btn-secondary">Nhập</button>
+      <input type="file" id="importFile" accept=".json" hidden />
+    </div>
+  </header>
+
+  <main>
+    <section id="treeView" class="tree-container">
+      <div id="treeRoot" class="tree"></div>
+      <div id="emptyState" class="empty-state">
+        <div class="empty-icon">👨‍👩‍👧‍👦</div>
+        <h2>Chưa có dữ liệu gia phả</h2>
+        <p>Bấm <strong>+ Gốc</strong> để thêm Cụ Tổ, sau đó thêm con cháu, vợ chồng, nhánh phụ.</p>
+        <button class="btn btn-primary" onclick="document.getElementById('btnAddRoot').click()">Bắt đầu tạo gia phả</button>
+      </div>
+    </section>
+
+    <section id="listView" class="list-container hidden">
+      <div class="list-toolbar">
+        <input type="search" id="searchInput" placeholder="Tìm tên..." />
+        <select id="filterGender">
+          <option value="">Tất cả</option>
+          <option value="male">Nam</option>
+          <option value="female">Nữ</option>
+        </select>
+      </div>
+      <div id="personList" class="person-list"></div>
+    </section>
+  </main>
+
+  <div id="personModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="modalTitle">Thêm thành viên</h2>
+        <button class="modal-close" id="btnCloseModal">×</button>
+      </div>
+      <form id="personForm">
+        <input type="hidden" id="personId" />
+        <input type="hidden" id="parentId" />
+        <input type="hidden" id="relationType" />
+        <div class="form-row">
+          <label>Họ và tên *</label>
+          <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn A" />
+        </div>
+        <div class="form-row two-cols">
+          <div>
+            <label>Giới tính</label>
+            <select id="gender">
+              <option value="male">Nam</option>
+              <option value="female">Nữ</option>
+              <option value="other">Khác</option>
+            </select>
+          </div>
+          <div>
+            <label>Loại quan hệ</label>
+            <select id="relationSelect">
+              <option value="child">Con (nhánh chính)</option>
+              <option value="spouse">Vợ / Chồng</option>
+              <option value="side">Nhánh phụ / Chi nhỏ</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row two-cols">
+          <div>
+            <label>Ngày sinh</label>
+            <input type="text" id="birthDate" placeholder="VD: 15/01/1920 hoặc 1920" />
+          </div>
+          <div>
+            <label>Ngày mất</label>
+            <input type="text" id="deathDate" placeholder="VD: 2005 hoặc để trống" />
+          </div>
+        </div>
+        <div class="form-row">
+          <label>Ghi chú / Chi tiết</label>
+          <textarea id="notes" rows="3" placeholder="Nghề nghiệp, quê quán, sự kiện đặc biệt..."></textarea>
+        </div>
+        <div class="form-row">
+          <label>Ảnh đại diện</label>
+          <div class="photo-upload">
+            <img id="photoPreview" src="" alt="" class="photo-preview hidden" />
+            <input type="file" id="photoInput" accept="image/*" />
+            <button type="button" id="btnRemovePhoto" class="btn btn-small hidden">Xóa ảnh</button>
+          </div>
+        </div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btnCancel">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div id="contextMenu" class="context-menu hidden">
+    <button data-action="edit">✏️ Sửa thông tin</button>
+    <button data-action="addChild">➕ Thêm con (nhánh chính)</button>
+    <button data-action="addSpouse">💍 Thêm vợ / chồng</button>
+    <button data-action="addSide">🌿 Thêm nhánh phụ</button>
+    <button data-action="delete" class="danger">🗑️ Xóa</button>
+  </div>
+
+  <footer class="app-footer">
+    <span>Dữ liệu lưu trên trình duyệt (localStorage)</span>
+    <span>•</span>
+    <a href="https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree" target="_blank">GitHub • Họ Nguyễn</a>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
