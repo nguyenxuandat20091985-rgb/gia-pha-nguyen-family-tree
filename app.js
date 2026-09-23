@@ -44,6 +44,7 @@
 
   function saveTree() {
     localStorage.setItem(TREE_KEY, JSON.stringify(data));
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
   }
 
   function loadEvents() {
@@ -51,12 +52,14 @@
   }
   function saveEvents() {
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
   }
   function loadPosts() {
     try { posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]'); } catch (e) { posts = []; }
   }
   function savePosts() {
     localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
   }
 
   function seedIfEmpty() {
@@ -687,11 +690,153 @@
     if (!e.target.closest('#contextMenu') && !e.target.closest('.person-card') && !e.target.closest('.list-item')) hideContextMenu();
   });
 
+  /* ===== ACCOUNT / AUTH ===== */
+  function renderAuth() {
+    const status = document.getElementById('authStatus');
+    const login = document.getElementById('authLogin');
+    const userBox = document.getElementById('authUser');
+    if (!status || !login || !userBox) return;
+    const cloud = window.GiaCloud;
+    const user = cloud?.state?.user || null;
+    const profile = cloud?.state?.profile || null;
+    if (!cloud?.isConfigured?.()) {
+      status.textContent = 'Chưa cấu hình kết nối đám mây.';
+      login.classList.remove('hidden');
+      userBox.classList.add('hidden');
+      return;
+    }
+    if (user) {
+      const name = profile?.display_name || user.user_metadata?.full_name || user.user_metadata?.name || user.email || user.phone || 'Thành viên';
+      status.textContent = 'Đã đăng nhập: ' + name;
+      login.classList.add('hidden');
+      userBox.classList.remove('hidden');
+      document.getElementById('authName').value = profile?.display_name || user.user_metadata?.full_name || user.user_metadata?.name || '';
+    } else {
+      status.textContent = 'Chưa đăng nhập';
+      login.classList.remove('hidden');
+      userBox.classList.add('hidden');
+    }
+  }
+
+  function initAccountUI() {
+    const btnGoogle = document.getElementById('btnGoogle');
+    const btnSendOtp = document.getElementById('btnSendOtp');
+    const btnVerifyOtp = document.getElementById('btnVerifyOtp');
+    const btnSaveProfile = document.getElementById('btnSaveProfile');
+    const btnLogout = document.getElementById('btnLogout');
+    const phone = document.getElementById('authPhone');
+    const otp = document.getElementById('authOtp');
+
+    btnGoogle?.addEventListener('click', async () => {
+      try {
+        btnGoogle.disabled = true;
+        await window.GiaCloud.signInGoogle();
+      } catch (e) {
+        alert('Đăng nhập Google lỗi: ' + (e?.message || e));
+        btnGoogle.disabled = false;
+      }
+    });
+
+    btnSendOtp?.addEventListener('click', async () => {
+      try {
+        btnSendOtp.disabled = true;
+        await window.GiaCloud.sendPhoneOtp(phone.value);
+        document.getElementById('otpBox')?.classList.remove('hidden');
+        alert('Đã gửi mã OTP. Kiểm tra SMS.');
+      } catch (e) {
+        alert('Không gửi được OTP: ' + (e?.message || e));
+      } finally {
+        btnSendOtp.disabled = false;
+      }
+    });
+
+    btnVerifyOtp?.addEventListener('click', async () => {
+      try {
+        btnVerifyOtp.disabled = true;
+        await window.GiaCloud.verifyPhoneOtp(phone.value, otp.value);
+      } catch (e) {
+        alert('Xác nhận OTP lỗi: ' + (e?.message || e));
+      } finally {
+        btnVerifyOtp.disabled = false;
+      }
+    });
+
+    btnSaveProfile?.addEventListener('click', async () => {
+      try {
+        btnSaveProfile.disabled = true;
+        await window.GiaCloud.upsertProfile({ display_name: document.getElementById('authName').value.trim() });
+        renderAuth();
+        alert('Đã lưu thông tin thành viên.');
+      } catch (e) {
+        alert('Lưu thông tin lỗi: ' + (e?.message || e));
+      } finally {
+        btnSaveProfile.disabled = false;
+      }
+    });
+
+    btnLogout?.addEventListener('click', async () => {
+      try {
+        btnLogout.disabled = true;
+        await window.GiaCloud.signOut();
+      } catch (e) {
+        alert('Đăng xuất lỗi: ' + (e?.message || e));
+      } finally {
+        btnLogout.disabled = false;
+      }
+    });
+
+    window.addEventListener('gia-auth-changed', async () => {
+      renderAuth();
+      if (!window.GiaCloud?.state?.user) return;
+      try {
+        const cloudData = await window.GiaCloud.pullAll();
+        if (cloudData) {
+          data = cloudData.tree;
+          events = cloudData.events;
+          posts = cloudData.posts;
+          saveTree();
+          saveEvents();
+          savePosts();
+          refreshTree();
+          renderEvents();
+          renderBoard();
+          renderHome();
+        }
+      } catch (e) {
+        console.warn('Cloud pull failed:', e);
+      }
+    });
+
+    window.addEventListener('gia-profile-changed', renderAuth);
+    window.addEventListener('gia-cloud-data-changed', async () => {
+      if (!window.GiaCloud?.state?.user) return;
+      try {
+        const cloudData = await window.GiaCloud.pullAll();
+        if (!cloudData) return;
+        data = cloudData.tree;
+        events = cloudData.events;
+        posts = cloudData.posts;
+        localStorage.setItem(TREE_KEY, JSON.stringify(data));
+        localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
+        localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+        refreshTree();
+        renderEvents();
+        renderBoard();
+        renderHome();
+      } catch (e) {
+        console.warn('Realtime pull failed:', e);
+      }
+    });
+
+    renderAuth();
+  }
+
   /* init */
   loadTree();
   seedIfEmpty();
   loadEvents();
   loadPosts();
   initCal();
+  initAccountUI();
   showView('home');
 })();
