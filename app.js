@@ -1,19 +1,24 @@
 /**
  * Gia Phả Họ Nguyễn - Family Tree App
- * Hỗ trợ: nhánh chính, nhánh phụ, vợ/chồng, ảnh, chi tiết
- * Dữ liệu lưu localStorage
  */
 
-const STORAGE_KEY = 'giaPhaNguyenData_v3';
+const STORAGE_KEY = 'giaPhaNguyenData_v4';
+const CHAT_KEY = 'giaPhaNguyenChat_v1';
 
-let data = {
-  people: {},
-  rootId: null
-};
-
+let data = { people: {}, rootId: null };
 let currentView = 'tree';
 let contextTargetId = null;
 let photoBase64 = null;
+
+const MORNING_MESSAGES = [
+  'Dòng họ Nguyễn ta luôn nhớ nguồn cội. Giữ gìn bản sắc dân tộc, thương yêu bà con, sống tốt mỗi ngày.',
+  'Con cháu Họ Nguyễn hãy cố gắng học hành, làm việc chăm chỉ, giữ nếp nhà, kính trọng ông bà tổ tiên.',
+  'Mỗi khi vào app, hãy nhớ: máu mủ dòng họ là sợi dây gắn kết. Đoàn kết – giữ gìn truyền thống Việt.',
+  'Cụ Tổ sáu đời đã gây dựng. Con cháu đời sau hãy tiếp nối, không quên ngày giỗ, không quên quê hương.',
+  'Bản sắc dân tộc nằm ở chữ Hiếu, chữ Nghĩa, chữ Trung. Họ Nguyễn ta cùng nhau giữ lấy.',
+  'Chào buổi sáng bà con dòng họ! Hôm nay hãy làm việc gì đó tốt cho gia đình và cho cộng đồng.',
+  'Gia phả không chỉ là tên người – là câu chuyện, là tình thương, là trách nhiệm với thế hệ sau.'
+];
 
 function uid() {
   return 'p_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
@@ -25,13 +30,9 @@ function save() {
 
 function load() {
   try {
-    // Xóa key cũ để tránh dữ liệu mẫu A/B/C
-    localStorage.removeItem('giaPhaNguyenData_v1');
-    localStorage.removeItem('giaPhaNguyenData_v2');
+    ['giaPhaNguyenData_v1', 'giaPhaNguyenData_v2', 'giaPhaNguyenData_v3'].forEach(k => localStorage.removeItem(k));
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (raw) {
-      data = JSON.parse(raw);
-    }
+    if (raw) data = JSON.parse(raw);
   } catch (e) {
     console.warn('Load failed', e);
   }
@@ -41,16 +42,28 @@ function getPerson(id) {
   return data.people[id] || null;
 }
 
-function makePerson(id, { name, gender = 'male', birthDate = '', deathDate = '', notes = '', isSide = false }) {
+function makePerson(id, opts) {
   const person = {
-    id, name, gender, birthDate, deathDate, notes,
-    photo: null, children: [], spouses: [], sideBranches: [], isSide, parentId: null
+    id,
+    name: opts.name || '',
+    gender: opts.gender || 'male',
+    birthDate: opts.birthDate || '',
+    deathDate: opts.deathDate || '',
+    deathAnniversary: opts.deathAnniversary || '',
+    notes: opts.notes || '',
+    photo: null,
+    children: [],
+    spouses: [],
+    sideBranches: [],
+    isSide: !!opts.isSide,
+    isRoot: !!opts.isRoot,
+    parentId: null
   };
   data.people[id] = person;
   return person;
 }
 
-function linkChild(parentId, childId, asSide = false) {
+function linkChild(parentId, childId, asSide) {
   const parent = data.people[parentId];
   const child = data.people[childId];
   if (!parent || !child) return;
@@ -66,7 +79,13 @@ function linkChild(parentId, childId, asSide = false) {
 function seedRealFamily() {
   data = { people: {}, rootId: null };
 
-  makePerson('root', { name: 'Cụ Tổ Họ Nguyễn', gender: 'male', notes: 'Cụ Tổ dòng họ – 6 đời' });
+  // Cụ Tổ 6 đời – Nguyễn Văn Mương
+  makePerson('root', {
+    name: 'Nguyễn Văn Mương',
+    gender: 'male',
+    notes: 'Cụ Tổ 6 đời – thủy tổ dòng họ',
+    isRoot: true
+  });
   data.rootId = 'root';
 
   makePerson('mung', { name: 'Nguyễn Văn Mừng', gender: 'male', birthDate: '1913', notes: 'Đời 2' });
@@ -98,7 +117,7 @@ function seedRealFamily() {
   makePerson('nhac', { name: 'Nguyễn Nhạc', gender: 'male', notes: 'Đời 4' });
   makePerson('huong', { name: 'Nguyễn Hưởng', gender: 'male', notes: 'Đời 4' });
   makePerson('dien', { name: 'Nguyễn Điền', gender: 'male', notes: 'Đời 4' });
-  makePerson('the', { name: 'Nguyễn Văn Thế', gender: 'male', notes: 'Đời 4 – nhánh Thu' });
+  makePerson('the', { name: 'Nguyễn Văn Thế', gender: 'male', notes: 'Đời 4' });
   makePerson('giang2', { name: 'Nguyễn Giang', gender: 'male', notes: 'Đời 4' });
   linkChild('lang', 'nhan');
   linkChild('lang', 'gioi');
@@ -173,15 +192,25 @@ function seedSampleIfEmpty() {
   seedRealFamily();
 }
 
-function addPerson({ name, gender = 'male', birthDate = '', deathDate = '', notes = '', photo = null, parentId = null, relation = 'child' }) {
+function addPerson({ name, gender, birthDate, deathDate, deathAnniversary, notes, photo, parentId, relation }) {
   const id = uid();
   const person = {
-    id, name, gender, birthDate, deathDate, notes, photo,
-    children: [], spouses: [], sideBranches: [],
-    isSide: relation === 'side', parentId: parentId || null
+    id,
+    name,
+    gender: gender || 'male',
+    birthDate: birthDate || '',
+    deathDate: deathDate || '',
+    deathAnniversary: deathAnniversary || '',
+    notes: notes || '',
+    photo: photo || null,
+    children: [],
+    spouses: [],
+    sideBranches: [],
+    isSide: relation === 'side',
+    isRoot: false,
+    parentId: parentId || null
   };
   data.people[id] = person;
-
   if (parentId && data.people[parentId]) {
     const parent = data.people[parentId];
     if (relation === 'spouse') {
@@ -194,6 +223,7 @@ function addPerson({ name, gender = 'male', birthDate = '', deathDate = '', note
     }
   } else if (!data.rootId) {
     data.rootId = id;
+    person.isRoot = true;
   }
   return person;
 }
@@ -244,7 +274,17 @@ function createCard(p) {
   const card = document.createElement('div');
   card.className = 'person-card ' + (p.gender || 'male');
   if (p.isSide) card.classList.add('side-branch');
+  if (p.isRoot || p.id === data.rootId) card.classList.add('root-card');
   card.dataset.id = p.id;
+
+  // Badge CỤ TỔ 6 ĐỜI nổi bật
+  if (p.isRoot || p.id === data.rootId) {
+    const rootBadge = document.createElement('div');
+    rootBadge.className = 'root-badge';
+    rootBadge.textContent = 'CỤ TỔ 6 ĐỜI';
+    card.appendChild(rootBadge);
+  }
+
   if (p.photo) {
     const img = document.createElement('img');
     img.className = 'photo';
@@ -252,23 +292,34 @@ function createCard(p) {
     img.alt = p.name;
     card.appendChild(img);
   }
+
   const name = document.createElement('div');
   name.className = 'name';
   name.textContent = p.name;
   card.appendChild(name);
+
   const dates = document.createElement('div');
   dates.className = 'dates';
   const parts = [];
   if (p.birthDate) parts.push(p.birthDate);
-  if (p.deathDate) parts.push('- ' + p.deathDate);
-  dates.textContent = parts.join(' ') || '-';
-  card.appendChild(dates);
+  if (p.deathDate) parts.push('– ' + p.deathDate);
+  dates.textContent = parts.join(' ') || '';
+  if (parts.length) card.appendChild(dates);
+
+  if (p.deathAnniversary) {
+    const gio = document.createElement('div');
+    gio.className = 'gio-date';
+    gio.textContent = '📅 Giỗ: ' + p.deathAnniversary;
+    card.appendChild(gio);
+  }
+
   if (p.isSide) {
     const badge = document.createElement('span');
     badge.className = 'badge';
     badge.textContent = 'Nhánh phụ';
     card.appendChild(badge);
   }
+
   card.addEventListener('click', (e) => {
     e.stopPropagation();
     showContextMenu(e, p.id);
@@ -301,14 +352,17 @@ function renderList() {
       img.alt = p.name;
       item.appendChild(img);
     } else {
-      const placeholder = document.createElement('div');
-      placeholder.style.cssText = 'width:48px;height:48px;border-radius:50%;background:#f0e6d8;display:flex;align-items:center;justify-content:center;font-size:1.4rem;';
-      placeholder.textContent = p.gender === 'female' ? 'F' : 'M';
-      item.appendChild(placeholder);
+      const ph = document.createElement('div');
+      ph.style.cssText = 'width:48px;height:48px;border-radius:50%;background:#f0e6d8;display:flex;align-items:center;justify-content:center;font-size:1.4rem;';
+      ph.textContent = p.gender === 'female' ? 'F' : 'M';
+      item.appendChild(ph);
     }
     const info = document.createElement('div');
     info.className = 'info';
-    info.innerHTML = '<div class="name">' + escapeHtml(p.name) + '</div><div class="meta">' + (p.birthDate || '') + (p.deathDate ? ' - ' + p.deathDate : '') + (p.isSide ? ' | Nhánh phụ' : '') + '</div>';
+    let meta = (p.birthDate || '') + (p.deathDate ? ' – ' + p.deathDate : '');
+    if (p.deathAnniversary) meta += (meta ? ' · ' : '') + 'Giỗ: ' + p.deathAnniversary;
+    if (p.isRoot || p.id === data.rootId) meta = 'CỤ TỔ 6 ĐỜI' + (meta ? ' · ' + meta : '');
+    info.innerHTML = '<div class="name">' + escapeHtml(p.name) + '</div><div class="meta">' + escapeHtml(meta) + '</div>';
     item.appendChild(info);
     item.addEventListener('click', (e) => {
       e.stopPropagation();
@@ -320,7 +374,7 @@ function renderList() {
 
 function escapeHtml(str) {
   const div = document.createElement('div');
-  div.textContent = str;
+  div.textContent = str || '';
   return div.innerHTML;
 }
 
@@ -339,11 +393,11 @@ function hideContextMenu() {
   contextTargetId = null;
 }
 
-function openModal({ title, personId = null, parentId = null, relation = 'child' }) {
+function openModal({ title, personId, parentId, relation }) {
   document.getElementById('modalTitle').textContent = title;
   document.getElementById('personId').value = personId || '';
   document.getElementById('parentId').value = parentId || '';
-  document.getElementById('relationType').value = relation;
+  document.getElementById('relationType').value = relation || 'child';
   photoBase64 = null;
   document.getElementById('photoPreview').classList.add('hidden');
   document.getElementById('btnRemovePhoto').classList.add('hidden');
@@ -354,6 +408,7 @@ function openModal({ title, personId = null, parentId = null, relation = 'child'
     document.getElementById('gender').value = p.gender || 'male';
     document.getElementById('birthDate').value = p.birthDate || '';
     document.getElementById('deathDate').value = p.deathDate || '';
+    document.getElementById('deathAnniversary').value = p.deathAnniversary || '';
     document.getElementById('notes').value = p.notes || '';
     document.getElementById('relationSelect').value = p.isSide ? 'side' : 'child';
     if (p.photo) {
@@ -365,7 +420,7 @@ function openModal({ title, personId = null, parentId = null, relation = 'child'
     }
   } else {
     document.getElementById('personForm').reset();
-    document.getElementById('relationSelect').value = relation;
+    document.getElementById('relationSelect').value = relation || 'child';
   }
   document.getElementById('relationSelect').closest('.form-row').style.display = personId ? 'none' : '';
   document.getElementById('personModal').classList.remove('hidden');
@@ -378,7 +433,6 @@ function closeModal() {
 document.getElementById('btnAddRoot').addEventListener('click', () => {
   openModal({ title: 'Thêm Cụ Tổ / Người gốc', relation: 'child' });
 });
-
 document.getElementById('btnCloseModal').addEventListener('click', closeModal);
 document.getElementById('btnCancel').addEventListener('click', closeModal);
 
@@ -394,6 +448,7 @@ document.getElementById('personForm').addEventListener('submit', (e) => {
     gender: document.getElementById('gender').value,
     birthDate: document.getElementById('birthDate').value.trim(),
     deathDate: document.getElementById('deathDate').value.trim(),
+    deathAnniversary: document.getElementById('deathAnniversary').value.trim(),
     notes: document.getElementById('notes').value.trim(),
     photo: photoBase64
   };
@@ -404,6 +459,7 @@ document.getElementById('personForm').addEventListener('submit', (e) => {
     if (!data.rootId) {
       const p = addPerson({ ...payload, relation: 'child' });
       data.rootId = p.id;
+      p.isRoot = true;
     } else {
       addPerson({ ...payload, parentId, relation });
     }
@@ -444,15 +500,11 @@ document.getElementById('contextMenu').addEventListener('click', (e) => {
   const action = btn.dataset.action;
   const id = contextTargetId;
   hideContextMenu();
-  if (action === 'edit') {
-    openModal({ title: 'Sửa thông tin', personId: id });
-  } else if (action === 'addChild') {
-    openModal({ title: 'Thêm con (nhánh chính)', parentId: id, relation: 'child' });
-  } else if (action === 'addSpouse') {
-    openModal({ title: 'Thêm vợ / chồng', parentId: id, relation: 'spouse' });
-  } else if (action === 'addSide') {
-    openModal({ title: 'Thêm nhánh phụ / chi nhỏ', parentId: id, relation: 'side' });
-  } else if (action === 'delete') {
+  if (action === 'edit') openModal({ title: 'Sửa thông tin', personId: id });
+  else if (action === 'addChild') openModal({ title: 'Thêm con (nhánh chính)', parentId: id, relation: 'child' });
+  else if (action === 'addSpouse') openModal({ title: 'Thêm vợ / chồng', parentId: id, relation: 'spouse' });
+  else if (action === 'addSide') openModal({ title: 'Thêm nhánh phụ', parentId: id, relation: 'side' });
+  else if (action === 'delete') {
     if (confirm('Xóa người này và toàn bộ con cháu?')) {
       deletePersonRecursive(id);
       save();
@@ -510,9 +562,7 @@ document.getElementById('importFile').addEventListener('change', (e) => {
           refresh();
           alert('Nhập thành công!');
         }
-      } else {
-        alert('File không đúng định dạng');
-      }
+      } else alert('File không đúng định dạng');
     } catch (err) {
       alert('Lỗi đọc file JSON');
     }
@@ -521,18 +571,84 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   e.target.value = '';
 });
 
-// Nút Reset - xóa hết cache, tải lại danh sách từ giấy
 document.getElementById('btnReset').addEventListener('click', () => {
-  if (!confirm('Xóa dữ liệu hiện tại và tải lại danh sách gia phả từ bản viết tay?')) return;
+  if (!confirm('Xóa dữ liệu hiện tại và tải lại danh sách từ bản viết tay?\nCụ Tổ 6 đời: Nguyễn Văn Mương')) return;
   localStorage.removeItem('giaPhaNguyenData_v1');
   localStorage.removeItem('giaPhaNguyenData_v2');
+  localStorage.removeItem('giaPhaNguyenData_v3');
   localStorage.removeItem(STORAGE_KEY);
   seedRealFamily();
   currentView = 'tree';
   document.getElementById('treeView').classList.remove('hidden');
   document.getElementById('listView').classList.add('hidden');
   refresh();
-  alert('Đã tải lại danh sách: Cụ Tổ → Mừng, Cốc, Hạch, Ngọc…');
+  alert('Đã tải: CỤ TỔ 6 ĐỜI – Nguyễn Văn Mương');
+});
+
+/* ===== Bản tin buổi sáng ===== */
+function showMorningBanner() {
+  const banner = document.getElementById('morningBanner');
+  const textEl = document.getElementById('morningText');
+  const day = new Date().getDate();
+  const msg = MORNING_MESSAGES[day % MORNING_MESSAGES.length];
+  textEl.textContent = msg;
+  banner.classList.remove('hidden');
+}
+
+document.getElementById('btnCloseMorning').addEventListener('click', () => {
+  document.getElementById('morningBanner').classList.add('hidden');
+});
+
+/* ===== Chat / Bảng tin dòng họ ===== */
+function loadChat() {
+  try {
+    return JSON.parse(localStorage.getItem(CHAT_KEY) || '[]');
+  } catch (e) {
+    return [];
+  }
+}
+
+function saveChat(msgs) {
+  localStorage.setItem(CHAT_KEY, JSON.stringify(msgs.slice(-100)));
+}
+
+function renderChat() {
+  const box = document.getElementById('chatMessages');
+  const msgs = loadChat();
+  if (msgs.length === 0) {
+    box.innerHTML = '<p class="chat-empty">Chưa có tin nhắn. Hãy gửi lời chào bà con dòng họ!</p>';
+    return;
+  }
+  box.innerHTML = msgs.map(m =>
+    '<div class="chat-msg"><strong>' + escapeHtml(m.author) + '</strong> <span class="chat-time">' +
+    escapeHtml(m.time) + '</span><p>' + escapeHtml(m.text) + '</p></div>'
+  ).join('');
+  box.scrollTop = box.scrollHeight;
+}
+
+document.getElementById('btnChat').addEventListener('click', () => {
+  document.getElementById('chatModal').classList.remove('hidden');
+  renderChat();
+});
+
+document.getElementById('btnCloseChat').addEventListener('click', () => {
+  document.getElementById('chatModal').classList.add('hidden');
+});
+
+document.getElementById('btnSendChat').addEventListener('click', () => {
+  const author = (document.getElementById('chatAuthor').value || 'Ẩn danh').trim().slice(0, 30);
+  const text = (document.getElementById('chatInput').value || '').trim();
+  if (!text) return alert('Nhập nội dung tin nhắn');
+  const msgs = loadChat();
+  const now = new Date();
+  msgs.push({
+    author,
+    text,
+    time: now.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' })
+  });
+  saveChat(msgs);
+  document.getElementById('chatInput').value = '';
+  renderChat();
 });
 
 document.addEventListener('click', (e) => {
@@ -545,6 +661,7 @@ document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     closeModal();
     hideContextMenu();
+    document.getElementById('chatModal').classList.add('hidden');
   }
 });
 
@@ -556,3 +673,4 @@ function refresh() {
 load();
 seedSampleIfEmpty();
 renderTree();
+showMorningBanner();
