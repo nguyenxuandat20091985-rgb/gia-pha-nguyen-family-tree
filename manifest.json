@@ -1,11 +1,13 @@
 {
-  "name": "Gia Phả Họ Nguyễn",
+  "name": "Gia Phả Họ Nguyễn – Trung tâm dòng họ",
   "short_name": "Gia Phả Nguyễn",
-  "description": "Cây phả hệ Họ Nguyễn - Uống nước nhớ ngồn",
+  "description": "Gia Phả Họ Nguyễn - Uống nước nhớ nguồn. Cây phả hệ, hiếu hỉ, lịch, văn khấn, bảng tin dòng họ.",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#8B0000",
-  "theme_color": "#8B0000",
+  "orientation": "portrait-primary",
+  "background_color": "#7a0c0c",
+  "theme_color": "#7a0c0c",
+  "lang": "vi",
   "icons": [
     {
       "src": "logo.svg",
