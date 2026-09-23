@@ -27,6 +27,80 @@
   let calYear, calMonth;
   let currentRitual = null;
 
+  /* ===== CUSTOM DIALOGS ===== */
+  function ensureDialogHost() {
+    let host = document.getElementById('customDialogHost');
+    if (host) return host;
+    host = document.createElement('div');
+    host.id = 'customDialogHost';
+    host.className = 'custom-dialog-host';
+    document.body.appendChild(host);
+    return host;
+  }
+
+  function customAlert(message, title = 'Thông báo') {
+    return new Promise(resolve => {
+      const host = ensureDialogHost();
+      const overlay = document.createElement('div');
+      overlay.className = 'custom-dialog-overlay';
+      overlay.innerHTML = '<div class="custom-dialog" role="dialog" aria-modal="true">' +
+        '<div class="custom-dialog-icon">✓</div><div class="custom-dialog-title"></div>' +
+        '<div class="custom-dialog-message"></div><div class="custom-dialog-actions">' +
+        '<button type="button" class="btn btn-primary custom-dialog-ok">Đồng ý</button></div></div>';
+      overlay.querySelector('.custom-dialog-title').textContent = title;
+      overlay.querySelector('.custom-dialog-message').textContent = message;
+      let settled = false;
+      const close = () => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey);
+        overlay.remove();
+        resolve(true);
+      };
+      const onKey = e => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); } };
+      overlay.querySelector('.custom-dialog-ok').addEventListener('click', close);
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+      document.addEventListener('keydown', onKey);
+      host.appendChild(overlay);
+      requestAnimationFrame(() => overlay.querySelector('.custom-dialog-ok')?.focus());
+    });
+  }
+
+  function customConfirm(message, options = {}) {
+    return new Promise(resolve => {
+      const host = ensureDialogHost();
+      const overlay = document.createElement('div');
+      overlay.className = 'custom-dialog-overlay';
+      overlay.innerHTML = '<div class="custom-dialog" role="dialog" aria-modal="true">' +
+        '<div class="custom-dialog-icon custom-dialog-icon-confirm">?</div><div class="custom-dialog-title"></div>' +
+        '<div class="custom-dialog-message"></div><div class="custom-dialog-actions">' +
+        '<button type="button" class="btn btn-secondary custom-dialog-cancel">Hủy</button>' +
+        '<button type="button" class="btn custom-dialog-ok">Xác nhận</button></div></div>';
+      overlay.querySelector('.custom-dialog-title').textContent = options.title || 'Xác nhận';
+      overlay.querySelector('.custom-dialog-message').textContent = message;
+      const ok = overlay.querySelector('.custom-dialog-ok');
+      if (options.danger) ok.classList.add('btn-danger');
+      let settled = false;
+      const finish = value => {
+        if (settled) return;
+        settled = true;
+        document.removeEventListener('keydown', onKey);
+        overlay.remove();
+        resolve(value);
+      };
+      const onKey = e => {
+        if (e.key === 'Escape') { e.preventDefault(); finish(false); }
+        if (e.key === 'Enter') { e.preventDefault(); finish(true); }
+      };
+      overlay.querySelector('.custom-dialog-cancel').addEventListener('click', () => finish(false));
+      ok.addEventListener('click', () => finish(true));
+      overlay.addEventListener('click', e => { if (e.target === overlay) finish(false); });
+      document.addEventListener('keydown', onKey);
+      host.appendChild(overlay);
+      requestAnimationFrame(() => ok.focus());
+    });
+  }
+
   function uid() {
     return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
@@ -678,8 +752,8 @@
     const shareText = (p.author || 'Thành viên') + ': ' + p.content;
     try {
       if (navigator.share) await navigator.share({title:'Gia Phả Họ Nguyễn',text:shareText,url:location.href});
-      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareText+' '+location.href); alert('Đã sao chép nội dung chia sẻ.'); }
-      else alert(shareText);
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareText+' '+location.href); customAlert('Đã sao chép nội dung chia sẻ.'); }
+      else customAlert(shareText, 'Nội dung chia sẻ');
     } catch (e) {}
   }
   document.getElementById('btnAddPost').onclick = () => {
@@ -692,7 +766,7 @@
   document.getElementById('btnCancelPost').onclick = () => document.getElementById('postModal').classList.add('hidden');
   document.getElementById('postImage').onchange = e => {
     const f=e.target.files[0]; if(!f) return;
-    if(f.size>1500000) return alert('Ảnh bài viết nên nhỏ hơn 1.5MB.');
+    if(f.size>1500000) return customAlert('Ảnh bài viết nên nhỏ hơn 1.5MB.', 'Ảnh quá lớn');
     const r=new FileReader(); r.onload=()=>{postImageBase64=r.result;}; r.readAsDataURL(f);
   };
   document.getElementById('postForm').onsubmit = e => {
@@ -801,10 +875,10 @@
   document.getElementById('btnCloseRitual').onclick = () => document.getElementById('ritualModal').classList.add('hidden');
   document.getElementById('btnCopyRitual').onclick = () => {
     if (!currentRitual) return;
-    navigator.clipboard.writeText(currentRitual.content).then(() => alert('Đã sao chép')).catch(() => alert('Không sao chép được'));
+    navigator.clipboard.writeText(currentRitual.content).then(() => customAlert('Đã sao chép')).catch(() => customAlert('Không sao chép được', 'Sao chép'));
   };
   document.getElementById('btnSpeakRitual').onclick = () => {
-    if (!currentRitual || !window.speechSynthesis) return alert('Trình duyệt không hỗ trợ đọc');
+    if (!currentRitual || !window.speechSynthesis) return customAlert('Trình duyệt không hỗ trợ đọc', 'Không hỗ trợ');
     const u = new SpeechSynthesisUtterance(currentRitual.content);
     u.lang = 'vi-VN';
     speechSynthesis.speak(u);
@@ -833,9 +907,9 @@
         saveTree();
         saveEvents();
         savePosts();
-        alert('Nhập thành công');
+        customAlert('Nhập thành công');
         refreshTree();
-      } catch (err) { alert('File không hợp lệ'); }
+      } catch (err) { customAlert('File không hợp lệ', 'Nhập dữ liệu'); }
     };
     r.readAsText(f);
     e.target.value = '';
@@ -843,14 +917,14 @@
   document.getElementById('btnResetStep1').onclick = () => {
     document.getElementById('resetConfirm').classList.remove('hidden');
   };
-  document.getElementById('btnResetFinal').onclick = () => {
-    if (document.getElementById('resetTyped').value !== 'RESET') return alert('Gõ đúng RESET');
-    if (!confirm('Lần cuối: xóa cây hiện tại và tải mẫu?')) return;
+  document.getElementById('btnResetFinal').onclick = async () => {
+    if (document.getElementById('resetTyped').value !== 'RESET') return customAlert('Gõ đúng RESET', 'Xác nhận reset');
+    if (!(await customConfirm('Lần cuối: xóa cây hiện tại và tải mẫu?', {title:'Xác nhận reset', danger:true}))) return;
     TREE_KEYS.forEach(k => localStorage.removeItem(k));
     data = { people: {}, rootId: null };
     seedIfEmpty();
     document.getElementById('resetConfirm').classList.add('hidden');
-    alert('Đã reset mẫu');
+    customAlert('Đã reset mẫu');
     showView('tree');
   };
 
@@ -906,7 +980,7 @@
         btnGoogle.disabled = true;
         await window.GiaCloud.signInGoogle();
       } catch (e) {
-        alert('Đăng nhập Google lỗi: ' + (e?.message || e));
+        customAlert('Đăng nhập Google lỗi: ' + (e?.message || e), 'Đăng nhập Google');
         btnGoogle.disabled = false;
       }
     });
@@ -916,9 +990,9 @@
         btnSendOtp.disabled = true;
         await window.GiaCloud.sendPhoneOtp(phone.value);
         document.getElementById('otpBox')?.classList.remove('hidden');
-        alert('Đã gửi mã OTP. Kiểm tra SMS.');
+        customAlert('Đã gửi mã OTP. Kiểm tra SMS.', 'OTP đã được gửi');
       } catch (e) {
-        alert('Không gửi được OTP: ' + (e?.message || e));
+        customAlert('Không gửi được OTP: ' + (e?.message || e), 'Gửi OTP');
       } finally {
         btnSendOtp.disabled = false;
       }
@@ -929,7 +1003,7 @@
         btnVerifyOtp.disabled = true;
         await window.GiaCloud.verifyPhoneOtp(phone.value, otp.value);
       } catch (e) {
-        alert('Xác nhận OTP lỗi: ' + (e?.message || e));
+        customAlert('Xác nhận OTP lỗi: ' + (e?.message || e), 'Xác nhận OTP');
       } finally {
         btnVerifyOtp.disabled = false;
       }
@@ -940,9 +1014,9 @@
         btnSaveProfile.disabled = true;
         await window.GiaCloud.upsertProfile({ display_name: document.getElementById('authName').value.trim() });
         renderAuth();
-        alert('Đã lưu thông tin thành viên.');
+        customAlert('Đã lưu thông tin thành viên.', 'Đã lưu');
       } catch (e) {
-        alert('Lưu thông tin lỗi: ' + (e?.message || e));
+        customAlert('Lưu thông tin lỗi: ' + (e?.message || e), 'Lưu thông tin');
       } finally {
         btnSaveProfile.disabled = false;
       }
@@ -953,7 +1027,7 @@
         btnLogout.disabled = true;
         await window.GiaCloud.signOut();
       } catch (e) {
-        alert('Đăng xuất lỗi: ' + (e?.message || e));
+        customAlert('Đăng xuất lỗi: ' + (e?.message || e), 'Đăng xuất');
       } finally {
         btnLogout.disabled = false;
       }
@@ -998,26 +1072,3 @@
         localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
         localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
         localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
-        localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
-        refreshTree();
-        renderEvents();
-        renderBoard();
-        renderHome();
-      } catch (e) {
-        console.warn('Realtime pull failed:', e);
-      }
-    });
-
-    renderAuth();
-  }
-
-  /* init */
-  loadTree();
-  seedIfEmpty();
-  loadEvents();
-  loadPosts();
-  loadBoardMeta();
-  initCal();
-  initAccountUI();
-  showView('home');
-})();
