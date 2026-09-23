@@ -1,77 +1,59 @@
-# 🌳 Gia Phả Họ Nguyễn – Cây phả hệ đẹp
+# Gia Phả Họ Nguyễn – Trung tâm sinh hoạt dòng họ
 
-Ứng dụng **web** (dùng được như app trên Android & iOS) để xây dựng **gia phả Họ Nguyễn**.
+**Production:** https://gia-pha-nguyen-hazel.vercel.app/
 
-## Tính năng
-
-- ✅ **Thêm nhánh chính** (con cháu)
-- ✅ **Thêm nhánh phụ / chi nhỏ** (side branches)
-- ✅ Thêm **vợ / chồng**
-- ✅ Thêm **ảnh** đại diện cho từng người
-- ✅ Chi tiết: ngày sinh, ngày mất, ghi chú
-- ✅ Cây phả hệ trực quan + chế độ danh sách
-- ✅ Xuất / Nhập file JSON (backup)
-- ✅ Dữ liệu lưu trên trình duyệt (localStorage)
-- ✅ Giao diện tiếng Việt, đẹp, responsive (điện thoại + máy tính)
-- ✅ Có sẵn dữ liệu mẫu Họ Nguyễn (Cụ Tổ → Nguyễn Văn A → …)
-
-## Cách dùng nhanh
-
-### 1. Dùng online (GitHub Pages)
-Mở link:
-**https://nguyenxuandat20091985-rgb.github.io/gia-pha-nguyen-family-tree/**
-
-### 2. Cài như App trên điện thoại (PWA)
-- **Android (Chrome)**: Mở link → menu ⋮ → **Cài đặt ứng dụng** / **Thêm vào màn hình chính**
-- **iOS (Safari)**: Mở link → nút Chia sẻ → **Thêm vào Màn hình chính**
-
-Sau khi thêm, icon xuất hiện như app thật, mở fullscreen.
-
-### 3. Thêm nhánh phụ
-1. Bấm vào một người trong cây
-2. Chọn **🌿 Thêm nhánh phụ**
-3. Điền thông tin → Lưu  
-   → Người đó sẽ có viền đứt + badge “Nhánh phụ”
-
-### 4. Thêm ảnh
-Khi thêm/sửa người → chọn ảnh từ máy → ảnh được lưu cùng dữ liệu (base64).
-
-### 5. Backup
-Bấm **Xuất JSON** để tải file backup. Có thể **Nhập** lại sau.
-
-## Cấu trúc code
-
-```
-index.html      – Giao diện
-style.css       – Giao diện đẹp
-app.js          – Logic cây phả hệ, localStorage
-manifest.json   – PWA (cài như app)
-```
-
-## Chạy local
-
-Chỉ cần mở `index.html` bằng trình duyệt, hoặc:
-
-```bash
-npx serve .
-```
-
-## Lưu ý
-
-- Dữ liệu lưu **trên trình duyệt** của máy bạn. Xóa cache / dùng chế độ ẩn danh sẽ mất dữ liệu → nên **Xuất JSON** thường xuyên.
-- Ảnh nên dưới 2MB để lưu tốt.
-- Muốn dùng nhiều thiết bị: Xuất JSON từ máy này → Nhập vào máy kia.
-
-## APK Android
-
-Hiện tại đây là **Web App (PWA)**.  
-Để có file **.apk** thật:
-
-1. Dùng tool miễn phí: [PWA Builder](https://www.pwabuilder.com/) → dán link GitHub Pages → Generate → Android package
-2. Hoặc dùng Capacitor / Cordova bọc project này thành APK (cần Node.js + Android Studio)
+**Repo:** https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree
 
 ---
 
-**Repo:** https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree  
+## Đã làm (Phase 1 – hoạt động thật trên máy)
 
-Chúc anh xây dựng gia phả Họ Nguyễn thật đầy đủ và đẹp!
+| Chức năng | Trạng thái |
+|-----------|------------|
+| Cây gia phả (thêm/sửa/xóa, nhánh, ảnh, ngày giỗ) | ✅ |
+| Giữ dữ liệu cũ `giaPhaNguyenData_v4` (không xóa khi nâng cấp) | ✅ |
+| Trang chủ: việc họ, thông báo, bản tin AI từ dữ liệu thật | ✅ |
+| Đám / Hiếu Hỉ + địa chỉ + nút **DẪN ĐƯỜNG** (Google Maps) | ✅ |
+| Lịch tháng + sự kiện theo ngày | ✅ (ngày âm chi tiết Phase 3) |
+| Thư viện văn khấn + Sao chép + Đọc TTS | ✅ |
+| Bảng tin + ghim (lưu máy) | ✅ offline |
+| Chat dòng họ (lưu máy) | ✅ offline |
+| Quản lý dữ liệu: Xuất/Nhập JSON, Reset 2 bước (gõ RESET) | ✅ |
+| PWA / Cài app, sửa "Uống nước nhớ nguồn" | ✅ |
+| Thanh điều hướng mobile dưới | ✅ |
+| Schema Supabase (`supabase/schema.sql`) | ✅ chuẩn bị |
+
+## Chưa làm (cần Supabase + cấu hình của anh)
+
+| Chức năng | Lý do |
+|-----------|--------|
+| Đăng ký / Đăng nhập | Cần project Supabase + Auth |
+| Bảng tin & chat **realtime nhiều máy** | Cần Supabase Realtime |
+| Phân quyền admin/member trên server | Cần RLS + profiles |
+| AI bản tin hằng ngày tự chạy (cron) | Cần Edge Function + API key server-side |
+| Push notification | Chưa triển khai |
+| APK native | Có thể dùng TWA/Capacitor sau |
+
+**Database hiện tại:** `localStorage` trên trình duyệt (tree, events, posts, chat).  
+**Authentication:** Chưa.  
+**Realtime:** Chưa (chỉ local).  
+**AI:** Bản tin tạo **trên máy** từ sự kiện + ngày giỗ trong dữ liệu – **không bịa**, không gọi API ngoài.  
+**Cron:** Chưa.
+
+## Cách xem bản mới
+
+1. Mở https://gia-pha-nguyen-hazel.vercel.app/?v=7  
+2. Nếu còn giao diện cũ → xóa cache site hoặc F5 mạnh.  
+3. Cây gia phả cũ vẫn còn (đọc key v4/v3…).
+
+## Phase 2 (khi anh có Supabase)
+
+1. Tạo project Supabase riêng cho Họ Nguyễn.  
+2. Chạy file `supabase/schema.sql`.  
+3. Bật Auth (email/phone).  
+4. Đưa **anon key** vào cấu hình frontend (không đưa service_role).  
+5. Migration JSON export → bảng `family_members`.
+
+## Commit gần nhất
+
+Xem history GitHub `main` – các commit `feat: Phase 1...`, `feat: mobile shell...`, `feat: ritual texts...`.
