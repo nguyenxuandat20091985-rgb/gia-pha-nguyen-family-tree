@@ -27,9 +27,10 @@
     if(!error) { state.profile=data; emit('gia-profile-changed',{profile:data}); }
     return state.profile;
   }
+  const APP_ORIGIN = 'https://gia-pha-nguyen-hazel.vercel.app/';
   async function signInGoogle(){
     if(!client) throw new Error('Supabase chưa được cấu hình.');
-    return client.auth.signInWithOAuth({provider:'google',options:{redirectTo:location.origin+location.pathname}});
+    return client.auth.signInWithOAuth({provider:'google',options:{redirectTo:APP_ORIGIN}});
   }
   async function sendPhoneOtp(phone){
     if(!client) throw new Error('Supabase chưa được cấu hình.');
