@@ -9,12 +9,17 @@
   const TREE_KEY = 'giaPhaNguyenData_v4';
   const EVENTS_KEY = 'giaPhaEvents_v1';
   const POSTS_KEY = 'giaPhaPosts_v1';
+  const COMMENTS_KEY = 'giaPhaComments_v1';
+  const LIKES_KEY = 'giaPhaLikes_v1';
   const CHAT_KEY = 'giaPhaNguyenChat_v1';
   const READ_KEY = 'giaPhaRead_v1';
 
   let data = { people: {}, rootId: null };
   let events = [];
   let posts = [];
+  let comments = [];
+  let likes = {};
+  let postImageBase64 = null;
   let currentView = 'home';
   let treeMode = 'tree';
   let contextTargetId = null;
@@ -44,7 +49,7 @@
 
   function saveTree() {
     localStorage.setItem(TREE_KEY, JSON.stringify(data));
-    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts, comments, likes).catch(console.warn);
   }
 
   function loadEvents() {
@@ -52,14 +57,23 @@
   }
   function saveEvents() {
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
-    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts, comments, likes).catch(console.warn);
   }
   function loadPosts() {
     try { posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]'); } catch (e) { posts = []; }
   }
   function savePosts() {
     localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts).catch(console.warn);
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts, comments, likes).catch(console.warn);
+  }
+  function loadBoardMeta() {
+    try { comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]'); } catch (e) { comments = []; }
+    try { likes = JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch (e) { likes = {}; }
+  }
+  function saveBoardMeta() {
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+    localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+    if (window.GiaCloud?.state?.user) window.GiaCloud.syncLocal(data, events, posts, comments, likes).catch(console.warn);
   }
 
   function seedIfEmpty() {
@@ -506,31 +520,94 @@
   };
 
   /* ===== BOARD ===== */
+  const POST_TYPE_LABEL = { notice: '📌 Thông báo', member: '💬 Bài viết thành viên', news: '🤖 Bản tin dòng họ' };
+  function formatPostTime(value) {
+    const d = new Date(value);
+    return isNaN(d) ? String(value || '') : d.toLocaleString('vi-VN');
+  }
   function renderBoard() {
     const list = document.getElementById('boardList');
-    const sorted = [...posts].sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0) || (b.createdAt || '').localeCompare(a.createdAt || ''));
-    list.innerHTML = sorted.length ? sorted.map(p =>
-      '<div class="post-card' + (p.pin ? ' pinned' : '') + '">' +
-      (p.pin ? '<span class="pin-badge">📌 GHIM</span>' : '') +
-      '<strong>' + esc(p.author || 'Ẩn danh') + '</strong> <span class="muted">' + esc(p.createdAt || '') + '</span>' +
-      '<p>' + esc(p.content) + '</p></div>'
-    ).join('') : '<p class="muted">Chưa có bài. Bảng tin hiện lưu trên máy này.</p>';
+    const sorted = [...posts].sort((a,b) => (b.pin-a.pin) || (new Date(b.createdAt)-new Date(a.createdAt)));
+    if (!sorted.length) {
+      list.innerHTML = '<div class="board-empty"><div>📰</div><strong>Chưa có bài viết</strong><p>Hãy đăng thông báo hoặc chia sẻ điều gì đó với dòng họ.</p></div>';
+      return;
+    }
+    const sections = [
+      ['notice','📌 Thông báo'],
+      ['member','💬 Bài viết thành viên'],
+      ['news','🤖 Bản tin dòng họ']
+    ];
+    list.innerHTML = sections.map(([type,title]) => {
+      const rows = sorted.filter(p => (p.type || 'member') === type);
+      if (!rows.length) return '';
+      return '<div class="board-section"><h3>'+title+'</h3>'+rows.map(postCardHtml).join('')+'</div>';
+    }).join('') || '<p class="muted">Chưa có bài.</p>';
+    list.querySelectorAll('[data-like]').forEach(b => b.onclick = () => toggleLike(b.dataset.like));
+    list.querySelectorAll('[data-comment]').forEach(b => b.onclick = () => addComment(b.dataset.comment));
+    list.querySelectorAll('[data-share]').forEach(b => b.onclick = () => sharePost(b.dataset.share));
   }
-
+  function postCardHtml(p) {
+    const pid = p.id;
+    const postComments = comments.filter(c => c.postId === pid);
+    const likeCount = Number(likes[pid] || 0);
+    const image = p.image ? '<img class="post-image" src="'+p.image+'" alt="Ảnh bài viết" loading="lazy">' : '';
+    const commentHtml = postComments.slice(-5).map(c => '<div class="post-comment"><strong>'+esc(c.author || 'Thành viên')+'</strong><span>'+esc(c.content)+'</span></div>').join('');
+    return '<article class="post-card'+(p.pin?' pinned':'')+'">'+
+      (p.pin?'<span class="pin-badge">📌 GHIM</span>':'')+
+      '<div class="post-head"><div><strong>'+esc(p.author||'Thành viên')+'</strong><div class="muted">'+esc(formatPostTime(p.createdAt))+'</div></div><span class="post-type">'+esc(POST_TYPE_LABEL[p.type||'member'])+'</span></div>'+
+      '<p class="post-content">'+esc(p.content||'')+'</p>'+image+
+      '<div class="post-actions"><button type="button" data-like="'+esc(pid)+'">❤️ '+likeCount+'</button><button type="button" data-comment="'+esc(pid)+'">💬 '+postComments.length+'</button><button type="button" data-share="'+esc(pid)+'">↗️ Chia sẻ</button></div>'+
+      (commentHtml ? '<div class="post-comments">'+commentHtml+'</div>' : '')+
+      '</article>';
+  }
+  function toggleLike(postId) {
+    likes[postId] = Number(likes[postId] || 0) + 1;
+    saveBoardMeta();
+    renderBoard();
+  }
+  function addComment(postId) {
+    const text = prompt('Viết bình luận:');
+    if (!text || !text.trim()) return;
+    const user = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || 'Thành viên';
+    comments.push({id:uid(),postId,author:user,content:text.trim(),createdAt:new Date().toISOString()});
+    saveBoardMeta();
+    renderBoard();
+  }
+  async function sharePost(postId) {
+    const p = posts.find(x => x.id === postId);
+    if (!p) return;
+    const shareText = (p.author || 'Thành viên') + ': ' + p.content;
+    try {
+      if (navigator.share) await navigator.share({title:'Gia Phả Họ Nguyễn',text:shareText,url:location.href});
+      else if (navigator.clipboard) { await navigator.clipboard.writeText(shareText+' '+location.href); alert('Đã sao chép nội dung chia sẻ.'); }
+      else alert(shareText);
+    } catch (e) {}
+  }
   document.getElementById('btnAddPost').onclick = () => {
     document.getElementById('postForm').reset();
+    postImageBase64 = null;
+    document.getElementById('postImage').value = '';
     document.getElementById('postModal').classList.remove('hidden');
   };
   document.getElementById('btnClosePost').onclick = () => document.getElementById('postModal').classList.add('hidden');
   document.getElementById('btnCancelPost').onclick = () => document.getElementById('postModal').classList.add('hidden');
+  document.getElementById('postImage').onchange = e => {
+    const f=e.target.files[0]; if(!f) return;
+    if(f.size>1500000) return alert('Ảnh bài viết nên nhỏ hơn 1.5MB.');
+    const r=new FileReader(); r.onload=()=>{postImageBase64=r.result;}; r.readAsDataURL(f);
+  };
   document.getElementById('postForm').onsubmit = e => {
     e.preventDefault();
+    const content=document.getElementById('postContent').value.trim();
+    if(!content) return;
     posts.unshift({
       id: uid(),
-      author: document.getElementById('postAuthor').value.trim() || 'Thành viên',
-      content: document.getElementById('postContent').value.trim(),
+      type: document.getElementById('postType').value || 'member',
+      author: document.getElementById('postAuthor').value.trim() || (window.GiaCloud?.state?.profile?.display_name || 'Thành viên'),
+      content,
+      image: postImageBase64,
       pin: document.getElementById('postPin').checked,
-      createdAt: new Date().toLocaleString('vi-VN')
+      createdAt: new Date().toISOString()
     });
     savePosts();
     document.getElementById('postModal').classList.add('hidden');
@@ -792,6 +869,8 @@
           data = cloudData.tree;
           events = cloudData.events;
           posts = cloudData.posts;
+          comments = cloudData.comments || comments;
+          likes = cloudData.likes || likes;
           saveTree();
           saveEvents();
           savePosts();
@@ -814,9 +893,13 @@
         data = cloudData.tree;
         events = cloudData.events;
         posts = cloudData.posts;
+        comments = cloudData.comments || comments;
+        likes = cloudData.likes || likes;
         localStorage.setItem(TREE_KEY, JSON.stringify(data));
         localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
         localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
+        localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+        localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
         refreshTree();
         renderEvents();
         renderBoard();
@@ -834,6 +917,7 @@
   seedIfEmpty();
   loadEvents();
   loadPosts();
+  loadBoardMeta();
   initCal();
   initAccountUI();
   showView('home');
