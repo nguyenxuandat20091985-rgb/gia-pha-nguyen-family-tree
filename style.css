@@ -268,3 +268,22 @@ main { padding: 12px 14px 24px; }
 .comment-compose textarea:focus{border-color:var(--gold);box-shadow:0 0 0 2px rgba(201,162,39,.12)}
 .comment-send{flex:0 0 auto;border:0;border-radius:11px;padding:10px 14px;background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#3d2a00;font-family:var(--font);font-size:.8rem;font-weight:700;cursor:pointer}
 .comment-send:active{transform:scale(.97)}
+
+
+/* Custom in-app dialogs */
+#customDialogHost{position:relative;z-index:9999}
+.custom-dialog-backdrop{position:fixed;inset:0;background:rgba(42,24,16,.48);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}
+.custom-dialog{width:min(100%,420px);background:var(--card);border:1px solid var(--gold);border-top:4px solid var(--gold);border-radius:18px;padding:22px;box-shadow:0 18px 50px rgba(42,24,16,.28);animation:dialogIn .16s ease-out}
+.custom-dialog-icon{width:46px;height:46px;display:grid;place-items:center;border-radius:50%;background:#fff3cf;margin-bottom:10px;font-size:1.35rem}
+.custom-dialog-icon.danger{background:#fff0ed}
+.custom-dialog h3{font-family:var(--font-serif);color:var(--primary);font-size:1.12rem;margin-bottom:7px}
+.custom-dialog p{font-size:.88rem;color:var(--text);white-space:pre-wrap;overflow-wrap:anywhere;margin-bottom:18px}
+.custom-dialog-form label{display:block;font-size:.8rem;font-weight:600;color:var(--text-muted);margin:4px 0 6px}
+.dialog-input{width:100%;min-height:110px;resize:vertical;padding:11px 12px;border:1.5px solid var(--border);border-radius:11px;font:inherit;color:var(--text);outline:none}
+.dialog-input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.12)}
+.custom-dialog-actions{display:flex;gap:9px;justify-content:flex-end;margin-top:16px}
+.custom-dialog-actions button{border:0;border-radius:10px;padding:10px 16px;font-family:var(--font);font-weight:700;cursor:pointer}
+.dialog-cancel{background:#f0e6d8;color:var(--text)}
+.dialog-ok{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#3d2a00}
+.dialog-ok.danger{background:#b42318;color:#fff}
+@keyframes dialogIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
