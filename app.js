@@ -30,6 +30,13 @@
   function uid() {
     return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
+  function cloudUid() {
+    if (window.crypto?.randomUUID) return window.crypto.randomUUID();
+    return '00000000-0000-4000-8000-' + (Date.now().toString(16) + Math.random().toString(16).slice(2,14)).slice(-12);
+  }
+  function isUuid(v) {
+    return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(String(v||''));
+  }
 
   function loadTree() {
     for (const k of TREE_KEYS) {
@@ -54,6 +61,8 @@
 
   function loadEvents() {
     try { events = JSON.parse(localStorage.getItem(EVENTS_KEY) || '[]'); } catch (e) { events = []; }
+    events = events.map(e => ({...e, id: isUuid(e.id) ? e.id : cloudUid()}));
+    localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
   }
   function saveEvents() {
     localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
@@ -61,6 +70,8 @@
   }
   function loadPosts() {
     try { posts = JSON.parse(localStorage.getItem(POSTS_KEY) || '[]'); } catch (e) { posts = []; }
+    posts = posts.map(p => ({...p, id: isUuid(p.id) ? p.id : cloudUid(), type:p.type||'member'}));
+    localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
   }
   function savePosts() {
     localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
@@ -68,7 +79,9 @@
   }
   function loadBoardMeta() {
     try { comments = JSON.parse(localStorage.getItem(COMMENTS_KEY) || '[]'); } catch (e) { comments = []; }
+    comments = comments.map(x => ({...x, id:isUuid(x.id)?x.id:cloudUid(), postId:isUuid(x.postId)?x.postId:x.postId}));
     try { likes = JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch (e) { likes = {}; }
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
   }
   function saveBoardMeta() {
     localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
@@ -501,7 +514,7 @@
   document.getElementById('eventForm').onsubmit = e => {
     e.preventDefault();
     const ev = {
-      id: uid(),
+      id: cloudUid(),
       title: document.getElementById('eventTitle').value.trim(),
       type: document.getElementById('eventType').value,
       person: document.getElementById('eventPerson').value.trim(),
@@ -569,7 +582,7 @@
     const text = prompt('Viết bình luận:');
     if (!text || !text.trim()) return;
     const user = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || 'Thành viên';
-    comments.push({id:uid(),postId,author:user,content:text.trim(),createdAt:new Date().toISOString()});
+    comments.push({id:cloudUid(),postId,author:user,content:text.trim(),createdAt:new Date().toISOString()});
     saveBoardMeta();
     renderBoard();
   }
@@ -601,7 +614,7 @@
     const content=document.getElementById('postContent').value.trim();
     if(!content) return;
     posts.unshift({
-      id: uid(),
+      id: cloudUid(),
       type: document.getElementById('postType').value || 'member',
       author: document.getElementById('postAuthor').value.trim() || (window.GiaCloud?.state?.profile?.display_name || 'Thành viên'),
       content,
