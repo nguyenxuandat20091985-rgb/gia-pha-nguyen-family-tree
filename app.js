@@ -609,6 +609,9 @@
     posts = posts.filter(x => x.id !== postId);
     comments = comments.filter(x => x.postId !== postId);
     delete likes[postId];
+    try {
+      if (window.GiaCloud?.state?.user && window.GiaCloud.deletePostCloud) await window.GiaCloud.deletePostCloud(postId);
+    } catch (e) { console.warn(e); }
     savePosts(); saveBoardMeta(); renderBoard();
   }
   function deleteComment(commentId) {
@@ -617,6 +620,9 @@
     if (window.GiaCloud?.state?.user && c.author !== currentUser) return alert('Anh chỉ có thể xóa bình luận do mình viết.');
     if (!confirm('Xóa bình luận này?')) return;
     comments = comments.filter(x => x.id !== commentId);
+    try {
+      if (window.GiaCloud?.state?.user && window.GiaCloud.deleteCommentCloud) await window.GiaCloud.deleteCommentCloud(commentId);
+    } catch (e) { console.warn(e); }
     saveBoardMeta(); renderBoard();
   }
   async function sharePost(postId) {
