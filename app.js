@@ -27,80 +27,6 @@
   let calYear, calMonth;
   let currentRitual = null;
 
-  /* ===== CUSTOM DIALOGS ===== */
-  function ensureDialogHost() {
-    let host = document.getElementById('customDialogHost');
-    if (host) return host;
-    host = document.createElement('div');
-    host.id = 'customDialogHost';
-    host.className = 'custom-dialog-host';
-    document.body.appendChild(host);
-    return host;
-  }
-
-  function customAlert(message, title = 'Thông báo') {
-    return new Promise(resolve => {
-      const host = ensureDialogHost();
-      const overlay = document.createElement('div');
-      overlay.className = 'custom-dialog-overlay';
-      overlay.innerHTML = '<div class="custom-dialog" role="dialog" aria-modal="true">' +
-        '<div class="custom-dialog-icon">✓</div><div class="custom-dialog-title"></div>' +
-        '<div class="custom-dialog-message"></div><div class="custom-dialog-actions">' +
-        '<button type="button" class="btn btn-primary custom-dialog-ok">Đồng ý</button></div></div>';
-      overlay.querySelector('.custom-dialog-title').textContent = title;
-      overlay.querySelector('.custom-dialog-message').textContent = message;
-      let settled = false;
-      const close = () => {
-        if (settled) return;
-        settled = true;
-        document.removeEventListener('keydown', onKey);
-        overlay.remove();
-        resolve(true);
-      };
-      const onKey = e => { if (e.key === 'Escape' || e.key === 'Enter') { e.preventDefault(); close(); } };
-      overlay.querySelector('.custom-dialog-ok').addEventListener('click', close);
-      overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-      document.addEventListener('keydown', onKey);
-      host.appendChild(overlay);
-      requestAnimationFrame(() => overlay.querySelector('.custom-dialog-ok')?.focus());
-    });
-  }
-
-  function customConfirm(message, options = {}) {
-    return new Promise(resolve => {
-      const host = ensureDialogHost();
-      const overlay = document.createElement('div');
-      overlay.className = 'custom-dialog-overlay';
-      overlay.innerHTML = '<div class="custom-dialog" role="dialog" aria-modal="true">' +
-        '<div class="custom-dialog-icon custom-dialog-icon-confirm">?</div><div class="custom-dialog-title"></div>' +
-        '<div class="custom-dialog-message"></div><div class="custom-dialog-actions">' +
-        '<button type="button" class="btn btn-secondary custom-dialog-cancel">Hủy</button>' +
-        '<button type="button" class="btn custom-dialog-ok">Xác nhận</button></div></div>';
-      overlay.querySelector('.custom-dialog-title').textContent = options.title || 'Xác nhận';
-      overlay.querySelector('.custom-dialog-message').textContent = message;
-      const ok = overlay.querySelector('.custom-dialog-ok');
-      if (options.danger) ok.classList.add('btn-danger');
-      let settled = false;
-      const finish = value => {
-        if (settled) return;
-        settled = true;
-        document.removeEventListener('keydown', onKey);
-        overlay.remove();
-        resolve(value);
-      };
-      const onKey = e => {
-        if (e.key === 'Escape') { e.preventDefault(); finish(false); }
-        if (e.key === 'Enter') { e.preventDefault(); finish(true); }
-      };
-      overlay.querySelector('.custom-dialog-cancel').addEventListener('click', () => finish(false));
-      ok.addEventListener('click', () => finish(true));
-      overlay.addEventListener('click', e => { if (e.target === overlay) finish(false); });
-      document.addEventListener('keydown', onKey);
-      host.appendChild(overlay);
-      requestAnimationFrame(() => ok.focus());
-    });
-  }
-
   function uid() {
     return 'id_' + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
   }
@@ -425,7 +351,7 @@
     contextTargetId = null;
   }
 
-  document.getElementById('contextMenu').onclick = e => {
+  document.getElementById('contextMenu').onclick = async e => {
     const btn = e.target.closest('button');
     if (!btn || !contextTargetId) return;
     const action = btn.dataset.action;
@@ -435,10 +361,11 @@
     if (action === 'addChild') openPersonModal({ title: 'Thêm con', parentId: id, relation: 'child' });
     if (action === 'addSpouse') openPersonModal({ title: 'Vợ/Chồng', parentId: id, relation: 'spouse' });
     if (action === 'addSide') openPersonModal({ title: 'Nhánh phụ', parentId: id, relation: 'side' });
-    if (action === 'delete') customConfirm('Xóa người này và con cháu?', {title:'Xóa thành viên', danger:true}).then(ok => {
-      if (!ok) return;
-      deletePerson(id); saveTree(); refreshTree();
-    });
+    if (action === 'delete' && await customConfirm('Xóa người này và con cháu?', {title:'Xóa thành viên', danger:true})) {
+      deletePerson(id);
+      saveTree();
+      refreshTree();
+    }
   };
 
   function deletePerson(id) {
@@ -494,7 +421,7 @@
     const parentId = document.getElementById('parentId').value || null;
     const relation = document.getElementById('relationSelect').value || document.getElementById('relationType').value || 'child';
     const name = document.getElementById('fullName').value.trim();
-    if (!name) return customAlert('Vui lòng nhập họ tên.', 'Thiếu thông tin');
+    if (!name) return customAlert('Nhập họ tên');
     const payload = {
       name,
       gender: document.getElementById('gender').value,
@@ -531,7 +458,7 @@
   document.getElementById('photoInput').onchange = e => {
     const f = e.target.files[0];
     if (!f) return;
-    if (f.size > 2e6) return customAlert('Ảnh cần nhỏ hơn 2MB.', 'Ảnh quá lớn');
+    if (f.size > 2e6) return customAlert('Ảnh < 2MB');
     const r = new FileReader();
     r.onload = () => {
       photoBase64 = r.result;
@@ -546,46 +473,6 @@
     document.getElementById('photoPreview').classList.add('hidden');
     document.getElementById('btnRemovePhoto').classList.add('hidden');
   };
-
-  /* ===== CUSTOM DIALOGS ===== */
-  function ensureDialogHost() {
-    let host = document.getElementById('customDialogHost');
-    if (!host) { host = document.createElement('div'); host.id = 'customDialogHost'; document.body.appendChild(host); }
-    return host;
-  }
-  function customConfirm(message, opts = {}) {
-    return new Promise(resolve => {
-      const host = ensureDialogHost();
-      const title = opts.title || 'Xác nhận';
-      host.innerHTML = '<div class="custom-dialog-backdrop"><div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-icon '+(opts.danger?'danger':'')+'">'+(opts.danger?'🗑️':'❓')+'</div><h3>'+esc(title)+'</h3><p>'+esc(message)+'</p><div class="custom-dialog-actions"><button type="button" class="dialog-cancel">Hủy</button><button type="button" class="dialog-ok '+(opts.danger?'danger':'')+'">Đồng ý</button></div></div></div>';
-      const close = ok => { host.innerHTML=''; resolve(ok); };
-      host.querySelector('.dialog-cancel').onclick=()=>close(false);
-      host.querySelector('.dialog-ok').onclick=()=>close(true);
-      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget) close(false);};
-      host.querySelector('.dialog-ok').focus();
-    });
-  }
-  function customAlert(message, title='Thông báo') {
-    return new Promise(resolve => {
-      const host=ensureDialogHost();
-      host.innerHTML='<div class="custom-dialog-backdrop"><div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-icon">ℹ️</div><h3>'+esc(title)+'</h3><p>'+esc(message)+'</p><div class="custom-dialog-actions"><button type="button" class="dialog-ok">Đã hiểu</button></div></div></div>';
-      const close=()=>{host.innerHTML='';resolve();}; host.querySelector('.dialog-ok').onclick=close;
-      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget)close();};
-      host.querySelector('.dialog-ok').focus();
-    });
-  }
-  function customPrompt(title, value='', label='Nội dung') {
-    return new Promise(resolve => {
-      const host=ensureDialogHost();
-      host.innerHTML='<div class="custom-dialog-backdrop"><div class="custom-dialog custom-dialog-form" role="dialog" aria-modal="true"><div class="custom-dialog-icon">✏️</div><h3>'+esc(title)+'</h3><label>'+esc(label)+'</label><textarea class="dialog-input" rows="5" maxlength="5000"></textarea><div class="custom-dialog-actions"><button type="button" class="dialog-cancel">Hủy</button><button type="button" class="dialog-ok">Lưu</button></div></div></div>';
-      const input=host.querySelector('.dialog-input'); input.value=value||''; input.focus(); input.setSelectionRange(input.value.length,input.value.length);
-      const close=ok=>{const v=input.value;host.innerHTML='';resolve(ok?v:null);};
-      host.querySelector('.dialog-cancel').onclick=()=>close(false);
-      host.querySelector('.dialog-ok').onclick=()=>close(true);
-      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget)close(false);};
-      input.addEventListener('keydown',e=>{if(e.key==='Escape')close(false); if((e.ctrlKey||e.metaKey)&&e.key==='Enter')close(true);});
-    });
-  }
 
   /* ===== EVENTS ===== */
   const TYPE_LABEL = {
@@ -716,16 +603,17 @@
   async function editPost(postId) {
     const p = posts.find(x => x.id === postId); if (!p) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể sửa bài do mình đăng.', 'Không thể sửa bài');
-    const content = await customPrompt('✏️ Sửa nội dung bài viết', p.content || '', 'Nội dung bài viết');
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể sửa bài do mình đăng.', 'Không thể sửa');
+    const content = await customPrompt('✏️ Sửa nội dung bài viết:', p.content || '', {title:'Sửa bài viết'});
     if (content === null || !content.trim()) return;
-    p.content = content.trim(); p.updatedAt = new Date().toISOString();
+    p.content = content.trim();
+    p.updatedAt = new Date().toISOString();
     savePosts(); renderBoard();
   }
   async function deletePost(postId) {
     const p = posts.find(x => x.id === postId); if (!p) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể xóa bài do mình đăng.', 'Không thể xóa bài');
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể xóa bài do mình đăng.', 'Không thể xóa');
     if (!(await customConfirm('Xóa bài viết này? Bài và các bình luận liên quan sẽ được xóa khỏi thiết bị.', {title:'Xóa bài viết', danger:true}))) return;
     posts = posts.filter(x => x.id !== postId);
     comments = comments.filter(x => x.postId !== postId);
@@ -738,7 +626,7 @@
   async function deleteComment(commentId) {
     const c = comments.find(x => x.id === commentId); if (!c) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && c.author !== currentUser) return customAlert('Anh chỉ có thể xóa bình luận do mình viết.', 'Không thể xóa bình luận');
+    if (window.GiaCloud?.state?.user && c.author !== currentUser) return customAlert('Anh chỉ có thể xóa bình luận do mình viết.', 'Không thể xóa');
     if (!(await customConfirm('Xóa bình luận này?', {title:'Xóa bình luận', danger:true}))) return;
     comments = comments.filter(x => x.id !== commentId);
     try {
@@ -753,7 +641,7 @@
     try {
       if (navigator.share) await navigator.share({title:'Gia Phả Họ Nguyễn',text:shareText,url:location.href});
       else if (navigator.clipboard) { await navigator.clipboard.writeText(shareText+' '+location.href); customAlert('Đã sao chép nội dung chia sẻ.'); }
-      else customAlert(shareText, 'Nội dung chia sẻ');
+      else customAlert(shareText);
     } catch (e) {}
   }
   document.getElementById('btnAddPost').onclick = () => {
@@ -766,7 +654,7 @@
   document.getElementById('btnCancelPost').onclick = () => document.getElementById('postModal').classList.add('hidden');
   document.getElementById('postImage').onchange = e => {
     const f=e.target.files[0]; if(!f) return;
-    if(f.size>1500000) return customAlert('Ảnh bài viết nên nhỏ hơn 1.5MB.', 'Ảnh quá lớn');
+    if(f.size>1500000) return customAlert('Ảnh bài viết nên nhỏ hơn 1.5MB.');
     const r=new FileReader(); r.onload=()=>{postImageBase64=r.result;}; r.readAsDataURL(f);
   };
   document.getElementById('postForm').onsubmit = e => {
@@ -875,10 +763,10 @@
   document.getElementById('btnCloseRitual').onclick = () => document.getElementById('ritualModal').classList.add('hidden');
   document.getElementById('btnCopyRitual').onclick = () => {
     if (!currentRitual) return;
-    navigator.clipboard.writeText(currentRitual.content).then(() => customAlert('Đã sao chép')).catch(() => customAlert('Không sao chép được', 'Sao chép'));
+    navigator.clipboard.writeText(currentRitual.content).then(() => customAlert('Đã sao chép')).catch(() => customAlert('Không sao chép được'));
   };
   document.getElementById('btnSpeakRitual').onclick = () => {
-    if (!currentRitual || !window.speechSynthesis) return customAlert('Trình duyệt không hỗ trợ đọc', 'Không hỗ trợ');
+    if (!currentRitual || !window.speechSynthesis) return customAlert('Trình duyệt không hỗ trợ đọc');
     const u = new SpeechSynthesisUtterance(currentRitual.content);
     u.lang = 'vi-VN';
     speechSynthesis.speak(u);
@@ -909,7 +797,7 @@
         savePosts();
         customAlert('Nhập thành công');
         refreshTree();
-      } catch (err) { customAlert('File không hợp lệ', 'Nhập dữ liệu'); }
+      } catch (err) { customAlert('File không hợp lệ'); }
     };
     r.readAsText(f);
     e.target.value = '';
@@ -980,7 +868,7 @@
         btnGoogle.disabled = true;
         await window.GiaCloud.signInGoogle();
       } catch (e) {
-        customAlert('Đăng nhập Google lỗi: ' + (e?.message || e), 'Đăng nhập Google');
+        customAlert('Đăng nhập Google lỗi: ' + (e?.message || e));
         btnGoogle.disabled = false;
       }
     });
@@ -990,9 +878,9 @@
         btnSendOtp.disabled = true;
         await window.GiaCloud.sendPhoneOtp(phone.value);
         document.getElementById('otpBox')?.classList.remove('hidden');
-        customAlert('Đã gửi mã OTP. Kiểm tra SMS.', 'OTP đã được gửi');
+        customAlert('Đã gửi mã OTP. Kiểm tra SMS.');
       } catch (e) {
-        customAlert('Không gửi được OTP: ' + (e?.message || e), 'Gửi OTP');
+        customAlert('Không gửi được OTP: ' + (e?.message || e));
       } finally {
         btnSendOtp.disabled = false;
       }
@@ -1003,7 +891,7 @@
         btnVerifyOtp.disabled = true;
         await window.GiaCloud.verifyPhoneOtp(phone.value, otp.value);
       } catch (e) {
-        customAlert('Xác nhận OTP lỗi: ' + (e?.message || e), 'Xác nhận OTP');
+        customAlert('Xác nhận OTP lỗi: ' + (e?.message || e));
       } finally {
         btnVerifyOtp.disabled = false;
       }
@@ -1014,9 +902,9 @@
         btnSaveProfile.disabled = true;
         await window.GiaCloud.upsertProfile({ display_name: document.getElementById('authName').value.trim() });
         renderAuth();
-        customAlert('Đã lưu thông tin thành viên.', 'Đã lưu');
+        customAlert('Đã lưu thông tin thành viên.');
       } catch (e) {
-        customAlert('Lưu thông tin lỗi: ' + (e?.message || e), 'Lưu thông tin');
+        customAlert('Lưu thông tin lỗi: ' + (e?.message || e));
       } finally {
         btnSaveProfile.disabled = false;
       }
@@ -1027,7 +915,7 @@
         btnLogout.disabled = true;
         await window.GiaCloud.signOut();
       } catch (e) {
-        customAlert('Đăng xuất lỗi: ' + (e?.message || e), 'Đăng xuất');
+        customAlert('Đăng xuất lỗi: ' + (e?.message || e));
       } finally {
         btnLogout.disabled = false;
       }
@@ -1072,3 +960,26 @@
         localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
         localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
         localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+        localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+        refreshTree();
+        renderEvents();
+        renderBoard();
+        renderHome();
+      } catch (e) {
+        console.warn('Realtime pull failed:', e);
+      }
+    });
+
+    renderAuth();
+  }
+
+  /* init */
+  loadTree();
+  seedIfEmpty();
+  loadEvents();
+  loadPosts();
+  loadBoardMeta();
+  initCal();
+  initAccountUI();
+  showView('home');
+})();
