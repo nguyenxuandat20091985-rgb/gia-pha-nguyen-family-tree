@@ -163,8 +163,6 @@
     }
     parts.push('');
     parts.push('4. Lời nhắc: Con cháu Họ Nguyễn hãy giữ gìn bản sắc, đoàn kết, uống nước nhớ nguồn.');
-    parts.push('');
-    parts.push('(Bản tin chỉ lấy từ dữ liệu gia phả & sự kiện trên máy – không bịa sự kiện.)');
     return parts.join('\n');
   }
 
