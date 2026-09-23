@@ -73,6 +73,8 @@ create table if not exists posts (
   author_id uuid references profiles(id),
   content text not null,
   pinned boolean default false,
+  post_type text not null default 'member' check (post_type in ('notice','member','news')),
+  image_url text,
   created_at timestamptz default now()
 );
 
@@ -89,6 +91,18 @@ create policy "posts read" on posts for select using (true);
 create policy "posts insert auth" on posts for insert with check (auth.uid() is not null);
 
 -- messages (realtime)
+create table if not exists post_likes (
+  post_id uuid not null references posts(id) on delete cascade,
+  user_id uuid not null references profiles(id) on delete cascade,
+  created_at timestamptz default now(),
+  primary key (post_id, user_id)
+);
+
+alter table post_likes enable row level security;
+create policy "post likes read" on post_likes for select to authenticated using (true);
+create policy "post likes insert own" on post_likes for insert to authenticated with check (user_id = auth.uid());
+create policy "post likes delete own" on post_likes for delete to authenticated using (user_id = auth.uid());
+
 create table if not exists conversations (
   id uuid primary key default gen_random_uuid(),
   title text,
@@ -208,8 +222,15 @@ begin
   alter publication supabase_realtime add table family_events;
 exception when duplicate_object then null;
 end $$;
-do $$
-begin
+do $ begin
   alter publication supabase_realtime add table posts;
 exception when duplicate_object then null;
-end $$;
+end $;
+do $ begin
+  alter publication supabase_realtime add table comments;
+exception when duplicate_object then null;
+end $;
+do $ begin
+  alter publication supabase_realtime add table post_likes;
+exception when duplicate_object then null;
+end $;
