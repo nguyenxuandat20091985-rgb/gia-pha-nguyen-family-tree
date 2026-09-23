@@ -138,3 +138,78 @@ create table if not exists ritual_texts (
   content text,
   source text
 );
+
+
+-- Phase 2 hardening: profile bootstrap, ownership and realtime
+create or replace function public.handle_new_user()
+returns trigger
+language plpgsql
+security invoker
+as $$
+begin
+  insert into public.profiles(id, display_name, phone)
+  values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.phone, new.email), new.phone)
+  on conflict (id) do nothing;
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+after insert on auth.users
+for each row execute function public.handle_new_user();
+
+drop policy if exists "events insert auth" on family_events;
+create policy "events insert auth" on family_events for insert to authenticated
+with check (auth.uid() is not null);
+create policy "events update own_or_admin" on family_events for update to authenticated
+using (created_by = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'))
+with check (created_by = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'));
+create policy "events delete own_or_admin" on family_events for delete to authenticated
+using (created_by = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'));
+
+drop policy if exists "posts insert auth" on posts;
+create policy "posts insert auth" on posts for insert to authenticated
+with check (author_id = auth.uid());
+create policy "posts update own_or_admin" on posts for update to authenticated
+using (author_id = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'))
+with check (author_id = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'));
+create policy "posts delete own_or_admin" on posts for delete to authenticated
+using (author_id = auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'));
+
+alter table comments enable row level security;
+create policy "comments read" on comments for select to authenticated using (true);
+create policy "comments insert own" on comments for insert to authenticated with check (author_id=auth.uid());
+create policy "comments update own" on comments for update to authenticated using (author_id=auth.uid()) with check (author_id=auth.uid());
+create policy "comments delete own_or_admin" on comments for delete to authenticated
+using (author_id=auth.uid() or exists(select 1 from profiles where id=auth.uid() and role='admin'));
+
+alter table conversations enable row level security;
+create policy "conversation members read" on conversations for select to authenticated
+using (exists(select 1 from conversation_members cm where cm.conversation_id=id and cm.user_id=auth.uid()));
+create policy "conversation members insert" on conversation_members for insert to authenticated
+with check (user_id=auth.uid());
+alter table conversation_members enable row level security;
+create policy "conversation membership read own" on conversation_members for select to authenticated using (user_id=auth.uid());
+
+create policy "messages insert members" on messages for insert to authenticated
+with check (sender_id=auth.uid() and exists(select 1 from conversation_members cm where cm.conversation_id=messages.conversation_id and cm.user_id=auth.uid()));
+
+alter table daily_news enable row level security;
+
+-- Enable Realtime publication for shared family data. Safe if already present.
+do $$
+begin
+  alter publication supabase_realtime add table family_members;
+exception when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table family_events;
+exception when duplicate_object then null;
+end $$;
+do $$
+begin
+  alter publication supabase_realtime add table posts;
+exception when duplicate_object then null;
+end $$;
