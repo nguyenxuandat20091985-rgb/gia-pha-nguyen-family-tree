@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Gia Phả Họ Nguyễn - Cây phả hệ đẹp, thêm nhánh chính & nhánh phụ, chi tiết, ảnh" />
   <title>Gia Phả Họ Nguyễn</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css?v=4" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -28,6 +28,7 @@
       <button id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
       <button id="btnExport" class="btn btn-secondary">Xuất JSON</button>
       <button id="btnImport" class="btn btn-secondary">Nhập</button>
+      <button id="btnReset" class="btn btn-secondary" title="Xóa dữ liệu cũ, tải lại danh sách từ giấy">🔄 Reset</button>
       <input type="file" id="importFile" accept=".json" hidden />
     </div>
   </header>
@@ -137,16 +138,14 @@
     <a href="https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree" target="_blank">GitHub • Họ Nguyễn</a>
   </footer>
 
-  <script src="app.js"></script>
+  <script src="app.js?v=4"></script>
   <script>
-    // Đăng ký Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function(e) {
         console.warn('SW register failed', e);
       });
     }
 
-    // Nút Cài app (Chrome / Edge / Android)
     let deferredPrompt = null;
     const btnInstall = document.getElementById('btnInstall');
 
@@ -171,7 +170,6 @@
       deferredPrompt = null;
     });
 
-    // Hướng dẫn cho iOS Safari
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isIOS && !isStandalone) {
