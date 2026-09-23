@@ -4,7 +4,7 @@
  * Dữ liệu lưu localStorage
  */
 
-const STORAGE_KEY = 'giaPhaNguyenData_v2';
+const STORAGE_KEY = 'giaPhaNguyenData_v3';
 
 let data = {
   people: {},
@@ -25,6 +25,9 @@ function save() {
 
 function load() {
   try {
+    // Xóa key cũ để tránh dữ liệu mẫu A/B/C
+    localStorage.removeItem('giaPhaNguyenData_v1');
+    localStorage.removeItem('giaPhaNguyenData_v2');
     const raw = localStorage.getItem(STORAGE_KEY);
     if (raw) {
       data = JSON.parse(raw);
@@ -38,21 +41,10 @@ function getPerson(id) {
   return data.people[id] || null;
 }
 
-/** Tạo người với id cố định để seed ổn định */
 function makePerson(id, { name, gender = 'male', birthDate = '', deathDate = '', notes = '', isSide = false }) {
   const person = {
-    id,
-    name,
-    gender,
-    birthDate,
-    deathDate,
-    notes,
-    photo: null,
-    children: [],
-    spouses: [],
-    sideBranches: [],
-    isSide,
-    parentId: null
+    id, name, gender, birthDate, deathDate, notes,
+    photo: null, children: [], spouses: [], sideBranches: [], isSide, parentId: null
   };
   data.people[id] = person;
   return person;
@@ -71,37 +63,27 @@ function linkChild(parentId, childId, asSide = false) {
   }
 }
 
-function seedSampleIfEmpty() {
-  if (Object.keys(data.people).length > 0) return;
+function seedRealFamily() {
+  data = { people: {}, rootId: null };
 
-  // ===== Dữ liệu từ bản viết tay gia phả Họ Nguyễn =====
-  // Cụ Tổ (gốc)
-  makePerson('root', {
-    name: 'Cụ Tổ Họ Nguyễn',
-    gender: 'male',
-    notes: 'Cụ Tổ dòng họ – 6 đời'
-  });
+  makePerson('root', { name: 'Cụ Tổ Họ Nguyễn', gender: 'male', notes: 'Cụ Tổ dòng họ – 6 đời' });
   data.rootId = 'root';
 
-  // Đời 2 – các con cụ tổ (đọc từ sơ đồ trên giấy)
   makePerson('mung', { name: 'Nguyễn Văn Mừng', gender: 'male', birthDate: '1913', notes: 'Đời 2' });
   makePerson('coc', { name: 'Nguyễn Văn Cốc', gender: 'male', birthDate: '1913', notes: 'Đời 2' });
   makePerson('hach', { name: 'Nguyễn Văn Hạch', gender: 'male', birthDate: '1912', notes: 'Đời 2' });
   makePerson('ngoc', { name: 'Nguyễn Văn Ngọc', gender: 'male', birthDate: '1914', notes: 'Đời 2' });
-
   linkChild('root', 'mung');
   linkChild('root', 'coc');
   linkChild('root', 'hach');
   linkChild('root', 'ngoc');
 
-  // Đời 3 – nhánh Nguyễn Văn Hạch
   makePerson('ap', { name: 'Nguyễn Văn Ấp', gender: 'male', notes: 'Đời 3 – con Hạch' });
   makePerson('canh', { name: 'Nguyễn Văn Cảnh', gender: 'male', notes: 'Đời 3 – con Hạch' });
   makePerson('giang', { name: 'Nguyễn Văn Giang', gender: 'male', notes: 'Đời 3 – con Hạch' });
   makePerson('lang', { name: 'Nguyễn Văn Lạng', gender: 'male', notes: 'Đời 3 – con Hạch' });
   makePerson('nghia', { name: 'Nguyễn Văn Nghĩa', gender: 'male', notes: 'Đời 3' });
   makePerson('thu', { name: 'Nguyễn Văn Thu', gender: 'male', notes: 'Đời 3 – nhánh Ngọc' });
-
   linkChild('hach', 'ap');
   linkChild('hach', 'canh');
   linkChild('hach', 'giang');
@@ -109,7 +91,6 @@ function seedSampleIfEmpty() {
   linkChild('hach', 'nghia');
   linkChild('ngoc', 'thu');
 
-  // Đời 4 – con của Lạng / Giang / các nhánh
   makePerson('nhan', { name: 'Nguyễn Văn Nhẫn', gender: 'male', birthDate: '1971', notes: 'Đời 4' });
   makePerson('gioi', { name: 'Nguyễn Giỏi', gender: 'male', notes: 'Đời 4' });
   makePerson('hop', { name: 'Nguyễn Hợp', gender: 'male', notes: 'Đời 4' });
@@ -119,7 +100,6 @@ function seedSampleIfEmpty() {
   makePerson('dien', { name: 'Nguyễn Điền', gender: 'male', notes: 'Đời 4' });
   makePerson('the', { name: 'Nguyễn Văn Thế', gender: 'male', notes: 'Đời 4 – nhánh Thu' });
   makePerson('giang2', { name: 'Nguyễn Giang', gender: 'male', notes: 'Đời 4' });
-
   linkChild('lang', 'nhan');
   linkChild('lang', 'gioi');
   linkChild('lang', 'hop');
@@ -130,7 +110,6 @@ function seedSampleIfEmpty() {
   linkChild('thu', 'the');
   linkChild('thu', 'giang2');
 
-  // Đời 5 – con của Nhẫn và các anh em
   makePerson('xoai', { name: 'Nguyễn Xoài', gender: 'male', notes: 'Đời 5' });
   makePerson('tam', { name: 'Nguyễn Tám', gender: 'male', notes: 'Đời 5' });
   makePerson('thue', { name: 'Nguyễn Thuế', gender: 'male', notes: 'Đời 5' });
@@ -145,7 +124,6 @@ function seedSampleIfEmpty() {
   makePerson('dung', { name: 'Nguyễn Dũng', gender: 'male', notes: 'Đời 5' });
   makePerson('hao', { name: 'Nguyễn Hào', gender: 'male', notes: 'Đời 5' });
   makePerson('oanh', { name: 'Nguyễn Oanh', gender: 'female', notes: 'Đời 5' });
-
   linkChild('nhan', 'xoai');
   linkChild('nhan', 'tam');
   linkChild('nhan', 'thue');
@@ -161,20 +139,17 @@ function seedSampleIfEmpty() {
   linkChild('huong', 'hao');
   linkChild('dien', 'oanh');
 
-  // Đời 5–6 thêm từ cột bên trái (nhánh Ấp / Cảnh)
   makePerson('thuan', { name: 'Nguyễn Bá Thuận', gender: 'male', notes: 'Đời 5' });
   makePerson('thanhminh', { name: 'Nguyễn Thanh Minh', gender: 'male', notes: 'Đời 5' });
   makePerson('thanhngan', { name: 'Nguyễn Thanh Ngân', gender: 'male', notes: 'Đời 5' });
   makePerson('manh', { name: 'Nguyễn Mạnh', gender: 'male', notes: 'Đời 5' });
   makePerson('cuong', { name: 'Nguyễn Cương', gender: 'male', notes: 'Đời 5' });
-
   linkChild('ap', 'thuan');
   linkChild('ap', 'thanhminh');
   linkChild('canh', 'thanhngan');
   linkChild('canh', 'manh');
   linkChild('canh', 'cuong');
 
-  // Đời 6 – thế hệ trẻ (đọc từ hàng dưới)
   makePerson('hung2', { name: 'Nguyễn Hùng', gender: 'male', notes: 'Đời 6' });
   makePerson('phuong', { name: 'Nguyễn Phương', gender: 'female', notes: 'Đời 6' });
   makePerson('duc', { name: 'Nguyễn Đức', gender: 'male', notes: 'Đời 6' });
@@ -182,7 +157,6 @@ function seedSampleIfEmpty() {
   makePerson('manhduy', { name: 'Nguyễn Mạnh Duy Trung', gender: 'male', notes: 'Đời 6' });
   makePerson('thanh', { name: 'Nguyễn Thanh', gender: 'male', notes: 'Đời 6' });
   makePerson('thai', { name: 'Nguyễn Thái', gender: 'male', notes: 'Đời 6' });
-
   linkChild('xoai', 'hung2');
   linkChild('xoai', 'phuong');
   linkChild('tam', 'duc');
@@ -194,21 +168,17 @@ function seedSampleIfEmpty() {
   save();
 }
 
+function seedSampleIfEmpty() {
+  if (Object.keys(data.people).length > 0) return;
+  seedRealFamily();
+}
+
 function addPerson({ name, gender = 'male', birthDate = '', deathDate = '', notes = '', photo = null, parentId = null, relation = 'child' }) {
   const id = uid();
   const person = {
-    id,
-    name,
-    gender,
-    birthDate,
-    deathDate,
-    notes,
-    photo,
-    children: [],
-    spouses: [],
-    sideBranches: [],
-    isSide: relation === 'side',
-    parentId: parentId || null
+    id, name, gender, birthDate, deathDate, notes, photo,
+    children: [], spouses: [], sideBranches: [],
+    isSide: relation === 'side', parentId: parentId || null
   };
   data.people[id] = person;
 
@@ -225,20 +195,17 @@ function addPerson({ name, gender = 'male', birthDate = '', deathDate = '', note
   } else if (!data.rootId) {
     data.rootId = id;
   }
-
   return person;
 }
 
 function renderTree() {
   const container = document.getElementById('treeRoot');
   const empty = document.getElementById('emptyState');
-
   if (!data.rootId || !data.people[data.rootId]) {
     container.innerHTML = '';
     empty.classList.remove('hidden');
     return;
   }
-
   empty.classList.add('hidden');
   container.innerHTML = '';
   container.appendChild(renderNode(data.rootId));
@@ -247,15 +214,11 @@ function renderTree() {
 function renderNode(id) {
   const p = getPerson(id);
   if (!p) return document.createTextNode('');
-
   const wrapper = document.createElement('div');
   wrapper.className = 'child-branch';
-
   const couple = document.createElement('div');
   couple.className = 'couple';
-
   couple.appendChild(createCard(p));
-
   (p.spouses || []).forEach((sid) => {
     const sp = getPerson(sid);
     if (sp) {
@@ -266,19 +229,14 @@ function renderNode(id) {
       couple.appendChild(createCard(sp));
     }
   });
-
   wrapper.appendChild(couple);
-
   const allKids = [...(p.children || []), ...(p.sideBranches || [])];
   if (allKids.length > 0) {
     const row = document.createElement('div');
     row.className = 'children-row' + (allKids.length > 1 ? ' has-multiple' : '');
-    allKids.forEach(cid => {
-      row.appendChild(renderNode(cid));
-    });
+    allKids.forEach(cid => row.appendChild(renderNode(cid)));
     wrapper.appendChild(row);
   }
-
   return wrapper;
 }
 
@@ -287,7 +245,6 @@ function createCard(p) {
   card.className = 'person-card ' + (p.gender || 'male');
   if (p.isSide) card.classList.add('side-branch');
   card.dataset.id = p.id;
-
   if (p.photo) {
     const img = document.createElement('img');
     img.className = 'photo';
@@ -295,12 +252,10 @@ function createCard(p) {
     img.alt = p.name;
     card.appendChild(img);
   }
-
   const name = document.createElement('div');
   name.className = 'name';
   name.textContent = p.name;
   card.appendChild(name);
-
   const dates = document.createElement('div');
   dates.className = 'dates';
   const parts = [];
@@ -308,19 +263,16 @@ function createCard(p) {
   if (p.deathDate) parts.push('- ' + p.deathDate);
   dates.textContent = parts.join(' ') || '-';
   card.appendChild(dates);
-
   if (p.isSide) {
     const badge = document.createElement('span');
     badge.className = 'badge';
     badge.textContent = 'Nhánh phụ';
     card.appendChild(badge);
   }
-
   card.addEventListener('click', (e) => {
     e.stopPropagation();
     showContextMenu(e, p.id);
   });
-
   return card;
 }
 
@@ -328,26 +280,21 @@ function renderList() {
   const list = document.getElementById('personList');
   const search = (document.getElementById('searchInput').value || '').toLowerCase();
   const genderFilter = document.getElementById('filterGender').value;
-
   const people = Object.values(data.people).filter(p => {
     if (search && !p.name.toLowerCase().includes(search)) return false;
     if (genderFilter && p.gender !== genderFilter) return false;
     return true;
   });
-
   list.innerHTML = '';
   if (people.length === 0) {
     list.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">Không tìm thấy</p>';
     return;
   }
-
   people.sort((a, b) => a.name.localeCompare(b.name, 'vi'));
-
   people.forEach(p => {
     const item = document.createElement('div');
     item.className = 'list-item ' + (p.gender || '') + (p.isSide ? ' side' : '');
     item.dataset.id = p.id;
-
     if (p.photo) {
       const img = document.createElement('img');
       img.src = p.photo;
@@ -359,17 +306,14 @@ function renderList() {
       placeholder.textContent = p.gender === 'female' ? 'F' : 'M';
       item.appendChild(placeholder);
     }
-
     const info = document.createElement('div');
     info.className = 'info';
     info.innerHTML = '<div class="name">' + escapeHtml(p.name) + '</div><div class="meta">' + (p.birthDate || '') + (p.deathDate ? ' - ' + p.deathDate : '') + (p.isSide ? ' | Nhánh phụ' : '') + '</div>';
     item.appendChild(info);
-
     item.addEventListener('click', (e) => {
       e.stopPropagation();
       showContextMenu(e, p.id);
     });
-
     list.appendChild(item);
   });
 }
@@ -400,12 +344,10 @@ function openModal({ title, personId = null, parentId = null, relation = 'child'
   document.getElementById('personId').value = personId || '';
   document.getElementById('parentId').value = parentId || '';
   document.getElementById('relationType').value = relation;
-
   photoBase64 = null;
   document.getElementById('photoPreview').classList.add('hidden');
   document.getElementById('btnRemovePhoto').classList.add('hidden');
   document.getElementById('photoInput').value = '';
-
   if (personId && data.people[personId]) {
     const p = data.people[personId];
     document.getElementById('fullName').value = p.name || '';
@@ -425,7 +367,6 @@ function openModal({ title, personId = null, parentId = null, relation = 'child'
     document.getElementById('personForm').reset();
     document.getElementById('relationSelect').value = relation;
   }
-
   document.getElementById('relationSelect').closest('.form-row').style.display = personId ? 'none' : '';
   document.getElementById('personModal').classList.remove('hidden');
 }
@@ -446,10 +387,8 @@ document.getElementById('personForm').addEventListener('submit', (e) => {
   const id = document.getElementById('personId').value;
   const parentId = document.getElementById('parentId').value || null;
   let relation = document.getElementById('relationSelect').value || document.getElementById('relationType').value || 'child';
-
   const name = document.getElementById('fullName').value.trim();
   if (!name) return alert('Vui lòng nhập họ tên');
-
   const payload = {
     name,
     gender: document.getElementById('gender').value,
@@ -458,7 +397,6 @@ document.getElementById('personForm').addEventListener('submit', (e) => {
     notes: document.getElementById('notes').value.trim(),
     photo: photoBase64
   };
-
   if (id && data.people[id]) {
     Object.assign(data.people[id], payload);
     if (relation === 'side') data.people[id].isSide = true;
@@ -470,7 +408,6 @@ document.getElementById('personForm').addEventListener('submit', (e) => {
       addPerson({ ...payload, parentId, relation });
     }
   }
-
   save();
   closeModal();
   refresh();
@@ -507,7 +444,6 @@ document.getElementById('contextMenu').addEventListener('click', (e) => {
   const action = btn.dataset.action;
   const id = contextTargetId;
   hideContextMenu();
-
   if (action === 'edit') {
     openModal({ title: 'Sửa thông tin', personId: id });
   } else if (action === 'addChild') {
@@ -529,13 +465,11 @@ function deletePersonRecursive(id) {
   const p = data.people[id];
   if (!p) return;
   [...(p.children || []), ...(p.sideBranches || []), ...(p.spouses || [])].forEach(deletePersonRecursive);
-
   Object.values(data.people).forEach(parent => {
     parent.children = (parent.children || []).filter(c => c !== id);
     parent.sideBranches = (parent.sideBranches || []).filter(c => c !== id);
     parent.spouses = (parent.spouses || []).filter(c => c !== id);
   });
-
   delete data.people[id];
   if (data.rootId === id) data.rootId = null;
 }
@@ -585,6 +519,20 @@ document.getElementById('importFile').addEventListener('change', (e) => {
   };
   reader.readAsText(file);
   e.target.value = '';
+});
+
+// Nút Reset - xóa hết cache, tải lại danh sách từ giấy
+document.getElementById('btnReset').addEventListener('click', () => {
+  if (!confirm('Xóa dữ liệu hiện tại và tải lại danh sách gia phả từ bản viết tay?')) return;
+  localStorage.removeItem('giaPhaNguyenData_v1');
+  localStorage.removeItem('giaPhaNguyenData_v2');
+  localStorage.removeItem(STORAGE_KEY);
+  seedRealFamily();
+  currentView = 'tree';
+  document.getElementById('treeView').classList.remove('hidden');
+  document.getElementById('listView').classList.add('hidden');
+  refresh();
+  alert('Đã tải lại danh sách: Cụ Tổ → Mừng, Cốc, Hạch, Ngọc…');
 });
 
 document.addEventListener('click', (e) => {
