@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <meta name="theme-color" content="#8B0000" />
+  <meta name="theme-color" content="#7a0c0c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Gia Phả Họ Nguyễn - Cây phả hệ đẹp, thêm nhánh chính & nhánh phụ, chi tiết, ảnh" />
+  <meta name="description" content="Gia Phả Họ Nguyễn – Trung tâm sinh hoạt dòng họ. Uống nước nhớ nguồn." />
   <title>Gia Phả Họ Nguyễn</title>
-  <link rel="stylesheet" href="style.css?v=6" />
+  <link rel="stylesheet" href="style.css?v=7" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -16,112 +16,200 @@
 <body>
   <header class="app-header">
     <div class="header-left">
-      <img class="app-logo" id="appLogo" src="logo.svg" alt="Gia Phả Họ Nguyễn" />
+      <img class="app-logo" src="logo.svg" alt="Gia Phả Họ Nguyễn" />
       <div class="header-titles">
         <h1>Gia Phả Họ Nguyễn</h1>
-        <p class="subtitle">Thêm nhánh chính & nhánh phụ • Chi tiết • Ảnh • Ngày giỗ</p>
+        <p class="subtitle">Uống nước nhớ nguồn</p>
       </div>
     </div>
     <div class="header-actions">
-      <button id="btnInstall" class="btn btn-install hidden" title="Cài đặt ứng dụng">📥 Cài app</button>
-      <button id="btnAddRoot" class="btn btn-primary" title="Thêm người gốc">+ Gốc</button>
-      <button id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
-      <button id="btnChat" class="btn btn-secondary" title="Bảng tin dòng họ">💬 Tin</button>
-      <button id="btnExport" class="btn btn-secondary">Xuất JSON</button>
-      <button id="btnImport" class="btn btn-secondary">Nhập</button>
-      <button id="btnReset" class="btn btn-secondary" title="Tải lại danh sách từ giấy">🔄 Reset</button>
-      <input type="file" id="importFile" accept=".json" hidden />
+      <button id="btnInstall" class="btn btn-install hidden">📥 Cài app</button>
     </div>
   </header>
 
-  <!-- Bản tin buổi sáng (AI động viên) -->
-  <div id="morningBanner" class="morning-banner">
+  <div id="morningBanner" class="morning-banner hidden">
     <div class="morning-inner">
-      <span class="morning-icon">🌅</span>
+      <span class="morning-icon">🌿</span>
       <p id="morningText"></p>
-      <button id="btnCloseMorning" class="morning-close" aria-label="Đóng">×</button>
+      <button type="button" id="btnCloseMorning" class="morning-close">×</button>
     </div>
   </div>
 
-  <main>
-    <section id="treeView" class="tree-container">
-      <div id="treeRoot" class="tree"></div>
-      <div id="emptyState" class="empty-state">
-        <div class="empty-icon">👨‍👩‍👧‍👦</div>
-        <h2>Chưa có dữ liệu gia phả</h2>
-        <p>Bấm <strong>+ Gốc</strong> để thêm Cụ Tổ, sau đó thêm con cháu, vợ chồng, nhánh phụ.</p>
-        <button class="btn btn-primary" onclick="document.getElementById('btnAddRoot').click()">Bắt đầu tạo gia phả</button>
+  <main id="mainContent">
+    <!-- HOME -->
+    <section id="view-home" class="view">
+      <div class="home-hero">
+        <h2>🌳 Gia Phả Họ Nguyễn</h2>
+        <p>Trung tâm sinh hoạt dòng họ</p>
+      </div>
+      <div class="home-block" id="homeEvents">
+        <h3>🕯️ Việc họ hôm nay</h3>
+        <div id="homeEventsList" class="home-list"></div>
+      </div>
+      <div class="home-block" id="homeAnnounce">
+        <h3>📢 Thông báo mới</h3>
+        <div id="homeAnnounceList" class="home-list"></div>
+      </div>
+      <div class="home-block">
+        <h3>🤖 Bản tin dòng họ hôm nay</h3>
+        <div id="homeAiNews" class="ai-news-card"></div>
+      </div>
+      <div class="home-block">
+        <h3>📅 Lịch hôm nay</h3>
+        <div id="homeCalendarToday" class="home-list"></div>
+      </div>
+      <div class="home-actions">
+        <button type="button" class="btn btn-primary btn-block" data-nav="tree">Xem cây gia phả</button>
       </div>
     </section>
 
-    <section id="listView" class="list-container hidden">
-      <div class="list-toolbar">
-        <input type="search" id="searchInput" placeholder="Tìm tên..." />
-        <select id="filterGender">
-          <option value="">Tất cả</option>
-          <option value="male">Nam</option>
-          <option value="female">Nữ</option>
-        </select>
+    <!-- TREE -->
+    <section id="view-tree" class="view hidden">
+      <div class="view-toolbar">
+        <button type="button" id="btnAddRoot" class="btn btn-primary">+ Thành viên</button>
+        <button type="button" id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
+        <input type="search" id="searchTree" placeholder="Tìm tên..." class="search-input" />
       </div>
-      <div id="personList" class="person-list"></div>
+      <div id="treeView" class="tree-container">
+        <div id="treeRoot" class="tree"></div>
+        <div id="emptyState" class="empty-state hidden">
+          <div class="empty-icon">👨‍👩‍👧‍👦</div>
+          <h2>Chưa có dữ liệu gia phả</h2>
+          <p>Bấm + Thành viên để thêm Cụ Tổ.</p>
+        </div>
+      </div>
+      <div id="listView" class="list-container hidden">
+        <div id="personList" class="person-list"></div>
+      </div>
+    </section>
+
+    <!-- EVENTS Đám / Hiếu Hỉ -->
+    <section id="view-events" class="view hidden">
+      <div class="view-toolbar">
+        <button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button>
+      </div>
+      <div id="eventsList" class="cards-list"></div>
+    </section>
+
+    <!-- BOARD -->
+    <section id="view-board" class="view hidden">
+      <div class="view-toolbar">
+        <button type="button" id="btnAddPost" class="btn btn-primary">+ Đăng bài</button>
+      </div>
+      <div id="boardList" class="cards-list"></div>
+    </section>
+
+    <!-- CHAT -->
+    <section id="view-chat" class="view hidden">
+      <p class="hint-box">💬 Tin nhắn lưu trên máy này. Để chat chung nhiều máy cần kết nối Supabase (Phase 2).</p>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div class="chat-compose">
+        <input type="text" id="chatAuthor" placeholder="Tên bạn" maxlength="30" />
+        <textarea id="chatInput" rows="2" placeholder="Nhắn tin dòng họ..."></textarea>
+        <button type="button" id="btnSendChat" class="btn btn-primary">Gửi</button>
+      </div>
+    </section>
+
+    <!-- MORE -->
+    <section id="view-more" class="view hidden">
+      <div class="more-menu">
+        <button type="button" class="more-item" data-nav="calendar">📅 Lịch dòng họ</button>
+        <button type="button" class="more-item" data-nav="rituals">📜 Văn khấn</button>
+        <button type="button" class="more-item" data-nav="data">☰ Quản lý dữ liệu</button>
+        <button type="button" class="more-item" data-nav="about">ℹ️ Giới thiệu</button>
+      </div>
+    </section>
+
+    <!-- CALENDAR -->
+    <section id="view-calendar" class="view hidden">
+      <div class="cal-nav">
+        <button type="button" id="btnCalPrev" class="btn btn-secondary">‹</button>
+        <h3 id="calTitle"></h3>
+        <button type="button" id="btnCalNext" class="btn btn-secondary">›</button>
+      </div>
+      <div id="calGrid" class="cal-grid"></div>
+      <div id="calDayDetail" class="cal-detail"></div>
+      <p class="disclaimer">Thông tin ngày âm / truyền thống mang tính tham khảo theo văn hóa dân gian, không phải dự đoán khoa học.</p>
+    </section>
+
+    <!-- RITUALS -->
+    <section id="view-rituals" class="view hidden">
+      <div id="ritualsList" class="cards-list"></div>
+    </section>
+
+    <!-- DATA MGMT -->
+    <section id="view-data" class="view hidden">
+      <div class="data-panel">
+        <h3>Quản lý dữ liệu</h3>
+        <button type="button" id="btnExport" class="btn btn-primary btn-block">Xuất JSON (sao lưu)</button>
+        <button type="button" id="btnImport" class="btn btn-secondary btn-block">Nhập JSON</button>
+        <input type="file" id="importFile" accept=".json" hidden />
+        <hr />
+        <p class="warn-text">Reset chỉ dùng khi cần tải lại dữ liệu mẫu. Cây gia phả đang dùng sẽ bị ghi đè.</p>
+        <button type="button" id="btnResetStep1" class="btn btn-danger btn-block">Reset dữ liệu mẫu…</button>
+        <div id="resetConfirm" class="hidden">
+          <p>Gõ <strong>RESET</strong> để xác nhận:</p>
+          <input type="text" id="resetTyped" placeholder="RESET" />
+          <button type="button" id="btnResetFinal" class="btn btn-danger btn-block">Xác nhận xóa & tải mẫu</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ABOUT -->
+    <section id="view-about" class="view hidden">
+      <div class="about-card">
+        <h3>Gia Phả Họ Nguyễn</h3>
+        <p>Trung tâm sinh hoạt dòng họ – Uống nước nhớ nguồn.</p>
+        <p>Phase 1: Gia phả, Hiếu hỉ, Lịch, Văn khấn, Bảng tin & chat trên máy.</p>
+        <p>Phase 2 (cần Supabase): Tài khoản, realtime, đồng bộ nhiều máy.</p>
+        <a href="https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree" target="_blank" rel="noopener">GitHub</a>
+      </div>
     </section>
   </main>
 
-  <!-- Modal thêm/sửa người -->
+  <!-- Bottom nav -->
+  <nav class="bottom-nav" id="bottomNav">
+    <button type="button" class="nav-item active" data-nav="home"><span>🏠</span><small>Trang chủ</small></button>
+    <button type="button" class="nav-item" data-nav="tree"><span>🌳</span><small>Gia phả</small></button>
+    <button type="button" class="nav-item" data-nav="events"><span>🕯️</span><small>Hiếu hỉ</small></button>
+    <button type="button" class="nav-item" data-nav="board"><span>📢</span><small>Bảng tin</span></button>
+    <button type="button" class="nav-item" data-nav="more"><span>☰</span><small>Thêm</small></button>
+  </nav>
+
+  <!-- Person modal -->
   <div id="personModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h2 id="modalTitle">Thêm thành viên</h2>
-        <button class="modal-close" id="btnCloseModal">×</button>
+        <h2 id="modalTitle">Thành viên</h2>
+        <button type="button" class="modal-close" id="btnCloseModal">×</button>
       </div>
       <form id="personForm">
         <input type="hidden" id="personId" />
         <input type="hidden" id="parentId" />
         <input type="hidden" id="relationType" />
-        <div class="form-row">
-          <label>Họ và tên *</label>
-          <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn Mương" />
-        </div>
+        <div class="form-row"><label>Họ và tên *</label><input type="text" id="fullName" required /></div>
         <div class="form-row two-cols">
-          <div>
-            <label>Giới tính</label>
-            <select id="gender">
-              <option value="male">Nam</option>
-              <option value="female">Nữ</option>
-              <option value="other">Khác</option>
-            </select>
+          <div><label>Giới tính</label>
+            <select id="gender"><option value="male">Nam</option><option value="female">Nữ</option><option value="other">Khác</option></select>
           </div>
-          <div>
-            <label>Loại quan hệ</label>
+          <div><label>Quan hệ</label>
             <select id="relationSelect">
-              <option value="child">Con (nhánh chính)</option>
-              <option value="spouse">Vợ / Chồng</option>
-              <option value="side">Nhánh phụ / Chi nhỏ</option>
+              <option value="child">Con</option>
+              <option value="spouse">Vợ/Chồng</option>
+              <option value="side">Nhánh phụ</option>
             </select>
           </div>
         </div>
         <div class="form-row two-cols">
-          <div>
-            <label>Ngày sinh</label>
-            <input type="text" id="birthDate" placeholder="VD: 15/01/1920 hoặc 1920" />
-          </div>
-          <div>
-            <label>Ngày mất</label>
-            <input type="text" id="deathDate" placeholder="VD: 2005 hoặc để trống" />
-          </div>
+          <div><label>Ngày sinh</label><input type="text" id="birthDate" /></div>
+          <div><label>Ngày mất</label><input type="text" id="deathDate" /></div>
         </div>
+        <div class="form-row"><label>📅 Ngày giỗ</label><input type="text" id="deathAnniversary" placeholder="VD: 15/3 ÂL" /></div>
+        <div class="form-row"><label>Ghi chú</label><textarea id="notes" rows="2"></textarea></div>
         <div class="form-row">
-          <label>📅 Ngày giỗ (âm lịch hoặc dương lịch)</label>
-          <input type="text" id="deathAnniversary" placeholder="VD: 15 tháng 3 ÂL hoặc 20/03" />
-        </div>
-        <div class="form-row">
-          <label>Ghi chú / Chi tiết</label>
-          <textarea id="notes" rows="3" placeholder="Nghề nghiệp, quê quán, sự kiện đặc biệt..."></textarea>
-        </div>
-        <div class="form-row">
-          <label>Ảnh đại diện / Ảnh gia đình</label>
+          <label>Ảnh</label>
           <div class="photo-upload">
-            <img id="photoPreview" src="" alt="" class="photo-preview hidden" />
+            <img id="photoPreview" class="photo-preview hidden" alt="" />
             <input type="file" id="photoInput" accept="image/*" />
             <button type="button" id="btnRemovePhoto" class="btn btn-small hidden">Xóa ảnh</button>
           </div>
@@ -134,72 +222,120 @@
     </div>
   </div>
 
-  <!-- Bảng tin / nhắn tin dòng họ -->
-  <div id="chatModal" class="modal hidden">
-    <div class="modal-content chat-modal">
+  <!-- Event modal -->
+  <div id="eventModal" class="modal hidden">
+    <div class="modal-content">
       <div class="modal-header">
-        <h2>💬 Bảng tin dòng họ</h2>
-        <button class="modal-close" id="btnCloseChat">×</button>
+        <h2>Sự kiện Hiếu Hỉ</h2>
+        <button type="button" class="modal-close" id="btnCloseEvent">×</button>
       </div>
-      <div id="chatMessages" class="chat-messages"></div>
-      <div class="chat-input-row">
-        <input type="text" id="chatAuthor" placeholder="Tên bạn" maxlength="30" />
-        <textarea id="chatInput" rows="2" placeholder="Nhắn tin cho bà con dòng họ..."></textarea>
-        <button id="btnSendChat" class="btn btn-primary">Gửi</button>
+      <form id="eventForm">
+        <input type="hidden" id="eventId" />
+        <div class="form-row"><label>Tiêu đề *</label><input type="text" id="eventTitle" required /></div>
+        <div class="form-row"><label>Loại</label>
+          <select id="eventType">
+            <option value="tang">Tang lễ</option>
+            <option value="vieng">Lễ viếng</option>
+            <option value="an-tang">Lễ an táng</option>
+            <option value="49">Lễ 49 ngày</option>
+            <option value="100">Lễ 100 ngày</option>
+            <option value="gio">Giỗ</option>
+            <option value="cuoi">Cưới hỏi</option>
+            <option value="tho">Mừng thọ</option>
+            <option value="sinhnhat">Sinh nhật</option>
+            <option value="hop">Họp họ</option>
+            <option value="khac">Việc họ khác</option>
+          </select>
+        </div>
+        <div class="form-row"><label>Người liên quan</label><input type="text" id="eventPerson" /></div>
+        <div class="form-row two-cols">
+          <div><label>Ngày</label><input type="date" id="eventDate" /></div>
+          <div><label>Giờ</label><input type="time" id="eventTime" /></div>
+        </div>
+        <div class="form-row"><label>📍 Địa chỉ</label><input type="text" id="eventAddress" placeholder="Số nhà, đường, xã/phường..." /></div>
+        <div class="form-row"><label>Nội dung</label><textarea id="eventContent" rows="3"></textarea></div>
+        <div class="form-row"><label><input type="checkbox" id="eventPin" /> Ghim thông báo</label></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btnCancelEvent">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Post modal -->
+  <div id="postModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>Đăng bảng tin</h2>
+        <button type="button" class="modal-close" id="btnClosePost">×</button>
       </div>
+      <form id="postForm">
+        <div class="form-row"><label>Tên người đăng</label><input type="text" id="postAuthor" /></div>
+        <div class="form-row"><label>Nội dung *</label><textarea id="postContent" rows="4" required></textarea></div>
+        <div class="form-row"><label><input type="checkbox" id="postPin" /> Ghim bài</label></div>
+        <div class="form-actions">
+          <button type="button" class="btn btn-secondary" id="btnCancelPost">Hủy</button>
+          <button type="submit" class="btn btn-primary">Đăng</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Ritual detail -->
+  <div id="ritualModal" class="modal hidden">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2 id="ritualTitle"></h2>
+        <button type="button" class="modal-close" id="btnCloseRitual">×</button>
+      </div>
+      <p class="ritual-meta" id="ritualMeta"></p>
+      <pre id="ritualBody" class="ritual-body"></pre>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" id="btnCopyRitual">📋 Sao chép</button>
+        <button type="button" class="btn btn-primary" id="btnSpeakRitual">🔊 Đọc</button>
+      </div>
+      <p class="disclaimer">Văn khấn mang tính tham khảo theo nghi lễ dân gian, không khẳng định bản duy nhất.</p>
     </div>
   </div>
 
   <div id="contextMenu" class="context-menu hidden">
-    <button data-action="edit">✏️ Sửa thông tin</button>
-    <button data-action="addChild">➕ Thêm con (nhánh chính)</button>
-    <button data-action="addSpouse">💍 Thêm vợ / chồng</button>
-    <button data-action="addSide">🌿 Thêm nhánh phụ</button>
-    <button data-action="delete" class="danger">🗑️ Xóa</button>
+    <button type="button" data-action="edit">✏️ Sửa</button>
+    <button type="button" data-action="addChild">➕ Thêm con</button>
+    <button type="button" data-action="addSpouse">💍 Vợ/Chồng</button>
+    <button type="button" data-action="addSide">🌿 Nhánh phụ</button>
+    <button type="button" data-action="delete" class="danger">🗑️ Xóa</button>
   </div>
 
   <div id="iosInstallHint" class="ios-hint hidden">
-    <p>📱 <strong>Cài app trên iPhone:</strong> Bấm nút <strong>Chia sẻ</strong> → <strong>Thêm vào Màn hình chính</strong></p>
-    <button id="btnCloseIosHint">Đã hiểu</button>
+    <p>📱 iPhone: Chia sẻ → Thêm vào Màn hình chính</p>
+    <button type="button" id="btnCloseIosHint">Đã hiểu</button>
   </div>
 
-  <footer class="app-footer">
-    <span>Dữ liệu lưu trên trình duyệt (localStorage)</span>
-    <span>•</span>
-    <a href="https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree" target="_blank">GitHub • Họ Nguyễn</a>
-  </footer>
-
-  <script src="app.js?v=6"></script>
+  <script src="rituals.js?v=7"></script>
+  <script src="app.js?v=7"></script>
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(function(e) {
-        console.warn('SW register failed', e);
-      });
+      navigator.serviceWorker.register('./sw.js').catch(function () {});
     }
-    let deferredPrompt = null;
-    const btnInstall = document.getElementById('btnInstall');
-    window.addEventListener('beforeinstallprompt', function(e) {
+    var deferredPrompt = null;
+    var btnInstall = document.getElementById('btnInstall');
+    window.addEventListener('beforeinstallprompt', function (e) {
       e.preventDefault();
       deferredPrompt = e;
       btnInstall.classList.remove('hidden');
     });
-    btnInstall.addEventListener('click', async function() {
+    btnInstall.addEventListener('click', async function () {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
-      const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') btnInstall.classList.add('hidden');
+      await deferredPrompt.userChoice;
       deferredPrompt = null;
-    });
-    window.addEventListener('appinstalled', function() {
       btnInstall.classList.add('hidden');
-      deferredPrompt = null;
     });
-    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isIOS && !isStandalone) {
-      document.getElementById('iosInstallHint').classList.remove('hidden');
-    }
-    document.getElementById('btnCloseIosHint').addEventListener('click', function() {
+    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isStandalone) document.getElementById('iosInstallHint').classList.remove('hidden');
+    document.getElementById('btnCloseIosHint').addEventListener('click', function () {
       document.getElementById('iosInstallHint').classList.add('hidden');
     });
   </script>
