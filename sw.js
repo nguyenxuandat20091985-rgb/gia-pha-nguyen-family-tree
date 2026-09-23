@@ -1,16 +1,17 @@
-const CACHE_NAME = 'gia-pha-nguyen-v1';
+const CACHE_NAME = 'gia-pha-nguyen-v7';
 const ASSETS = [
   './',
   './index.html',
   './style.css',
   './app.js',
+  './rituals.js',
   './manifest.json',
   './logo.svg'
 ];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS).catch(() => {}))
   );
   self.skipWaiting();
 });
@@ -26,6 +27,15 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(event.request).then((cached) => {
+      const fetched = fetch(event.request).then((res) => {
+        if (res && res.status === 200 && event.request.method === 'GET') {
+          const clone = res.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+        }
+        return res;
+      }).catch(() => cached);
+      return cached || fetched;
+    })
   );
 });
