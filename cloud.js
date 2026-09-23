@@ -42,6 +42,17 @@
     const p=String(phone||'').replace(/\s+/g,'');
     return client.auth.verifyOtp({phone:p,token:String(token||'').trim(),type:'sms'});
   }
+  async function deletePostCloud(postId) {
+    if (!state.user) return;
+    const r = await client.from('posts').delete().eq('id', postId).eq('author_id', state.user.id);
+    if (r.error) throw r.error;
+  }
+  async function deleteCommentCloud(commentId) {
+    if (!state.user) return;
+    const r = await client.from('comments').delete().eq('id', commentId).eq('author_id', state.user.id);
+    if (r.error) throw r.error;
+  }
+
   async function signOut(){ if(client) await client.auth.signOut(); }
   async function upsertProfile(fields){
     if(!client||!user) return;
