@@ -270,6 +270,29 @@ main { padding: 12px 14px 24px; }
 .comment-send:active{transform:scale(.97)}
 
 
+/* Google Sign-In button: clear, professional, high-contrast */
+.account-card #btnGoogle{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:10px;
+  min-height:46px;
+  background:#fff;
+  color:#2a1810;
+  border:1.5px solid #d8d0c6;
+  box-shadow:0 2px 8px rgba(42,24,16,.08);
+  font-weight:700;
+  transition:transform .15s ease, box-shadow .15s ease, border-color .15s ease;
+}
+.account-card #btnGoogle::first-letter{font-size:1.05rem}
+.account-card #btnGoogle:hover{
+  background:#fffdf9;
+  border-color:#b8aa9b;
+  box-shadow:0 4px 14px rgba(42,24,16,.12);
+}
+.account-card #btnGoogle:active{transform:scale(.985);box-shadow:0 2px 7px rgba(42,24,16,.09)}
+.account-card #btnGoogle:focus-visible{outline:3px solid rgba(201,162,39,.28);outline-offset:2px}
+
 /* Custom in-app dialogs */
 #customDialogHost{position:relative;z-index:9999}
 .custom-dialog-backdrop{position:fixed;inset:0;background:rgba(42,24,16,.48);backdrop-filter:blur(2px);display:flex;align-items:center;justify-content:center;padding:18px;z-index:9999}
