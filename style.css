@@ -310,3 +310,18 @@ main { padding: 12px 14px 24px; }
 .dialog-ok{background:linear-gradient(135deg,var(--gold-light),var(--gold));color:#3d2a00}
 .dialog-ok.danger{background:#b42318;color:#fff}
 @keyframes dialogIn{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
+
+
+/* ===== CUSTOM DIALOG ===== */
+.custom-dialog-host{position:relative;z-index:10000}
+.custom-dialog-overlay{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(25,15,10,.46);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);z-index:10001;animation:customDialogFade .16s ease}
+.custom-dialog{width:min(92vw,420px);background:linear-gradient(180deg,#fffdf9 0%,#fff8ef 100%);border:1px solid rgba(139,94,52,.18);border-radius:22px;padding:26px 22px 20px;box-shadow:0 20px 60px rgba(42,24,16,.28);text-align:center;animation:customDialogPop .18s ease}
+.custom-dialog-icon{width:52px;height:52px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;background:#f1dfc8;color:#7a4a20;font-size:25px;font-weight:800}
+.custom-dialog-icon-confirm{background:#ead9c5}
+.custom-dialog-title{font-size:20px;font-weight:800;color:#3a2518;margin-bottom:8px}
+.custom-dialog-message{font-size:15px;line-height:1.55;color:#604a38;white-space:pre-wrap;overflow-wrap:anywhere}
+.custom-dialog-actions{display:flex;justify-content:center;gap:10px;margin-top:20px}
+.custom-dialog-actions .btn{min-width:112px;min-height:44px;border-radius:12px}
+@keyframes customDialogFade{from{opacity:0}to{opacity:1}}
+@keyframes customDialogPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media (prefers-reduced-motion:reduce){.custom-dialog-overlay,.custom-dialog{animation:none}}
