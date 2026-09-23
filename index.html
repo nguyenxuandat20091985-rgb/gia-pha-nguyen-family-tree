@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Gia Phả Họ Nguyễn - Cây phả hệ đẹp, thêm nhánh chính & nhánh phụ, chi tiết, ảnh" />
   <title>Gia Phả Họ Nguyễn</title>
-  <link rel="stylesheet" href="style.css?v=4" />
+  <link rel="stylesheet" href="style.css?v=6" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -19,19 +19,29 @@
       <img class="app-logo" id="appLogo" src="logo.svg" alt="Gia Phả Họ Nguyễn" />
       <div class="header-titles">
         <h1>Gia Phả Họ Nguyễn</h1>
-        <p class="subtitle">Thêm nhánh chính & nhánh phụ • Chi tiết • Ảnh</p>
+        <p class="subtitle">Thêm nhánh chính & nhánh phụ • Chi tiết • Ảnh • Ngày giỗ</p>
       </div>
     </div>
     <div class="header-actions">
       <button id="btnInstall" class="btn btn-install hidden" title="Cài đặt ứng dụng">📥 Cài app</button>
       <button id="btnAddRoot" class="btn btn-primary" title="Thêm người gốc">+ Gốc</button>
       <button id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
+      <button id="btnChat" class="btn btn-secondary" title="Bảng tin dòng họ">💬 Tin</button>
       <button id="btnExport" class="btn btn-secondary">Xuất JSON</button>
       <button id="btnImport" class="btn btn-secondary">Nhập</button>
-      <button id="btnReset" class="btn btn-secondary" title="Xóa dữ liệu cũ, tải lại danh sách từ giấy">🔄 Reset</button>
+      <button id="btnReset" class="btn btn-secondary" title="Tải lại danh sách từ giấy">🔄 Reset</button>
       <input type="file" id="importFile" accept=".json" hidden />
     </div>
   </header>
+
+  <!-- Bản tin buổi sáng (AI động viên) -->
+  <div id="morningBanner" class="morning-banner">
+    <div class="morning-inner">
+      <span class="morning-icon">🌅</span>
+      <p id="morningText"></p>
+      <button id="btnCloseMorning" class="morning-close" aria-label="Đóng">×</button>
+    </div>
+  </div>
 
   <main>
     <section id="treeView" class="tree-container">
@@ -57,6 +67,7 @@
     </section>
   </main>
 
+  <!-- Modal thêm/sửa người -->
   <div id="personModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
@@ -69,7 +80,7 @@
         <input type="hidden" id="relationType" />
         <div class="form-row">
           <label>Họ và tên *</label>
-          <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn A" />
+          <input type="text" id="fullName" required placeholder="Ví dụ: Nguyễn Văn Mương" />
         </div>
         <div class="form-row two-cols">
           <div>
@@ -100,11 +111,15 @@
           </div>
         </div>
         <div class="form-row">
+          <label>📅 Ngày giỗ (âm lịch hoặc dương lịch)</label>
+          <input type="text" id="deathAnniversary" placeholder="VD: 15 tháng 3 ÂL hoặc 20/03" />
+        </div>
+        <div class="form-row">
           <label>Ghi chú / Chi tiết</label>
           <textarea id="notes" rows="3" placeholder="Nghề nghiệp, quê quán, sự kiện đặc biệt..."></textarea>
         </div>
         <div class="form-row">
-          <label>Ảnh đại diện</label>
+          <label>Ảnh đại diện / Ảnh gia đình</label>
           <div class="photo-upload">
             <img id="photoPreview" src="" alt="" class="photo-preview hidden" />
             <input type="file" id="photoInput" accept="image/*" />
@@ -116,6 +131,22 @@
           <button type="submit" class="btn btn-primary">Lưu</button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- Bảng tin / nhắn tin dòng họ -->
+  <div id="chatModal" class="modal hidden">
+    <div class="modal-content chat-modal">
+      <div class="modal-header">
+        <h2>💬 Bảng tin dòng họ</h2>
+        <button class="modal-close" id="btnCloseChat">×</button>
+      </div>
+      <div id="chatMessages" class="chat-messages"></div>
+      <div class="chat-input-row">
+        <input type="text" id="chatAuthor" placeholder="Tên bạn" maxlength="30" />
+        <textarea id="chatInput" rows="2" placeholder="Nhắn tin cho bà con dòng họ..."></textarea>
+        <button id="btnSendChat" class="btn btn-primary">Gửi</button>
+      </div>
     </div>
   </div>
 
@@ -138,38 +169,31 @@
     <a href="https://github.com/nguyenxuandat20091985-rgb/gia-pha-nguyen-family-tree" target="_blank">GitHub • Họ Nguyễn</a>
   </footer>
 
-  <script src="app.js?v=4"></script>
+  <script src="app.js?v=6"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function(e) {
         console.warn('SW register failed', e);
       });
     }
-
     let deferredPrompt = null;
     const btnInstall = document.getElementById('btnInstall');
-
     window.addEventListener('beforeinstallprompt', function(e) {
       e.preventDefault();
       deferredPrompt = e;
       btnInstall.classList.remove('hidden');
     });
-
     btnInstall.addEventListener('click', async function() {
       if (!deferredPrompt) return;
       deferredPrompt.prompt();
       const choice = await deferredPrompt.userChoice;
-      if (choice.outcome === 'accepted') {
-        btnInstall.classList.add('hidden');
-      }
+      if (choice.outcome === 'accepted') btnInstall.classList.add('hidden');
       deferredPrompt = null;
     });
-
     window.addEventListener('appinstalled', function() {
       btnInstall.classList.add('hidden');
       deferredPrompt = null;
     });
-
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
     if (isIOS && !isStandalone) {
