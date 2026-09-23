@@ -8,7 +8,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="description" content="Gia Phả Họ Nguyễn – Trung tâm sinh hoạt dòng họ. Uống nước nhớ nguồn." />
   <title>Gia Phả Họ Nguyễn</title>
-  <link rel="stylesheet" href="style.css?v=11" />
+  <link rel="stylesheet" href="style.css?v=12" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
@@ -269,12 +269,14 @@
   <div id="postModal" class="modal hidden">
     <div class="modal-content">
       <div class="modal-header">
-        <h2>Đăng bảng tin</h2>
+        <h2>Đăng lên Bảng tin</h2>
         <button type="button" class="modal-close" id="btnClosePost">×</button>
       </div>
       <form id="postForm">
+        <div class="form-row"><label>Loại bài</label><select id="postType"><option value="member">💬 Bài viết thành viên</option><option value="notice">📌 Thông báo</option><option value="news">🤖 Bản tin dòng họ</option></select></div>
         <div class="form-row"><label>Tên người đăng</label><input type="text" id="postAuthor" /></div>
         <div class="form-row"><label>Nội dung *</label><textarea id="postContent" rows="4" required></textarea></div>
+        <div class="form-row"><label>Ảnh (không bắt buộc)</label><input type="file" id="postImage" accept="image/*" /></div>
         <div class="form-row"><label><input type="checkbox" id="postPin" /> Ghim bài</label></div>
         <div class="form-actions">
           <button type="button" class="btn btn-secondary" id="btnCancelPost">Hủy</button>
@@ -317,9 +319,9 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
   <script>window.GIA_SUPABASE_CONFIG={url:window.GIA_SUPABASE_URL||"",anonKey:window.GIA_SUPABASE_ANON_KEY||""};</script>
-  <script src="cloud.js?v=1"></script>
-  <script src="rituals.js?v=11"></script>
-  <script src="app.js?v=11"></script>
+  <script src="cloud.js?v=2"></script>
+  <script src="rituals.js?v=12"></script>
+  <script src="app.js?v=12"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function () {});
