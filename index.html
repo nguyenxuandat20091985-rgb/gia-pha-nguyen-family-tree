@@ -23,6 +23,7 @@
       </div>
     </div>
     <div class="header-actions">
+      <button id="btnInstall" class="btn btn-install hidden" title="Cài đặt ứng dụng">📥 Cài app</button>
       <button id="btnAddRoot" class="btn btn-primary" title="Thêm người gốc">+ Gốc</button>
       <button id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
       <button id="btnExport" class="btn btn-secondary">Xuất JSON</button>
@@ -125,6 +126,11 @@
     <button data-action="delete" class="danger">🗑️ Xóa</button>
   </div>
 
+  <div id="iosInstallHint" class="ios-hint hidden">
+    <p>📱 <strong>Cài app trên iPhone:</strong> Bấm nút <strong>Chia sẻ</strong> → <strong>Thêm vào Màn hình chính</strong></p>
+    <button id="btnCloseIosHint">Đã hiểu</button>
+  </div>
+
   <footer class="app-footer">
     <span>Dữ liệu lưu trên trình duyệt (localStorage)</span>
     <span>•</span>
@@ -132,5 +138,48 @@
   </footer>
 
   <script src="app.js"></script>
+  <script>
+    // Đăng ký Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('./sw.js').catch(function(e) {
+        console.warn('SW register failed', e);
+      });
+    }
+
+    // Nút Cài app (Chrome / Edge / Android)
+    let deferredPrompt = null;
+    const btnInstall = document.getElementById('btnInstall');
+
+    window.addEventListener('beforeinstallprompt', function(e) {
+      e.preventDefault();
+      deferredPrompt = e;
+      btnInstall.classList.remove('hidden');
+    });
+
+    btnInstall.addEventListener('click', async function() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      const choice = await deferredPrompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        btnInstall.classList.add('hidden');
+      }
+      deferredPrompt = null;
+    });
+
+    window.addEventListener('appinstalled', function() {
+      btnInstall.classList.add('hidden');
+      deferredPrompt = null;
+    });
+
+    // Hướng dẫn cho iOS Safari
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
+    if (isIOS && !isStandalone) {
+      document.getElementById('iosInstallHint').classList.remove('hidden');
+    }
+    document.getElementById('btnCloseIosHint').addEventListener('click', function() {
+      document.getElementById('iosInstallHint').classList.add('hidden');
+    });
+  </script>
 </body>
 </html>
