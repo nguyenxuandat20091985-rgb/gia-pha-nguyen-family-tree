@@ -158,8 +158,9 @@ create table if not exists ritual_texts (
 create or replace function public.handle_new_user()
 returns trigger
 language plpgsql
-security invoker
-as $$
+security definer
+set search_path = public
+as $
 begin
   insert into public.profiles(id, display_name, phone)
   values (new.id, coalesce(new.raw_user_meta_data->>'full_name', new.phone, new.email), new.phone)
@@ -234,3 +235,7 @@ do $ begin
   alter publication supabase_realtime add table post_likes;
 exception when duplicate_object then null;
 end $;
+
+
+revoke all on function public.handle_new_user() from public;
+grant execute on function public.handle_new_user() to supabase_auth_admin;
