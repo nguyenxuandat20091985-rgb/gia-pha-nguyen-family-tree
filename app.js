@@ -558,18 +558,23 @@
     list.querySelectorAll('[data-like]').forEach(b => b.onclick = () => toggleLike(b.dataset.like));
     list.querySelectorAll('[data-comment]').forEach(b => b.onclick = () => addComment(b.dataset.comment));
     list.querySelectorAll('[data-share]').forEach(b => b.onclick = () => sharePost(b.dataset.share));
+    list.querySelectorAll('[data-edit]').forEach(b => b.onclick = () => editPost(b.dataset.edit));
+    list.querySelectorAll('[data-delete]').forEach(b => b.onclick = () => deletePost(b.dataset.delete));
+    list.querySelectorAll('[data-delete-comment]').forEach(b => b.onclick = () => deleteComment(b.dataset.deleteComment));
   }
   function postCardHtml(p) {
     const pid = p.id;
     const postComments = comments.filter(c => c.postId === pid);
     const likeCount = Number(likes[pid] || 0);
     const image = p.image ? '<img class="post-image" src="'+p.image+'" alt="Ảnh bài viết" loading="lazy">' : '';
-    const commentHtml = postComments.slice(-5).map(c => '<div class="post-comment"><strong>'+esc(c.author || 'Thành viên')+'</strong><span>'+esc(c.content)+'</span></div>').join('');
+    const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
+    const canManage = !window.GiaCloud?.state?.user || !p.author || p.author === currentUser || !window.GiaCloud?.state?.user;
+    const commentHtml = postComments.slice(-5).map(c => '<div class="post-comment"><div><strong>'+esc(c.author || 'Thành viên')+'</strong><span>'+esc(c.content)+'</span></div>'+(c.author===currentUser||!window.GiaCloud?.state?.user?'<button type="button" class="comment-delete" data-delete-comment="'+esc(c.id)+'" title="Xóa bình luận">×</button>':'')+'</div>').join('');
     return '<article class="post-card'+(p.pin?' pinned':'')+'">'+
       (p.pin?'<span class="pin-badge">📌 GHIM</span>':'')+
-      '<div class="post-head"><div><strong>'+esc(p.author||'Thành viên')+'</strong><div class="muted">'+esc(formatPostTime(p.createdAt))+'</div></div><span class="post-type">'+esc(POST_TYPE_LABEL[p.type||'member'])+'</span></div>'+
+      '<div class="post-head"><div><strong>'+esc(p.author||'Thành viên')+'</strong><div class="muted">'+esc(formatPostTime(p.createdAt))+'</div></div><div class="post-head-right"><span class="post-type">'+esc(POST_TYPE_LABEL[p.type||'member'])+'</span>'+(canManage?'<button type="button" class="post-more" data-edit="'+esc(pid)+'" title="Sửa bài">✏️</button><button type="button" class="post-more danger" data-delete="'+esc(pid)+'" title="Xóa bài">🗑️</button>':'')+'</div></div>'+
       '<p class="post-content">'+esc(p.content||'')+'</p>'+image+
-      '<div class="post-actions"><button type="button" data-like="'+esc(pid)+'">❤️ '+likeCount+'</button><button type="button" data-comment="'+esc(pid)+'">💬 '+postComments.length+'</button><button type="button" data-share="'+esc(pid)+'">↗️ Chia sẻ</button></div>'+
+      '<div class="post-actions"><button type="button" data-like="'+esc(pid)+'">❤️ '+likeCount+'</button><button type="button" data-comment="'+esc(pid)+'">💬 Bình luận'+(postComments.length?' · '+postComments.length:'')+'</button><button type="button" data-share="'+esc(pid)+'">↗️ Chia sẻ</button></div>'+
       (commentHtml ? '<div class="post-comments">'+commentHtml+'</div>' : '')+
       '</article>';
   }
@@ -579,12 +584,40 @@
     renderBoard();
   }
   function addComment(postId) {
-    const text = prompt('Viết bình luận:');
+    const text = prompt('💬 Viết bình luận\n\nNội dung của bạn:');
     if (!text || !text.trim()) return;
     const user = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || 'Thành viên';
     comments.push({id:cloudUid(),postId,author:user,content:text.trim(),createdAt:new Date().toISOString()});
     saveBoardMeta();
     renderBoard();
+  }
+  function editPost(postId) {
+    const p = posts.find(x => x.id === postId); if (!p) return;
+    const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return alert('Anh chỉ có thể sửa bài do mình đăng.');
+    const content = prompt('✏️ Sửa nội dung bài viết:', p.content || '');
+    if (content === null || !content.trim()) return;
+    p.content = content.trim();
+    p.updatedAt = new Date().toISOString();
+    savePosts(); renderBoard();
+  }
+  function deletePost(postId) {
+    const p = posts.find(x => x.id === postId); if (!p) return;
+    const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return alert('Anh chỉ có thể xóa bài do mình đăng.');
+    if (!confirm('Xóa bài viết này? Bài và các bình luận liên quan sẽ được xóa khỏi thiết bị.')) return;
+    posts = posts.filter(x => x.id !== postId);
+    comments = comments.filter(x => x.postId !== postId);
+    delete likes[postId];
+    savePosts(); saveBoardMeta(); renderBoard();
+  }
+  function deleteComment(commentId) {
+    const c = comments.find(x => x.id === commentId); if (!c) return;
+    const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
+    if (window.GiaCloud?.state?.user && c.author !== currentUser) return alert('Anh chỉ có thể xóa bình luận do mình viết.');
+    if (!confirm('Xóa bình luận này?')) return;
+    comments = comments.filter(x => x.id !== commentId);
+    saveBoardMeta(); renderBoard();
   }
   async function sharePost(postId) {
     const p = posts.find(x => x.id === postId);
