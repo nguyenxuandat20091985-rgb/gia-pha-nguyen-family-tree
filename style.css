@@ -325,3 +325,6 @@ main { padding: 12px 14px 24px; }
 @keyframes customDialogFade{from{opacity:0}to{opacity:1}}
 @keyframes customDialogPop{from{opacity:0;transform:translateY(8px) scale(.97)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media (prefers-reduced-motion:reduce){.custom-dialog-overlay,.custom-dialog{animation:none}}
+
+.custom-dialog-input{width:100%;box-sizing:border-box;margin-top:14px;min-height:46px;padding:11px 13px;border:1px solid rgba(139,94,52,.22);border-radius:12px;background:#fff;color:#3a2518;font-size:15px;outline:none}
+.custom-dialog-input:focus{border-color:#a66a35;box-shadow:0 0 0 3px rgba(166,106,53,.12)}
