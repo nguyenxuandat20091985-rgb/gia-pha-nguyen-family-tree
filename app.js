@@ -361,11 +361,10 @@
     if (action === 'addChild') openPersonModal({ title: 'Thêm con', parentId: id, relation: 'child' });
     if (action === 'addSpouse') openPersonModal({ title: 'Vợ/Chồng', parentId: id, relation: 'spouse' });
     if (action === 'addSide') openPersonModal({ title: 'Nhánh phụ', parentId: id, relation: 'side' });
-    if (action === 'delete' && confirm('Xóa người này và con cháu?')) {
-      deletePerson(id);
-      saveTree();
-      refreshTree();
-    }
+    if (action === 'delete') customConfirm('Xóa người này và con cháu?', {title:'Xóa thành viên', danger:true}).then(ok => {
+      if (!ok) return;
+      deletePerson(id); saveTree(); refreshTree();
+    });
   };
 
   function deletePerson(id) {
@@ -421,7 +420,7 @@
     const parentId = document.getElementById('parentId').value || null;
     const relation = document.getElementById('relationSelect').value || document.getElementById('relationType').value || 'child';
     const name = document.getElementById('fullName').value.trim();
-    if (!name) return alert('Nhập họ tên');
+    if (!name) return customAlert('Vui lòng nhập họ tên.', 'Thiếu thông tin');
     const payload = {
       name,
       gender: document.getElementById('gender').value,
@@ -458,7 +457,7 @@
   document.getElementById('photoInput').onchange = e => {
     const f = e.target.files[0];
     if (!f) return;
-    if (f.size > 2e6) return alert('Ảnh < 2MB');
+    if (f.size > 2e6) return customAlert('Ảnh cần nhỏ hơn 2MB.', 'Ảnh quá lớn');
     const r = new FileReader();
     r.onload = () => {
       photoBase64 = r.result;
@@ -473,6 +472,46 @@
     document.getElementById('photoPreview').classList.add('hidden');
     document.getElementById('btnRemovePhoto').classList.add('hidden');
   };
+
+  /* ===== CUSTOM DIALOGS ===== */
+  function ensureDialogHost() {
+    let host = document.getElementById('customDialogHost');
+    if (!host) { host = document.createElement('div'); host.id = 'customDialogHost'; document.body.appendChild(host); }
+    return host;
+  }
+  function customConfirm(message, opts = {}) {
+    return new Promise(resolve => {
+      const host = ensureDialogHost();
+      const title = opts.title || 'Xác nhận';
+      host.innerHTML = '<div class="custom-dialog-backdrop"><div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-icon '+(opts.danger?'danger':'')+'">'+(opts.danger?'🗑️':'❓')+'</div><h3>'+esc(title)+'</h3><p>'+esc(message)+'</p><div class="custom-dialog-actions"><button type="button" class="dialog-cancel">Hủy</button><button type="button" class="dialog-ok '+(opts.danger?'danger':'')+'">Đồng ý</button></div></div></div>';
+      const close = ok => { host.innerHTML=''; resolve(ok); };
+      host.querySelector('.dialog-cancel').onclick=()=>close(false);
+      host.querySelector('.dialog-ok').onclick=()=>close(true);
+      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget) close(false);};
+      host.querySelector('.dialog-ok').focus();
+    });
+  }
+  function customAlert(message, title='Thông báo') {
+    return new Promise(resolve => {
+      const host=ensureDialogHost();
+      host.innerHTML='<div class="custom-dialog-backdrop"><div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-icon">ℹ️</div><h3>'+esc(title)+'</h3><p>'+esc(message)+'</p><div class="custom-dialog-actions"><button type="button" class="dialog-ok">Đã hiểu</button></div></div></div>';
+      const close=()=>{host.innerHTML='';resolve();}; host.querySelector('.dialog-ok').onclick=close;
+      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget)close();};
+      host.querySelector('.dialog-ok').focus();
+    });
+  }
+  function customPrompt(title, value='', label='Nội dung') {
+    return new Promise(resolve => {
+      const host=ensureDialogHost();
+      host.innerHTML='<div class="custom-dialog-backdrop"><div class="custom-dialog custom-dialog-form" role="dialog" aria-modal="true"><div class="custom-dialog-icon">✏️</div><h3>'+esc(title)+'</h3><label>'+esc(label)+'</label><textarea class="dialog-input" rows="5" maxlength="5000"></textarea><div class="custom-dialog-actions"><button type="button" class="dialog-cancel">Hủy</button><button type="button" class="dialog-ok">Lưu</button></div></div></div>';
+      const input=host.querySelector('.dialog-input'); input.value=value||''; input.focus(); input.setSelectionRange(input.value.length,input.value.length);
+      const close=ok=>{const v=input.value;host.innerHTML='';resolve(ok?v:null);};
+      host.querySelector('.dialog-cancel').onclick=()=>close(false);
+      host.querySelector('.dialog-ok').onclick=()=>close(true);
+      host.querySelector('.custom-dialog-backdrop').onclick=e=>{if(e.target===e.currentTarget)close(false);};
+      input.addEventListener('keydown',e=>{if(e.key==='Escape')close(false); if((e.ctrlKey||e.metaKey)&&e.key==='Enter')close(true);});
+    });
+  }
 
   /* ===== EVENTS ===== */
   const TYPE_LABEL = {
@@ -600,21 +639,20 @@
     saveBoardMeta();
     renderBoard();
   }
-  function editPost(postId) {
+  async function editPost(postId) {
     const p = posts.find(x => x.id === postId); if (!p) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && p.author !== currentUser) return alert('Anh chỉ có thể sửa bài do mình đăng.');
-    const content = prompt('✏️ Sửa nội dung bài viết:', p.content || '');
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể sửa bài do mình đăng.', 'Không thể sửa bài');
+    const content = await customPrompt('✏️ Sửa nội dung bài viết', p.content || '', 'Nội dung bài viết');
     if (content === null || !content.trim()) return;
-    p.content = content.trim();
-    p.updatedAt = new Date().toISOString();
+    p.content = content.trim(); p.updatedAt = new Date().toISOString();
     savePosts(); renderBoard();
   }
   async function deletePost(postId) {
     const p = posts.find(x => x.id === postId); if (!p) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && p.author !== currentUser) return alert('Anh chỉ có thể xóa bài do mình đăng.');
-    if (!confirm('Xóa bài viết này? Bài và các bình luận liên quan sẽ được xóa khỏi thiết bị.')) return;
+    if (window.GiaCloud?.state?.user && p.author !== currentUser) return customAlert('Anh chỉ có thể xóa bài do mình đăng.', 'Không thể xóa bài');
+    if (!(await customConfirm('Xóa bài viết này? Bài và các bình luận liên quan sẽ được xóa khỏi thiết bị.', {title:'Xóa bài viết', danger:true}))) return;
     posts = posts.filter(x => x.id !== postId);
     comments = comments.filter(x => x.postId !== postId);
     delete likes[postId];
@@ -626,8 +664,8 @@
   async function deleteComment(commentId) {
     const c = comments.find(x => x.id === commentId); if (!c) return;
     const currentUser = window.GiaCloud?.state?.profile?.display_name || window.GiaCloud?.state?.user?.phone || '';
-    if (window.GiaCloud?.state?.user && c.author !== currentUser) return alert('Anh chỉ có thể xóa bình luận do mình viết.');
-    if (!confirm('Xóa bình luận này?')) return;
+    if (window.GiaCloud?.state?.user && c.author !== currentUser) return customAlert('Anh chỉ có thể xóa bình luận do mình viết.', 'Không thể xóa bình luận');
+    if (!(await customConfirm('Xóa bình luận này?', {title:'Xóa bình luận', danger:true}))) return;
     comments = comments.filter(x => x.id !== commentId);
     try {
       if (window.GiaCloud?.state?.user && window.GiaCloud.deleteCommentCloud) await window.GiaCloud.deleteCommentCloud(commentId);
