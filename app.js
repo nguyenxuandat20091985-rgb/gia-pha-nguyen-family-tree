@@ -4,7 +4,7 @@
  * Dữ liệu lưu localStorage
  */
 
-const STORAGE_KEY = 'giaPhaNguyenData_v1';
+const STORAGE_KEY = 'giaPhaNguyenData_v2';
 
 let data = {
   people: {},
@@ -38,64 +38,158 @@ function getPerson(id) {
   return data.people[id] || null;
 }
 
-function seedSampleIfEmpty() {
-  if (Object.keys(data.people).length > 0) return;
-
-  const root = {
-    id: uid(),
-    name: 'Cụ Tổ Họ Nguyễn',
-    gender: 'male',
-    birthDate: '',
-    deathDate: '',
-    notes: 'Thủy tổ dòng họ Nguyễn',
+/** Tạo người với id cố định để seed ổn định */
+function makePerson(id, { name, gender = 'male', birthDate = '', deathDate = '', notes = '', isSide = false }) {
+  const person = {
+    id,
+    name,
+    gender,
+    birthDate,
+    deathDate,
+    notes,
     photo: null,
     children: [],
     spouses: [],
     sideBranches: [],
-    isSide: false
+    isSide,
+    parentId: null
   };
-  data.people[root.id] = root;
-  data.rootId = root.id;
+  data.people[id] = person;
+  return person;
+}
 
-  const doi2 = addPerson({
-    name: 'Nguyễn Văn A',
-    gender: 'male',
-    birthDate: '',
-    notes: 'Đời 2 - con trưởng',
-    parentId: root.id,
-    relation: 'child'
-  });
+function linkChild(parentId, childId, asSide = false) {
+  const parent = data.people[parentId];
+  const child = data.people[childId];
+  if (!parent || !child) return;
+  child.parentId = parentId;
+  if (asSide) {
+    child.isSide = true;
+    if (!parent.sideBranches.includes(childId)) parent.sideBranches.push(childId);
+  } else {
+    if (!parent.children.includes(childId)) parent.children.push(childId);
+  }
+}
 
-  const doi3 = addPerson({
-    name: 'Nguyễn Văn B',
-    gender: 'male',
-    notes: 'Đời 3',
-    parentId: doi2.id,
-    relation: 'child'
-  });
+function seedSampleIfEmpty() {
+  if (Object.keys(data.people).length > 0) return;
 
-  addPerson({
-    name: 'Nguyễn Văn C',
+  // ===== Dữ liệu từ bản viết tay gia phả Họ Nguyễn =====
+  // Cụ Tổ (gốc)
+  makePerson('root', {
+    name: 'Cụ Tổ Họ Nguyễn',
     gender: 'male',
-    notes: 'Đời 4 - nhánh chính',
-    parentId: doi3.id,
-    relation: 'child'
+    notes: 'Cụ Tổ dòng họ – 6 đời'
   });
-  addPerson({
-    name: 'Nguyễn Thị D',
-    gender: 'female',
-    notes: 'Đời 4',
-    parentId: doi3.id,
-    relation: 'child'
-  });
+  data.rootId = 'root';
 
-  addPerson({
-    name: 'Nguyễn Văn E',
-    gender: 'male',
-    notes: 'Nhánh phụ / chi nhỏ',
-    parentId: root.id,
-    relation: 'side'
-  });
+  // Đời 2 – các con cụ tổ (đọc từ sơ đồ trên giấy)
+  makePerson('mung', { name: 'Nguyễn Văn Mừng', gender: 'male', birthDate: '1913', notes: 'Đời 2' });
+  makePerson('coc', { name: 'Nguyễn Văn Cốc', gender: 'male', birthDate: '1913', notes: 'Đời 2' });
+  makePerson('hach', { name: 'Nguyễn Văn Hạch', gender: 'male', birthDate: '1912', notes: 'Đời 2' });
+  makePerson('ngoc', { name: 'Nguyễn Văn Ngọc', gender: 'male', birthDate: '1914', notes: 'Đời 2' });
+
+  linkChild('root', 'mung');
+  linkChild('root', 'coc');
+  linkChild('root', 'hach');
+  linkChild('root', 'ngoc');
+
+  // Đời 3 – nhánh Nguyễn Văn Hạch
+  makePerson('ap', { name: 'Nguyễn Văn Ấp', gender: 'male', notes: 'Đời 3 – con Hạch' });
+  makePerson('canh', { name: 'Nguyễn Văn Cảnh', gender: 'male', notes: 'Đời 3 – con Hạch' });
+  makePerson('giang', { name: 'Nguyễn Văn Giang', gender: 'male', notes: 'Đời 3 – con Hạch' });
+  makePerson('lang', { name: 'Nguyễn Văn Lạng', gender: 'male', notes: 'Đời 3 – con Hạch' });
+  makePerson('nghia', { name: 'Nguyễn Văn Nghĩa', gender: 'male', notes: 'Đời 3' });
+  makePerson('thu', { name: 'Nguyễn Văn Thu', gender: 'male', notes: 'Đời 3 – nhánh Ngọc' });
+
+  linkChild('hach', 'ap');
+  linkChild('hach', 'canh');
+  linkChild('hach', 'giang');
+  linkChild('hach', 'lang');
+  linkChild('hach', 'nghia');
+  linkChild('ngoc', 'thu');
+
+  // Đời 4 – con của Lạng / Giang / các nhánh
+  makePerson('nhan', { name: 'Nguyễn Văn Nhẫn', gender: 'male', birthDate: '1971', notes: 'Đời 4' });
+  makePerson('gioi', { name: 'Nguyễn Giỏi', gender: 'male', notes: 'Đời 4' });
+  makePerson('hop', { name: 'Nguyễn Hợp', gender: 'male', notes: 'Đời 4' });
+  makePerson('ty', { name: 'Nguyễn Tý', gender: 'male', notes: 'Đời 4' });
+  makePerson('nhac', { name: 'Nguyễn Nhạc', gender: 'male', notes: 'Đời 4' });
+  makePerson('huong', { name: 'Nguyễn Hưởng', gender: 'male', notes: 'Đời 4' });
+  makePerson('dien', { name: 'Nguyễn Điền', gender: 'male', notes: 'Đời 4' });
+  makePerson('the', { name: 'Nguyễn Văn Thế', gender: 'male', notes: 'Đời 4 – nhánh Thu' });
+  makePerson('giang2', { name: 'Nguyễn Giang', gender: 'male', notes: 'Đời 4' });
+
+  linkChild('lang', 'nhan');
+  linkChild('lang', 'gioi');
+  linkChild('lang', 'hop');
+  linkChild('giang', 'ty');
+  linkChild('giang', 'nhac');
+  linkChild('nghia', 'huong');
+  linkChild('nghia', 'dien');
+  linkChild('thu', 'the');
+  linkChild('thu', 'giang2');
+
+  // Đời 5 – con của Nhẫn và các anh em
+  makePerson('xoai', { name: 'Nguyễn Xoài', gender: 'male', notes: 'Đời 5' });
+  makePerson('tam', { name: 'Nguyễn Tám', gender: 'male', notes: 'Đời 5' });
+  makePerson('thue', { name: 'Nguyễn Thuế', gender: 'male', notes: 'Đời 5' });
+  makePerson('nha', { name: 'Nguyễn Nhà', gender: 'male', notes: 'Đời 5' });
+  makePerson('thuy', { name: 'Nguyễn Thủy', gender: 'female', notes: 'Đời 5' });
+  makePerson('danh', { name: 'Nguyễn Đảnh', gender: 'male', notes: 'Đời 5' });
+  makePerson('nhom', { name: 'Nguyễn Nhóm', gender: 'male', notes: 'Đời 5' });
+  makePerson('tam2', { name: 'Nguyễn Tâm', gender: 'male', notes: 'Đời 5' });
+  makePerson('hinh', { name: 'Nguyễn Hình', gender: 'male', notes: 'Đời 5' });
+  makePerson('hung', { name: 'Nguyễn Hùng', gender: 'male', notes: 'Đời 5' });
+  makePerson('quang', { name: 'Nguyễn Quang', gender: 'male', notes: 'Đời 5' });
+  makePerson('dung', { name: 'Nguyễn Dũng', gender: 'male', notes: 'Đời 5' });
+  makePerson('hao', { name: 'Nguyễn Hào', gender: 'male', notes: 'Đời 5' });
+  makePerson('oanh', { name: 'Nguyễn Oanh', gender: 'female', notes: 'Đời 5' });
+
+  linkChild('nhan', 'xoai');
+  linkChild('nhan', 'tam');
+  linkChild('nhan', 'thue');
+  linkChild('nhan', 'nha');
+  linkChild('gioi', 'thuy');
+  linkChild('gioi', 'danh');
+  linkChild('hop', 'nhom');
+  linkChild('hop', 'tam2');
+  linkChild('ty', 'hinh');
+  linkChild('ty', 'hung');
+  linkChild('nhac', 'quang');
+  linkChild('nhac', 'dung');
+  linkChild('huong', 'hao');
+  linkChild('dien', 'oanh');
+
+  // Đời 5–6 thêm từ cột bên trái (nhánh Ấp / Cảnh)
+  makePerson('thuan', { name: 'Nguyễn Bá Thuận', gender: 'male', notes: 'Đời 5' });
+  makePerson('thanhminh', { name: 'Nguyễn Thanh Minh', gender: 'male', notes: 'Đời 5' });
+  makePerson('thanhngan', { name: 'Nguyễn Thanh Ngân', gender: 'male', notes: 'Đời 5' });
+  makePerson('manh', { name: 'Nguyễn Mạnh', gender: 'male', notes: 'Đời 5' });
+  makePerson('cuong', { name: 'Nguyễn Cương', gender: 'male', notes: 'Đời 5' });
+
+  linkChild('ap', 'thuan');
+  linkChild('ap', 'thanhminh');
+  linkChild('canh', 'thanhngan');
+  linkChild('canh', 'manh');
+  linkChild('canh', 'cuong');
+
+  // Đời 6 – thế hệ trẻ (đọc từ hàng dưới)
+  makePerson('hung2', { name: 'Nguyễn Hùng', gender: 'male', notes: 'Đời 6' });
+  makePerson('phuong', { name: 'Nguyễn Phương', gender: 'female', notes: 'Đời 6' });
+  makePerson('duc', { name: 'Nguyễn Đức', gender: 'male', notes: 'Đời 6' });
+  makePerson('vuminh', { name: 'Nguyễn Vũ Minh', gender: 'male', notes: 'Đời 6' });
+  makePerson('manhduy', { name: 'Nguyễn Mạnh Duy Trung', gender: 'male', notes: 'Đời 6' });
+  makePerson('thanh', { name: 'Nguyễn Thanh', gender: 'male', notes: 'Đời 6' });
+  makePerson('thai', { name: 'Nguyễn Thái', gender: 'male', notes: 'Đời 6' });
+
+  linkChild('xoai', 'hung2');
+  linkChild('xoai', 'phuong');
+  linkChild('tam', 'duc');
+  linkChild('thue', 'vuminh');
+  linkChild('nha', 'manhduy');
+  linkChild('thuan', 'thanh');
+  linkChild('thanhminh', 'thai');
 
   save();
 }
