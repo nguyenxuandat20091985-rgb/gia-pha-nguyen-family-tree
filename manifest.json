@@ -1,0 +1,17 @@
+{
+  "name": "Gia Phả Họ Nguyễn",
+  "short_name": "Gia Phả Nguyễn",
+  "description": "Cây phả hệ Họ Nguyễn - Uống nước nhớ ngồn",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#8B0000",
+  "theme_color": "#8B0000",
+  "icons": [
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
