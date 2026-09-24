@@ -83,6 +83,31 @@
     try { likes = JSON.parse(localStorage.getItem(LIKES_KEY) || '{}'); } catch (e) { likes = {}; }
     localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
   }
+  async function applyCloudData(cloudData) {
+    if (!cloudData) return false;
+    const localPeople = Object.keys(data.people || {}).length;
+    const cloudPeople = Object.keys(cloudData.tree?.people || {}).length;
+    // A newly configured/empty Supabase project must never erase a populated local tree.
+    if (localPeople > 0 && cloudPeople === 0) {
+      await window.GiaCloud?.syncLocal(data, events, posts, comments, likes);
+      return false;
+    }
+    data = cloudData.tree;
+    events = cloudData.events;
+    posts = cloudData.posts;
+    comments = cloudData.comments || comments;
+    likes = cloudData.likes || likes;
+    saveTree();
+    saveEvents();
+    savePosts();
+    localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
+    localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
+    refreshTree();
+    renderEvents();
+    renderBoard();
+    renderHome();
+    return true;
+  }
   function saveBoardMeta() {
     localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
     localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
@@ -926,20 +951,7 @@
       if (!window.GiaCloud?.state?.user) return;
       try {
         const cloudData = await window.GiaCloud.pullAll();
-        if (cloudData) {
-          data = cloudData.tree;
-          events = cloudData.events;
-          posts = cloudData.posts;
-          comments = cloudData.comments || comments;
-          likes = cloudData.likes || likes;
-          saveTree();
-          saveEvents();
-          savePosts();
-          refreshTree();
-          renderEvents();
-          renderBoard();
-          renderHome();
-        }
+        await applyCloudData(cloudData);
       } catch (e) {
         console.warn('Cloud pull failed:', e);
       }
@@ -950,21 +962,7 @@
       if (!window.GiaCloud?.state?.user) return;
       try {
         const cloudData = await window.GiaCloud.pullAll();
-        if (!cloudData) return;
-        data = cloudData.tree;
-        events = cloudData.events;
-        posts = cloudData.posts;
-        comments = cloudData.comments || comments;
-        likes = cloudData.likes || likes;
-        localStorage.setItem(TREE_KEY, JSON.stringify(data));
-        localStorage.setItem(EVENTS_KEY, JSON.stringify(events));
-        localStorage.setItem(POSTS_KEY, JSON.stringify(posts));
-        localStorage.setItem(COMMENTS_KEY, JSON.stringify(comments));
-        localStorage.setItem(LIKES_KEY, JSON.stringify(likes));
-        refreshTree();
-        renderEvents();
-        renderBoard();
-        renderHome();
+        await applyCloudData(cloudData);
       } catch (e) {
         console.warn('Realtime pull failed:', e);
       }
