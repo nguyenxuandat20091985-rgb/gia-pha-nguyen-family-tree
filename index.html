@@ -69,7 +69,7 @@
         </div>
       </div>
     </section>
-    <!-- HOME -->
+
     <section id="view-home" class="view">
       <div class="home-hero">
         <h2>🌳 Gia Phả Họ Nguyễn</h2>
@@ -130,7 +130,7 @@
     </section>
 
     <section id="view-chat" class="view hidden">
-      <p class="hint-box">💬 Tin nhắn lưu trên máy này. Để chat chung nhiều máy cần kết nối Supabase (Phase 2).</p>
+      <p class="hint-box">💬 Tin nhắn lưu trên máy này.</p>
       <div id="chatMessages" class="chat-messages"></div>
       <div class="chat-compose">
         <input type="text" id="chatAuthor" placeholder="Tên bạn" maxlength="30" />
@@ -157,7 +157,7 @@
       </div>
       <div id="calGrid" class="cal-grid"></div>
       <div id="calDayDetail" class="cal-detail"></div>
-      <p class="disclaimer">Thông tin ngày âm / truyền thống mang tính tham khảo theo văn hóa dân gian, không phải dự đoán khoa học.</p>
+      <p class="disclaimer">Thông tin ngày âm mang tính tham khảo theo văn hóa dân gian.</p>
     </section>
 
     <section id="view-rituals" class="view hidden">
@@ -171,7 +171,7 @@
         <button type="button" id="btnImport" class="btn btn-secondary btn-block">Nhập JSON</button>
         <input type="file" id="importFile" accept=".json" hidden />
         <hr />
-        <p class="warn-text">Reset chỉ dùng khi cần tải lại dữ liệu mẫu. Cây gia phả đang dùng sẽ bị ghi đè.</p>
+        <p class="warn-text">Reset chỉ dùng khi cần tải lại dữ liệu mẫu.</p>
         <button type="button" id="btnResetStep1" class="btn btn-danger btn-block">Reset dữ liệu mẫu…</button>
         <div id="resetConfirm" class="hidden">
           <p>Gõ <strong>RESET</strong> để xác nhận:</p>
@@ -185,8 +185,7 @@
       <div class="about-card">
         <h3>Gia Phả Họ Nguyễn</h3>
         <p><strong>Nơi lưu giữ cội nguồn – kết nối các thế hệ trong dòng họ.</strong></p>
-        <p>🌳 Gia phả · ❤️ Hiếu hỉ · 📅 Lịch dòng họ · 🙏 Văn khấn · 📰 Bảng tin · 💬 Trò chuyện</p>
-        <p>Thông tin được lưu trữ và đồng bộ để các thành viên trong dòng họ cùng cập nhật, theo dõi và gìn giữ những giá trị của gia đình, dòng họ.</p>
+        <p>🌳 Gia phả · ❤️ Hiếu hỉ · 📅 Lịch · 🙏 Văn khấn · 📰 Bảng tin</p>
         <p><strong>Uống nước nhớ nguồn – Kính tổ tiên – Gắn kết con cháu.</strong></p>
       </div>
     </section>
@@ -200,126 +199,13 @@
     <button type="button" class="nav-item" data-nav="more"><span>⋯</span><small>Thêm</small></button>
   </nav>
 
-  <div id="personModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="modalTitle">Thành viên</h2>
-        <button type="button" class="modal-close" id="btnCloseModal">×</button>
-      </div>
-      <form id="personForm">
-        <input type="hidden" id="personId" />
-        <input type="hidden" id="parentId" />
-        <input type="hidden" id="relationType" />
-        <div class="form-row"><label>Họ và tên *</label><input type="text" id="fullName" required /></div>
-        <div class="form-row two-cols">
-          <div><label>Giới tính</label>
-            <select id="gender"><option value="male">Nam</option><option value="female">Nữ</option><option value="other">Khác</option></select>
-          </div>
-          <div><label>Quan hệ</label>
-            <select id="relationSelect">
-              <option value="child">Con</option>
-              <option value="spouse">Vợ/Chồng</option>
-              <option value="side">Nhánh phụ</option>
-            </select>
-          </div>
-        </div>
-        <div class="form-row two-cols">
-          <div><label>Ngày sinh</label><input type="text" id="birthDate" /></div>
-          <div><label>Ngày mất</label><input type="text" id="deathDate" /></div>
-        </div>
-        <div class="form-row"><label>📅 Ngày giỗ</label><input type="text" id="deathAnniversary" placeholder="VD: 15/3 ÂL" /></div>
-        <div class="form-row"><label>Ghi chú</label><textarea id="notes" rows="2"></textarea></div>
-        <div class="form-row">
-          <label>Ảnh</label>
-          <div class="photo-upload">
-            <img id="photoPreview" class="photo-preview hidden" alt="" />
-            <input type="file" id="photoInput" accept="image/*" />
-            <button type="button" id="btnRemovePhoto" class="btn btn-small hidden">Xóa ảnh</button>
-          </div>
-        </div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="btnCancel">Hủy</button>
-          <button type="submit" class="btn btn-primary">Lưu</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <div id="personModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">Thành viên</h2><button type="button" class="modal-close" id="btnCloseModal">×</button></div><form id="personForm"><input type="hidden" id="personId" /><input type="hidden" id="parentId" /><input type="hidden" id="relationType" /><div class="form-row"><label>Họ và tên *</label><input type="text" id="fullName" required /></div><div class="form-row two-cols"><div><label>Giới tính</label><select id="gender"><option value="male">Nam</option><option value="female">Nữ</option></select></div><div><label>Quan hệ</label><select id="relationSelect"><option value="child">Con</option><option value="spouse">Vợ/Chồng</option><option value="side">Nhánh phụ</option></select></div></div><div class="form-row two-cols"><div><label>Ngày sinh</label><input type="text" id="birthDate" /></div><div><label>Ngày mất</label><input type="text" id="deathDate" /></div></div><div class="form-row"><label>📅 Ngày giỗ</label><input type="text" id="deathAnniversary" /></div><div class="form-row"><label>Ghi chú</label><textarea id="notes" rows="2"></textarea></div><div class="form-row"><label>Ảnh</label><div class="photo-upload"><img id="photoPreview" class="photo-preview hidden" alt="" /><input type="file" id="photoInput" accept="image/*" /><button type="button" id="btnRemovePhoto" class="btn btn-small hidden">Xóa ảnh</button></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancel">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div></form></div></div>
 
-  <div id="eventModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Sự kiện Hiếu Hỉ</h2>
-        <button type="button" class="modal-close" id="btnCloseEvent">×</button>
-      </div>
-      <form id="eventForm">
-        <input type="hidden" id="eventId" />
-        <div class="form-row"><label>Tiêu đề *</label><input type="text" id="eventTitle" required /></div>
-        <div class="form-row"><label>Loại</label>
-          <select id="eventType">
-            <option value="tang">Tang lễ</option>
-            <option value="vieng">Lễ viếng</option>
-            <option value="an-tang">Lễ an táng</option>
-            <option value="49">Lễ 49 ngày</option>
-            <option value="100">Lễ 100 ngày</option>
-            <option value="gio">Giỗ</option>
-            <option value="cuoi">Cưới hỏi</option>
-            <option value="tho">Mừng thọ</option>
-            <option value="sinhnhat">Sinh nhật</option>
-            <option value="hop">Họp họ</option>
-            <option value="khac">Việc họ khác</option>
-          </select>
-        </div>
-        <div class="form-row"><label>Người liên quan</label><input type="text" id="eventPerson" /></div>
-        <div class="form-row two-cols">
-          <div><label>Ngày</label><input type="date" id="eventDate" /></div>
-          <div><label>Giờ</label><input type="time" id="eventTime" /></div>
-        </div>
-        <div class="form-row"><label>📍 Địa chỉ</label><input type="text" id="eventAddress" placeholder="Số nhà, đường, xã/phường..." /></div>
-        <div class="form-row"><label>Nội dung</label><textarea id="eventContent" rows="3"></textarea></div>
-        <div class="form-row"><label><input type="checkbox" id="eventPin" /> Ghim thông báo</label></div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="btnCancelEvent">Hủy</button>
-          <button type="submit" class="btn btn-primary">Lưu</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <div id="eventModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2>Sự kiện Hiếu Hỉ</h2><button type="button" class="modal-close" id="btnCloseEvent">×</button></div><form id="eventForm"><input type="hidden" id="eventId" /><div class="form-row"><label>Tiêu đề *</label><input type="text" id="eventTitle" required /></div><div class="form-row"><label>Loại</label><select id="eventType"><option value="tang">Tang lễ</option><option value="gio">Giỗ</option><option value="cuoi">Cưới hỏi</option><option value="hop">Họp họ</option><option value="khac">Khác</option></select></div><div class="form-row"><label>Người liên quan</label><input type="text" id="eventPerson" /></div><div class="form-row two-cols"><div><label>Ngày</label><input type="date" id="eventDate" /></div><div><label>Giờ</label><input type="time" id="eventTime" /></div></div><div class="form-row"><label>📍 Địa chỉ</label><input type="text" id="eventAddress" /></div><div class="form-row"><label>Nội dung</label><textarea id="eventContent" rows="3"></textarea></div><div class="form-row"><label><input type="checkbox" id="eventPin" /> Ghim</label></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancelEvent">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div></form></div></div>
 
-  <div id="postModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2>Đăng lên Bảng tin</h2>
-        <button type="button" class="modal-close" id="btnClosePost">×</button>
-      </div>
-      <form id="postForm">
-        <div class="form-row"><label>Loại bài</label><select id="postType"><option value="member">💬 Bài viết thành viên</option><option value="notice">📌 Thông báo</option><option value="news">🤖 Bản tin dòng họ</option></select></div>
-        <div class="form-row"><label>Tên người đăng</label><input type="text" id="postAuthor" /></div>
-        <div class="form-row"><label>Nội dung *</label><textarea id="postContent" rows="4" required></textarea></div>
-        <div class="form-row"><label>Ảnh (không bắt buộc)</label><input type="file" id="postImage" accept="image/*" /></div>
-        <div class="form-row"><label><input type="checkbox" id="postPin" /> Ghim bài</label></div>
-        <div class="form-actions">
-          <button type="button" class="btn btn-secondary" id="btnCancelPost">Hủy</button>
-          <button type="submit" class="btn btn-primary">Đăng</button>
-        </div>
-      </form>
-    </div>
-  </div>
+  <div id="postModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2>Đăng bảng tin</h2><button type="button" class="modal-close" id="btnClosePost">×</button></div><form id="postForm"><div class="form-row"><label>Loại bài</label><select id="postType"><option value="member">Bài viết</option><option value="notice">Thông báo</option></select></div><div class="form-row"><label>Tên</label><input type="text" id="postAuthor" /></div><div class="form-row"><label>Nội dung *</label><textarea id="postContent" rows="4" required></textarea></div><div class="form-row"><label>Ảnh</label><input type="file" id="postImage" accept="image/*" /></div><div class="form-row"><label><input type="checkbox" id="postPin" /> Ghim</label></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancelPost">Hủy</button><button type="submit" class="btn btn-primary">Đăng</button></div></form></div></div>
 
-  <div id="ritualModal" class="modal hidden">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h2 id="ritualTitle"></h2>
-        <button type="button" class="modal-close" id="btnCloseRitual">×</button>
-      </div>
-      <p class="ritual-meta" id="ritualMeta"></p>
-      <pre id="ritualBody" class="ritual-body"></pre>
-      <div class="form-actions">
-        <button type="button" class="btn btn-secondary" id="btnCopyRitual">📋 Sao chép</button>
-        <button type="button" class="btn btn-primary" id="btnSpeakRitual">🔊 Đọc</button>
-      </div>
-      <p class="disclaimer">Văn khấn mang tính tham khảo theo nghi lễ dân gian, không khẳng định bản duy nhất.</p>
-    </div>
-  </div>
+  <div id="ritualModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2 id="ritualTitle"></h2><button type="button" class="modal-close" id="btnCloseRitual">×</button></div><p class="ritual-meta" id="ritualMeta"></p><pre id="ritualBody" class="ritual-body"></pre><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCopyRitual">📋 Sao chép</button><button type="button" class="btn btn-primary" id="btnSpeakRitual">🔊 Đọc</button></div></div></div>
 
   <div id="contextMenu" class="context-menu hidden">
     <button type="button" data-action="edit">✏️ Sửa</button>
@@ -340,6 +226,7 @@
   <script src="cloud.js?v=5"></script>
   <script src="rituals.js?v=12"></script>
   <script src="app.js?v=21"></script>
+  <script src="auth-ux.js?v=1"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function () {});
