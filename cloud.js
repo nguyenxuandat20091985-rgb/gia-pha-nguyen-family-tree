@@ -142,10 +142,23 @@
       .subscribe();
   }
 
-  function isAdmin(){ return !!(state.profile && state.profile.role === 'admin' && state.profile.status === 'approved'); }
-  function isApproved(){ return !!(state.profile && state.profile.status === 'approved'); }
-  function isPending(){ return !!(state.user && state.profile && state.profile.status === 'pending'); }
-  function isRejected(){ return !!(state.profile && state.profile.status === 'rejected'); }
+  // status null/undefined = chưa bật hệ thống duyệt → coi như đã duyệt
+  function isAdmin(){
+    const p = state.profile;
+    if (!p || p.role !== 'admin') return false;
+    return !p.status || p.status === 'approved';
+  }
+  function isApproved(){
+    const p = state.profile;
+    if (!p) return false;
+    return !p.status || p.status === 'approved';
+  }
+  function isPending(){
+    return !!(state.user && state.profile && state.profile.status === 'pending');
+  }
+  function isRejected(){
+    return !!(state.profile && state.profile.status === 'rejected');
+  }
 
   async function listMembers(){
     await requireUser();
@@ -176,9 +189,8 @@
     if(state.profile) return state.profile;
     const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || user.phone || 'Thành viên mới';
     try {
-      const {data,error} = await client.from('profiles').upsert({
-        id: user.id, display_name: name, role: 'member', status: 'pending'
-      }, {onConflict:'id'}).select().single();
+      const row = { id: user.id, display_name: name, role: 'member' };
+      const {data,error} = await client.from('profiles').upsert(row, {onConflict:'id'}).select().single();
       if(!error) { state.profile = data; emit('gia-profile-changed',{profile:data}); }
       return state.profile;
     } catch(e) { console.warn('ensureProfile', e); return null; }
