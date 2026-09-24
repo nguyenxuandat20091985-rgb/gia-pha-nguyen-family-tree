@@ -1,7 +1,4 @@
-/* Gia Phả Họ Nguyễn — Supabase cloud bridge
- * Configure window.GIA_SUPABASE_URL and window.GIA_SUPABASE_ANON_KEY before use.
- * Never put a service_role key in this file.
- */
+/* Gia Phả Họ Nguyễn — Supabase cloud bridge */
 (function(){
   'use strict';
   const cfg = window.GIA_SUPABASE_CONFIG || {};
@@ -57,7 +54,6 @@
 
   async function signOut(){ if(client) await client.auth.signOut(); }
 
-  /** Ensure session user is available; throw clear errors for UI */
   async function requireUser(){
     if(!client) throw new Error('Supabase chưa được cấu hình.');
     if(user) return user;
@@ -73,33 +69,24 @@
     const name = (fields && fields.display_name != null) ? String(fields.display_name).trim() : '';
     if(!name) throw new Error('Vui lòng nhập tên hiển thị.');
     const row = Object.assign({ id: u.id }, fields || {}, { display_name: name });
-
-    // Prefer update first (row usually exists via trigger); then insert if missing
     let { data, error } = await client.from('profiles').update({
       display_name: name,
       phone: fields.phone != null ? fields.phone : undefined,
       avatar_url: fields.avatar_url != null ? fields.avatar_url : undefined,
       branch_label: fields.branch_label != null ? fields.branch_label : undefined
     }).eq('id', u.id).select().maybeSingle();
-
     if (!error && !data) {
       const ins = await client.from('profiles').insert(row).select().single();
-      data = ins.data;
-      error = ins.error;
+      data = ins.data; error = ins.error;
     }
-
-    // Fallback full upsert if update/insert path still fails
     if (error) {
       const up = await client.from('profiles').upsert(row, { onConflict: 'id' }).select().single();
-      data = up.data;
-      error = up.error;
+      data = up.data; error = up.error;
     }
-
     if (error) {
       const msg = error.message || String(error);
-      if (/row-level security|RLS|42501/i.test(msg)) {
-        throw new Error('Không đủ quyền lưu hồ sơ (RLS). Anh chạy file supabase/fix-profile-save.sql trên Supabase SQL Editor.');
-      }
+      if (/row-level security|RLS|42501/i.test(msg))
+        throw new Error('Không đủ quyền lưu hồ sơ (RLS). Chạy supabase/admin-and-approval.sql');
       throw new Error(msg);
     }
     state.profile = data;
@@ -121,7 +108,7 @@
     if(ps.length) { const r=await client.from('posts').upsert(ps,{onConflict:'id'}); if(r.error) throw r.error; }
     const cs=(comments||[]).map(x=>({id:x.id,post_id:x.postId,author_id:user.id,content:x.content,created_at:x.createdAt?new Date(x.createdAt).toISOString():new Date().toISOString()}));
     if(cs.length) { const r=await client.from('comments').upsert(cs,{onConflict:'id'}); if(r.error) throw r.error; }
-    const lk=Object.entries(likes||{}).map(([postId,count])=>({post_id:postId,user_id:user.id}));
+    const lk=Object.entries(likes||{}).map(([postId])=>({post_id:postId,user_id:user.id}));
     if(lk.length) { const r=await client.from('post_likes').upsert(lk,{onConflict:'post_id,user_id'}); if(r.error) throw r.error; }
   }
   async function pullAll(){
@@ -154,6 +141,54 @@
       .on('postgres_changes',{event:'*',schema:'public',table:'post_likes'},()=>emit('gia-cloud-data-changed'))
       .subscribe();
   }
-  window.GiaCloud={state,init,signInGoogle,sendPhoneOtp,verifyPhoneOtp,signOut,upsertProfile,syncLocal,pullAll,loadRealtime,isConfigured:()=>ready};
-  init().then(()=>loadRealtime()).catch(e=>emit('gia-cloud-status',{ready:false,error:e.message}));
+
+  function isAdmin(){ return !!(state.profile && state.profile.role === 'admin' && state.profile.status === 'approved'); }
+  function isApproved(){ return !!(state.profile && state.profile.status === 'approved'); }
+  function isPending(){ return !!(state.user && state.profile && state.profile.status === 'pending'); }
+  function isRejected(){ return !!(state.profile && state.profile.status === 'rejected'); }
+
+  async function listMembers(){
+    await requireUser();
+    if(!isAdmin()) throw new Error('Chỉ Admin mới xem danh sách thành viên.');
+    const {data,error} = await client.from('profiles').select('id,display_name,phone,role,status,created_at,avatar_url').order('created_at',{ascending:false});
+    if(error) throw error;
+    return data || [];
+  }
+  async function setMemberStatus(memberId, status){
+    await requireUser();
+    if(!isAdmin()) throw new Error('Chỉ Admin mới duyệt thành viên.');
+    if(!['pending','approved','rejected'].includes(status)) throw new Error('Trạng thái không hợp lệ.');
+    const {data,error} = await client.from('profiles').update({status}).eq('id', memberId).select().single();
+    if(error) throw error;
+    return data;
+  }
+  async function setMemberRole(memberId, role){
+    await requireUser();
+    if(!isAdmin()) throw new Error('Chỉ Admin mới đổi quyền.');
+    if(!['member','admin'].includes(role)) throw new Error('Quyền không hợp lệ.');
+    const {data,error} = await client.from('profiles').update({role}).eq('id', memberId).select().single();
+    if(error) throw error;
+    return data;
+  }
+  async function ensureProfile(){
+    if(!client || !user) return null;
+    await refreshProfile();
+    if(state.profile) return state.profile;
+    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || user.phone || 'Thành viên mới';
+    try {
+      const {data,error} = await client.from('profiles').upsert({
+        id: user.id, display_name: name, role: 'member', status: 'pending'
+      }, {onConflict:'id'}).select().single();
+      if(!error) { state.profile = data; emit('gia-profile-changed',{profile:data}); }
+      return state.profile;
+    } catch(e) { console.warn('ensureProfile', e); return null; }
+  }
+
+  window.GiaCloud={
+    state,init,signInGoogle,sendPhoneOtp,verifyPhoneOtp,signOut,upsertProfile,
+    syncLocal,pullAll,loadRealtime,isConfigured:()=>ready,
+    isAdmin,isApproved,isPending,isRejected,listMembers,setMemberStatus,setMemberRole,ensureProfile,refreshProfile
+  };
+  init().then(async()=>{ await ensureProfile(); await loadRealtime(); })
+    .catch(e=>emit('gia-cloud-status',{ready:false,error:e.message}));
 })();
