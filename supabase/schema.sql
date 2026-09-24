@@ -15,6 +15,8 @@ create table if not exists profiles (
 
 alter table profiles enable row level security;
 create policy "profiles read" on profiles for select using (true);
+drop policy if exists "profiles insert own" on profiles;
+create policy "profiles insert own" on profiles for insert to authenticated with check (auth.uid() = id);
 create policy "profiles update own" on profiles for update using (auth.uid() = id);
 
 -- family tree (migrate from localStorage JSON)
