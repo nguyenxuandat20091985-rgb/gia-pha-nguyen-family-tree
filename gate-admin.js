@@ -42,14 +42,11 @@
       return;
     }
     const p = cloud.state.profile;
-    // Profile chưa load: không khóa cứng
     if (!p) {
       el.classList.add('hidden');
       document.body.classList.remove('gate-active');
       return;
     }
-    // Chỉ chặn khi status rõ ràng là pending/rejected.
-    // Nếu chưa có cột status (SQL chưa chạy) → cho vào bình thường.
     const st = p.status || null;
     if (!st || st === 'approved') {
       el.classList.add('hidden');
@@ -62,13 +59,13 @@
       document.getElementById('gateIcon').textContent = '🚫';
       document.getElementById('gateTitle').textContent = 'Không được duyệt';
       document.getElementById('gateMsg').textContent =
-        'Tài khoản của bạn chưa được Admin dòng họ chấp nhận. Liên hệ người quản lý gia phả để được hỗ trợ.';
+        'Tài khoản chưa được Admin dòng họ chấp nhận.';
     } else if (st === 'pending') {
       document.getElementById('gateIcon').textContent = '⏳';
       document.getElementById('gateTitle').textContent = 'Chờ Admin duyệt';
       document.getElementById('gateMsg').textContent =
         'Xin chào ' + (p.display_name || 'thành viên') +
-        '. Tài khoản đã đăng nhập thành công nhưng cần Admin dòng họ duyệt trước khi sử dụng đầy đủ.';
+        '. Cần Admin duyệt trước khi dùng đầy đủ.';
     } else {
       el.classList.add('hidden');
       document.body.classList.remove('gate-active');
@@ -87,9 +84,7 @@
     const accountBtn = more.querySelector('[data-nav="account"]');
     if (accountBtn) more.insertBefore(btn, accountBtn);
     else more.appendChild(btn);
-    btn.addEventListener('click', function () {
-      showAdminView();
-    });
+    btn.addEventListener('click', function () { showAdminView(); });
   }
 
   function ensureAdminView() {
@@ -101,11 +96,17 @@
     view.innerHTML =
       '<div class="admin-panel">' +
       '<h2>🛡️ Quản trị thành viên</h2>' +
-      '<p class="muted">Duyệt người đăng nhập Google vào dòng họ. Chỉ Admin mới thấy mục này.</p>' +
+      '<p class="muted">Duyệt & trao quyền Admin. Chỉ Admin mới thấy mục này.</p>' +
+      '<div class="admin-help">' +
+      '<strong>Cách trao quyền Admin:</strong><br/>' +
+      '1) Người đó đăng nhập Google trên app<br/>' +
+      '2) Anh bấm <em>Duyệt</em> (tab Chờ duyệt)<br/>' +
+      '3) Tab Tất cả → bấm <em>Cho Admin</em>' +
+      '</div>' +
       '<div class="admin-tabs">' +
-      '<button type="button" class="admin-tab active" data-filter="pending">Chờ duyệt</button>' +
+      '<button type="button" class="admin-tab" data-filter="pending">Chờ duyệt</button>' +
       '<button type="button" class="admin-tab" data-filter="approved">Đã duyệt</button>' +
-      '<button type="button" class="admin-tab" data-filter="all">Tất cả</button>' +
+      '<button type="button" class="admin-tab active" data-filter="all">Tất cả</button>' +
       '</div>' +
       '<div id="adminMemberList" class="admin-list"></div>' +
       '<button type="button" class="btn btn-outline btn-block" id="btnAdminRefresh">🔄 Làm mới</button>' +
@@ -120,7 +121,7 @@
       });
     });
     document.getElementById('btnAdminRefresh')?.addEventListener('click', function () {
-      const f = view.querySelector('.admin-tab.active')?.dataset.filter || 'pending';
+      const f = view.querySelector('.admin-tab.active')?.dataset.filter || 'all';
       renderAdminList(f);
     });
     return view;
@@ -128,7 +129,7 @@
 
   function showAdminView() {
     if (!window.GiaCloud?.isAdmin?.()) {
-      alert('Chỉ Admin mới vào được. Hãy chạy SQL admin-and-approval.sql rồi đặt role = admin.');
+      alert('Chỉ Admin mới vào được.');
       return;
     }
     ensureAdminView();
@@ -137,7 +138,12 @@
     document.querySelectorAll('.nav-item').forEach(b => {
       b.classList.toggle('active', b.dataset.nav === 'more');
     });
-    renderAdminList('pending');
+    // Mặc định tab Tất cả để luôn thấy danh sách
+    const view = document.getElementById('view-admin');
+    view.querySelectorAll('.admin-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.filter === 'all');
+    });
+    renderAdminList('all');
     window.scrollTo(0, 0);
   }
 
@@ -147,37 +153,64 @@
     box.innerHTML = '<p class="muted">Đang tải…</p>';
     try {
       const list = await window.GiaCloud.listMembers();
-      let rows = list;
-      if (filter === 'pending') rows = list.filter(x => x.status === 'pending');
-      else if (filter === 'approved') rows = list.filter(x => x.status === 'approved');
+      let rows = list || [];
+      if (filter === 'pending') rows = rows.filter(x => x.status === 'pending');
+      else if (filter === 'approved') rows = rows.filter(x => x.status === 'approved');
 
       if (!rows.length) {
-        box.innerHTML = '<div class="empty-state"><p>Không có thành viên nào.</p></div>';
+        let tip = 'Chưa có thành viên nào.';
+        if (filter === 'pending') {
+          tip = 'Không ai đang chờ duyệt.\n\nKhi bà con đăng nhập Google lần đầu, họ sẽ hiện ở đây để anh bấm Duyệt.';
+        } else if (filter === 'approved') {
+          tip = 'Chưa có ai được duyệt.';
+        } else {
+          tip = 'Chưa có hồ sơ nào.\nAnh đăng nhập Google rồi bấm Làm mới.';
+        }
+        box.innerHTML = '<div class="empty-state"><p style="white-space:pre-line">' + esc(tip) + '</p></div>';
         return;
       }
 
+      const me = window.GiaCloud?.state?.user?.id;
+
       box.innerHTML = rows.map(function (m) {
-        const st = m.status || 'pending';
+        const st = m.status || 'approved';
         const role = m.role || 'member';
+        const isMe = me && m.id === me;
         const badge =
           st === 'approved' ? '<span class="badge badge-ok">Đã duyệt</span>' :
           st === 'rejected' ? '<span class="badge badge-no">Từ chối</span>' :
           '<span class="badge badge-wait">Chờ duyệt</span>';
-        const roleBadge = role === 'admin' ? '<span class="badge badge-admin">Admin</span>' : '';
+        const roleBadge = role === 'admin' ? '<span class="badge badge-admin">Admin</span>' : '<span class="badge">Thành viên</span>';
+        const meTag = isMe ? ' <span class="badge badge-ok">Bạn</span>' : '';
         const when = m.created_at ? new Date(m.created_at).toLocaleDateString('vi-VN') : '';
+
+        let actions = '';
+        if (!isMe) {
+          if (st !== 'approved') {
+            actions += '<button type="button" class="btn btn-sm btn-approve" data-act="approve">✅ Duyệt</button>';
+          }
+          if (st !== 'rejected') {
+            actions += '<button type="button" class="btn btn-sm btn-reject" data-act="reject">Từ chối</button>';
+          }
+          if (st === 'approved' || st === 'pending') {
+            if (role !== 'admin') {
+              actions += '<button type="button" class="btn btn-sm btn-approve" data-act="make-admin">🛡️ Cho Admin</button>';
+            } else {
+              actions += '<button type="button" class="btn btn-sm btn-reject" data-act="make-member">Bỏ Admin</button>';
+            }
+          }
+        } else {
+          actions = '<span class="muted" style="font-size:.8rem">Đây là tài khoản của anh (Admin)</span>';
+        }
+
         return (
           '<div class="admin-row" data-id="' + esc(m.id) + '">' +
           '<div class="admin-row-main">' +
           '<strong>' + esc(m.display_name || 'Chưa đặt tên') + '</strong>' +
-          badge + roleBadge +
+          meTag + ' ' + badge + ' ' + roleBadge +
           '<div class="muted" style="font-size:.75rem">Tham gia: ' + esc(when) + '</div>' +
           '</div>' +
-          '<div class="admin-row-actions">' +
-          (st !== 'approved' ? '<button type="button" class="btn btn-sm btn-approve" data-act="approve">Duyệt</button>' : '') +
-          (st !== 'rejected' ? '<button type="button" class="btn btn-sm btn-reject" data-act="reject">Từ chối</button>' : '') +
-          (role !== 'admin' ? '<button type="button" class="btn btn-sm" data-act="make-admin">Cho Admin</button>' :
-            '<button type="button" class="btn btn-sm" data-act="make-member">Bỏ Admin</button>') +
-          '</div></div>'
+          '<div class="admin-row-actions">' + actions + '</div></div>'
         );
       }).join('');
 
@@ -189,23 +222,34 @@
           if (!id) return;
           btn.disabled = true;
           try {
-            if (act === 'approve') await window.GiaCloud.setMemberStatus(id, 'approved');
-            if (act === 'reject') await window.GiaCloud.setMemberStatus(id, 'rejected');
+            if (act === 'approve') {
+              await window.GiaCloud.setMemberStatus(id, 'approved');
+              alert('Đã duyệt thành viên.');
+            }
+            if (act === 'reject') {
+              await window.GiaCloud.setMemberStatus(id, 'rejected');
+              alert('Đã từ chối.');
+            }
             if (act === 'make-admin') {
               await window.GiaCloud.setMemberStatus(id, 'approved');
               await window.GiaCloud.setMemberRole(id, 'admin');
+              alert('Đã trao quyền Admin.');
             }
-            if (act === 'make-member') await window.GiaCloud.setMemberRole(id, 'member');
-            const f = document.querySelector('.admin-tab.active')?.dataset.filter || 'pending';
+            if (act === 'make-member') {
+              await window.GiaCloud.setMemberRole(id, 'member');
+              alert('Đã bỏ quyền Admin.');
+            }
+            const f = document.querySelector('.admin-tab.active')?.dataset.filter || 'all';
             await renderAdminList(f);
           } catch (e) {
-            alert(e?.message || e);
+            alert('Lỗi: ' + (e?.message || e) + '\n\nNếu báo RLS, chạy lại SQL admin-and-approval.sql trên Supabase.');
             btn.disabled = false;
           }
         });
       });
     } catch (e) {
-      box.innerHTML = '<p class="warn-text">' + esc(e?.message || String(e)) + '</p>';
+      box.innerHTML = '<p class="warn-text">' + esc(e?.message || String(e)) +
+        '</p><p class="muted">Thử đăng nhập lại Google, rồi bấm Làm mới.</p>';
     }
   }
 
@@ -220,7 +264,6 @@
   function guardWrite(e) {
     if (!window.GiaCloud?.state?.user) return;
     if (window.GiaCloud.isApproved?.()) return;
-    // Chỉ chặn khi đang pending/rejected rõ ràng
     if (!window.GiaCloud.isPending?.() && !window.GiaCloud.isRejected?.()) return;
     const t = e.target.closest(
       '#btnAddRoot,#btnAddEvent,#btnAddPost,#btnSendChat,#personForm,#eventForm,#postForm'
@@ -229,7 +272,7 @@
     e.preventDefault();
     e.stopPropagation();
     updateGate();
-    alert('Tài khoản đang chờ Admin duyệt. Bạn chưa thể thêm dữ liệu.');
+    alert('Tài khoản đang chờ Admin duyệt. Chưa thể thêm dữ liệu.');
   }
 
   document.addEventListener('click', guardWrite, true);
