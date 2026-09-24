@@ -1,2 +1,1 @@
-/* temporary boot - loading full app */
-console.error('Gia Pha: app body loading...');
+LOADING_FROM_FILE
