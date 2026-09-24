@@ -13,6 +13,9 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
+  <style>
+    .auth-hint { text-align: center; font-size: .85rem; color: #7a5c48; margin-bottom: 14px; line-height: 1.4; }
+  </style>
 </head>
 <body>
   <header class="app-header">
@@ -47,15 +50,15 @@
         <div class="account-card">
           <p id="authStatus" class="auth-status">Chưa đăng nhập</p>
           <div id="authLogin">
+            <p class="auth-hint">Đăng nhập bằng tài khoản Google để tham gia dòng họ.</p>
             <button id="btnGoogle" class="btn btn-google btn-block" type="button">
               <span class="g-icon">G</span> Đăng nhập bằng Google
             </button>
-            <div class="auth-sep"><span>hoặc SMS</span></div>
-            <input id="authPhone" type="tel" placeholder="+84901234567" />
-            <button id="btnSendOtp" class="btn btn-primary btn-block" type="button">Gửi mã OTP SMS</button>
+            <input id="authPhone" type="tel" class="hidden" />
+            <button id="btnSendOtp" type="button" class="hidden"></button>
             <div id="otpBox" class="hidden">
-              <input id="authOtp" inputmode="numeric" maxlength="8" placeholder="Mã OTP" />
-              <button id="btnVerifyOtp" class="btn btn-primary btn-block" type="button">Xác nhận OTP</button>
+              <input id="authOtp" class="hidden" />
+              <button id="btnVerifyOtp" type="button" class="hidden"></button>
             </div>
           </div>
           <div id="authUser" class="hidden">
@@ -66,7 +69,7 @@
             <button id="btnGoHome" class="btn btn-outline btn-block" type="button">🏠 Về trang chủ</button>
             <button id="btnLogout" class="btn btn-logout btn-block" type="button">Đăng xuất</button>
           </div>
-          <p class="disclaimer">Không lưu mật khẩu. Thành viên mới cần Admin duyệt trước khi dùng đầy đủ.</p>
+          <p class="disclaimer">Chỉ đăng nhập bằng Google. Thành viên mới cần Admin duyệt trước khi dùng đầy đủ.</p>
         </div>
       </div>
     </section>
@@ -224,11 +227,11 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
   <script>window.GIA_SUPABASE_CONFIG={url:window.GIA_SUPABASE_URL||"",anonKey:window.GIA_SUPABASE_ANON_KEY||""};</script>
-  <script src="cloud.js?v=7"></script>
+  <script src="cloud.js?v=8"></script>
   <script src="rituals.js?v=12"></script>
   <script src="app.js?v=21"></script>
   <script src="auth-ux.js?v=1"></script>
-  <script src="gate-admin.js?v=2"></script>
+  <script src="gate-admin.js?v=3"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function () {});
