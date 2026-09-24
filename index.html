@@ -13,9 +13,6 @@
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
   <link rel="apple-touch-icon" href="logo.svg" />
-  <style>
-    .auth-hint { text-align: center; font-size: .85rem; color: #7a5c48; margin-bottom: 14px; line-height: 1.4; }
-  </style>
 </head>
 <body>
   <header class="app-header">
@@ -54,12 +51,6 @@
             <button id="btnGoogle" class="btn btn-google btn-block" type="button">
               <span class="g-icon">G</span> Đăng nhập bằng Google
             </button>
-            <input id="authPhone" type="tel" class="hidden" />
-            <button id="btnSendOtp" type="button" class="hidden"></button>
-            <div id="otpBox" class="hidden">
-              <input id="authOtp" class="hidden" />
-              <button id="btnVerifyOtp" type="button" class="hidden"></button>
-            </div>
           </div>
           <div id="authUser" class="hidden">
             <div class="auth-welcome" id="authWelcome"></div>
@@ -161,7 +152,6 @@
       </div>
       <div id="calGrid" class="cal-grid"></div>
       <div id="calDayDetail" class="cal-detail"></div>
-      <p class="disclaimer">Thông tin ngày âm mang tính tham khảo theo văn hóa dân gian.</p>
     </section>
 
     <section id="view-rituals" class="view hidden">
@@ -203,60 +193,19 @@
     <button type="button" class="nav-item" data-nav="more"><span>⋯</span><small>Thêm</small></button>
   </nav>
 
-  <div id="personModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2 id="modalTitle">Thành viên</h2><button type="button" class="modal-close" id="btnCloseModal">×</button></div><form id="personForm"><input type="hidden" id="personId" /><input type="hidden" id="parentId" /><input type="hidden" id="relationType" /><div class="form-row"><label>Họ và tên *</label><input type="text" id="fullName" required /></div><div class="form-row two-cols"><div><label>Giới tính</label><select id="gender"><option value="male">Nam</option><option value="female">Nữ</option></select></div><div><label>Quan hệ</label><select id="relationSelect"><option value="child">Con</option><option value="spouse">Vợ/Chồng</option><option value="side">Nhánh phụ</option></select></div></div><div class="form-row two-cols"><div><label>Ngày sinh</label><input type="text" id="birthDate" /></div><div><label>Ngày mất</label><input type="text" id="deathDate" /></div></div><div class="form-row"><label>📅 Ngày giỗ</label><input type="text" id="deathAnniversary" /></div><div class="form-row"><label>Ghi chú</label><textarea id="notes" rows="2"></textarea></div><div class="form-row"><label>Ảnh</label><div class="photo-upload"><img id="photoPreview" class="photo-preview hidden" alt="" /><input type="file" id="photoInput" accept="image/*" /><button type="button" id="btnRemovePhoto" class="btn btn-small hidden">Xóa ảnh</button></div></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancel">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div></form></div></div>
-
-  <div id="eventModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2>Sự kiện Hiếu Hỉ</h2><button type="button" class="modal-close" id="btnCloseEvent">×</button></div><form id="eventForm"><input type="hidden" id="eventId" /><div class="form-row"><label>Tiêu đề *</label><input type="text" id="eventTitle" required /></div><div class="form-row"><label>Loại</label><select id="eventType"><option value="tang">Tang lễ</option><option value="gio">Giỗ</option><option value="cuoi">Cưới hỏi</option><option value="hop">Họp họ</option><option value="khac">Khác</option></select></div><div class="form-row"><label>Người liên quan</label><input type="text" id="eventPerson" /></div><div class="form-row two-cols"><div><label>Ngày</label><input type="date" id="eventDate" /></div><div><label>Giờ</label><input type="time" id="eventTime" /></div></div><div class="form-row"><label>📍 Địa chỉ</label><input type="text" id="eventAddress" /></div><div class="form-row"><label>Nội dung</label><textarea id="eventContent" rows="3"></textarea></div><div class="form-row"><label><input type="checkbox" id="eventPin" /> Ghim</label></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancelEvent">Hủy</button><button type="submit" class="btn btn-primary">Lưu</button></div></form></div></div>
-
-  <div id="postModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2>Đăng bảng tin</h2><button type="button" class="modal-close" id="btnClosePost">×</button></div><form id="postForm"><div class="form-row"><label>Loại bài</label><select id="postType"><option value="member">Bài viết</option><option value="notice">Thông báo</option></select></div><div class="form-row"><label>Tên</label><input type="text" id="postAuthor" /></div><div class="form-row"><label>Nội dung *</label><textarea id="postContent" rows="4" required></textarea></div><div class="form-row"><label>Ảnh</label><input type="file" id="postImage" accept="image/*" /></div><div class="form-row"><label><input type="checkbox" id="postPin" /> Ghim</label></div><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCancelPost">Hủy</button><button type="submit" class="btn btn-primary">Đăng</button></div></form></div></div>
-
-  <div id="ritualModal" class="modal hidden"><div class="modal-content"><div class="modal-header"><h2 id="ritualTitle"></h2><button type="button" class="modal-close" id="btnCloseRitual">×</button></div><p class="ritual-meta" id="ritualMeta"></p><pre id="ritualBody" class="ritual-body"></pre><div class="form-actions"><button type="button" class="btn btn-secondary" id="btnCopyRitual">📋 Sao chép</button><button type="button" class="btn btn-primary" id="btnSpeakRitual">🔊 Đọc</button></div></div></div>
-
-  <div id="contextMenu" class="context-menu hidden">
-    <button type="button" data-action="edit">✏️ Sửa</button>
-    <button type="button" data-action="addChild">➕ Thêm con</button>
-    <button type="button" data-action="addSpouse">💍 Vợ/Chồng</button>
-    <button type="button" data-action="addSide">🌿 Nhánh phụ</button>
-    <button type="button" data-action="delete" class="danger">🗑️ Xóa</button>
-  </div>
-
-  <div id="iosInstallHint" class="ios-hint hidden">
-    <p>📱 iPhone: Chia sẻ → Thêm vào Màn hình chính</p>
-    <button type="button" id="btnCloseIosHint">Đã hiểu</button>
-  </div>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
   <script>window.GIA_SUPABASE_CONFIG={url:window.GIA_SUPABASE_URL||"",anonKey:window.GIA_SUPABASE_ANON_KEY||""};</script>
   <script src="cloud.js?v=8"></script>
   <script src="rituals.js?v=12"></script>
   <script src="tree-seed.js?v=1"></script>
-  <script src="app.js?v=30"></script>
+  <script src="app.js?v=33"></script>
   <script src="auth-ux.js?v=1"></script>
   <script src="gate-admin.js?v=4"></script>
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(function () {});
     }
-    var deferredPrompt = null;
-    var btnInstall = document.getElementById('btnInstall');
-    window.addEventListener('beforeinstallprompt', function (e) {
-      e.preventDefault();
-      deferredPrompt = e;
-      btnInstall.classList.remove('hidden');
-    });
-    btnInstall.addEventListener('click', async function () {
-      if (!deferredPrompt) return;
-      deferredPrompt.prompt();
-      await deferredPrompt.userChoice;
-      deferredPrompt = null;
-      btnInstall.classList.add('hidden');
-    });
-    var isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-    var isStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone;
-    if (isIOS && !isStandalone) document.getElementById('iosInstallHint').classList.remove('hidden');
-    document.getElementById('btnCloseIosHint').addEventListener('click', function () {
-      document.getElementById('iosInstallHint').classList.add('hidden');
-    });
   </script>
 </body>
 </html>
