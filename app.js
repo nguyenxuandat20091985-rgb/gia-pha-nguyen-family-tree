@@ -87,8 +87,8 @@
     if (!cloudData) return false;
     const localPeople = Object.keys(data.people || {}).length;
     const cloudPeople = Object.keys(cloudData.tree?.people || {}).length;
-    // A newly configured/empty Supabase project must never erase a populated local tree.
-    if (localPeople > 0 && cloudPeople === 0) {
+    // Never let an empty or partial cloud snapshot erase a larger local tree.
+    if (localPeople > cloudPeople) {
       await window.GiaCloud?.syncLocal(data, events, posts, comments, likes);
       return false;
     }
@@ -115,7 +115,11 @@
   }
 
   function seedIfEmpty() {
-    if (Object.keys(data.people).length > 0) return;
+    const ids = Object.keys(data.people);
+    const legacySampleIds = ['root', 'mung', 'coc', 'hach', 'ngoc', 'ap', 'canh', 'giang', 'lang'];
+    const isLegacySample = ids.length === legacySampleIds.length && ids.every(id => legacySampleIds.includes(id));
+    if (ids.length > 0 && !isLegacySample) return;
+    if (isLegacySample) data = { people: {}, rootId: null };
     const mk = (id, o) => {
       data.people[id] = {
         id, name: o.name, gender: o.gender || 'male', birthDate: o.birthDate || '',
@@ -139,7 +143,58 @@
     mk('canh', { name: 'Nguyễn Văn Cảnh' });
     mk('giang', { name: 'Nguyễn Văn Giang' });
     mk('lang', { name: 'Nguyễn Văn Lạng' });
-    ['ap', 'canh', 'giang', 'lang'].forEach(id => link('hach', id));
+    mk('nghia', { name: 'Nguyễn Văn Nghĩa' });
+    mk('thu', { name: 'Nguyễn Văn Thu' });
+    ['ap', 'canh', 'giang', 'lang', 'nghia'].forEach(id => link('hach', id));
+    link('ngoc', 'thu');
+    mk('nhan', { name: 'Nguyễn Văn Nhẫn', birthDate: '1971' });
+    mk('gioi', { name: 'Nguyễn Giỏi' });
+    mk('hop', { name: 'Nguyễn Hợp' });
+    mk('ty', { name: 'Nguyễn Tý' });
+    mk('nhac', { name: 'Nguyễn Nhạc' });
+    mk('huong', { name: 'Nguyễn Hưởng' });
+    mk('dien', { name: 'Nguyễn Điền' });
+    mk('the', { name: 'Nguyễn Văn Thế' });
+    mk('giang2', { name: 'Nguyễn Giang' });
+    link('lang', 'nhan'); link('lang', 'gioi'); link('lang', 'hop');
+    link('giang', 'ty'); link('giang', 'nhac');
+    link('nghia', 'huong'); link('nghia', 'dien');
+    link('thu', 'the'); link('thu', 'giang2');
+    mk('xoai', { name: 'Nguyễn Xoài' });
+    mk('tam', { name: 'Nguyễn Tám' });
+    mk('thue', { name: 'Nguyễn Thuế' });
+    mk('nha', { name: 'Nguyễn Nhà' });
+    mk('thuy', { name: 'Nguyễn Thủy', gender: 'female' });
+    mk('danh', { name: 'Nguyễn Đảnh' });
+    mk('nhom', { name: 'Nguyễn Nhóm' });
+    mk('tam2', { name: 'Nguyễn Tâm' });
+    mk('hinh', { name: 'Nguyễn Hình' });
+    mk('hung', { name: 'Nguyễn Hùng' });
+    mk('quang', { name: 'Nguyễn Quang' });
+    mk('dung', { name: 'Nguyễn Dũng' });
+    mk('hao', { name: 'Nguyễn Hào' });
+    mk('oanh', { name: 'Nguyễn Oanh', gender: 'female' });
+    link('nhan', 'xoai'); link('nhan', 'tam'); link('nhan', 'thue'); link('nhan', 'nha');
+    link('gioi', 'thuy'); link('gioi', 'danh'); link('hop', 'nhom'); link('hop', 'tam2');
+    link('ty', 'hinh'); link('ty', 'hung'); link('nhac', 'quang'); link('nhac', 'dung');
+    link('huong', 'hao'); link('dien', 'oanh');
+    mk('thuan', { name: 'Nguyễn Bá Thuận' });
+    mk('thanhminh', { name: 'Nguyễn Thanh Minh' });
+    mk('thanhngan', { name: 'Nguyễn Thanh Ngân' });
+    mk('manh', { name: 'Nguyễn Mạnh' });
+    mk('cuong', { name: 'Nguyễn Cương' });
+    link('ap', 'thuan'); link('ap', 'thanhminh');
+    link('canh', 'thanhngan'); link('canh', 'manh'); link('canh', 'cuong');
+    mk('hung2', { name: 'Nguyễn Hùng' });
+    mk('phuong', { name: 'Nguyễn Phương', gender: 'female' });
+    mk('duc', { name: 'Nguyễn Đức' });
+    mk('vuminh', { name: 'Nguyễn Vũ Minh' });
+    mk('manhduy', { name: 'Nguyễn Mạnh Duy Trung' });
+    mk('thanh', { name: 'Nguyễn Thanh' });
+    mk('thai', { name: 'Nguyễn Thái' });
+    link('xoai', 'hung2'); link('xoai', 'phuong'); link('tam', 'duc');
+    link('thue', 'vuminh'); link('nha', 'manhduy');
+    link('thuan', 'thanh'); link('thanhminh', 'thai');
     saveTree();
   }
 
