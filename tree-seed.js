@@ -1,0 +1,56 @@
+/* Family tree seed – Cụ Tổ 6 đời Nguyễn Văn Mương */
+window.GIA_TREE_SEED = function(data, saveTree) {
+  const SEED_VER_KEY = 'giaPhaSeedVersion';
+  const SEED_VERSION = 5;
+  const ver = parseInt(localStorage.getItem(SEED_VER_KEY) || '0', 10);
+  const ids = Object.keys(data.people || {});
+  const known = new Set(['root','mung','coc','hach','ngoc','ap','canh','giang','lang','nghia','thu','nhan','gioi','hop','ty','nhac','huong','dien','the','giang2','xoai','tam','thue','nha','thuy','danh','nhom','tam2','hinh','hung','quang','dung','hao','oanh','thuan','thanhminh','thanhngan','manh','cuong','hung2','phuong','duc','vuminh','manhduy','thanh','thai','tuthai','comanh','huy','khanh','bao','truong','tuyet']);
+  if (ids.length && !ids.every(id => known.has(id))) return data;
+  if (ids.length && ver >= SEED_VERSION) return data;
+  data = { people: {}, rootId: null };
+  const mk = (id, o) => {
+    data.people[id] = { id, name: o.name, gender: o.gender||'male', birthDate: o.birthDate||'', deathDate: o.deathDate||'', deathAnniversary: o.deathAnniversary||'', notes: o.notes||'', photo: null, children: [], spouses: [], sideBranches: [], isSide: false, isRoot: !!o.isRoot, parentId: null };
+  };
+  const link = (p, c) => { if (!data.people[p]||!data.people[c]) return; data.people[c].parentId=p; if(!data.people[p].children.includes(c)) data.people[p].children.push(c); };
+  const spouse = (a,b) => { if(!data.people[a]||!data.people[b])return; if(!data.people[a].spouses.includes(b))data.people[a].spouses.push(b); if(!data.people[b].spouses.includes(a))data.people[b].spouses.push(a); };
+
+  mk('root',{name:'Nguyễn Văn Mương',isRoot:true,notes:'Cụ Tổ 6 đời · Họ Nguyễn'}); data.rootId='root';
+  mk('mung',{name:'Nguyễn Văn Mừng',birthDate:'1913'});
+  mk('coc',{name:'Nguyễn Văn Cốc',birthDate:'1913'});
+  mk('hach',{name:'Nguyễn Văn Hạch',birthDate:'1912',notes:'Còn gọi Nguyễn Văn Lạch'});
+  mk('ngoc',{name:'Nguyễn Văn Ngọc',birthDate:'1914'});
+  ['mung','coc','hach','ngoc'].forEach(id=>link('root',id));
+  mk('ap',{name:'Nguyễn Văn Ấp'}); mk('canh',{name:'Nguyễn Văn Cảnh'});
+  link('coc','ap'); link('coc','canh');
+  mk('giang',{name:'Nguyễn Văn Giang'}); mk('lang',{name:'Nguyễn Văn Lạng'});
+  mk('tuthai',{name:'Tú Thái',gender:'female',notes:'Phối ngẫu nhánh Hạch'});
+  mk('comanh',{name:'Cô Mạnh',gender:'female',notes:'Phối ngẫu nhánh Hạch'});
+  link('hach','giang'); link('hach','lang'); spouse('hach','tuthai'); spouse('hach','comanh');
+  mk('nghia',{name:'Nguyễn Văn Nghĩa',notes:'Còn gọi Nghềc'}); mk('thu',{name:'Nguyễn Văn Thu',notes:'Còn gọi Thư'});
+  link('ngoc','nghia'); link('ngoc','thu');
+  mk('nhan',{name:'Nguyễn Văn Nhẫn',birthDate:'1971'}); mk('gioi',{name:'Nguyễn Giỏi'}); mk('hop',{name:'Nguyễn Hợp'});
+  link('lang','nhan'); link('lang','gioi'); link('lang','hop');
+  mk('ty',{name:'Nguyễn Tý'}); mk('nhac',{name:'Nguyễn Nhạc'}); link('giang','ty'); link('giang','nhac');
+  mk('huong',{name:'Nguyễn Hưởng'}); mk('dien',{name:'Nguyễn Điền'}); link('nghia','huong'); link('nghia','dien');
+  mk('the',{name:'Nguyễn Văn Thế'}); mk('giang2',{name:'Nguyễn Giang'}); link('thu','the'); link('thu','giang2');
+  mk('thuan',{name:'Nguyễn Bá Thuận'}); mk('thanhminh',{name:'Nguyễn Thanh Minh'});
+  mk('huy',{name:'Nguyễn Huy'}); mk('khanh',{name:'Nguyễn Khánh'}); mk('bao',{name:'Nguyễn Bảo'});
+  ['thuan','thanhminh','huy','khanh','bao'].forEach(id=>link('ap',id));
+  mk('thanhngan',{name:'Nguyễn Thanh Ngân'}); mk('manh',{name:'Nguyễn Mạnh'}); mk('cuong',{name:'Nguyễn Cương'});
+  link('canh','thanhngan'); link('canh','manh'); link('canh','cuong');
+  mk('xoai',{name:'Nguyễn Xoài'}); mk('tam',{name:'Nguyễn Tám'}); mk('thue',{name:'Nguyễn Thuế'}); mk('nha',{name:'Nguyễn Nhà'});
+  ['xoai','tam','thue','nha'].forEach(id=>link('nhan',id));
+  mk('thuy',{name:'Nguyễn Thủy',gender:'female'}); mk('danh',{name:'Nguyễn Đảnh'}); link('gioi','thuy'); link('gioi','danh');
+  mk('nhom',{name:'Nguyễn Nhóm'}); mk('tam2',{name:'Nguyễn Tâm'}); link('hop','nhom'); link('hop','tam2');
+  mk('hinh',{name:'Nguyễn Hình'}); mk('hung',{name:'Nguyễn Hùng'}); link('ty','hinh'); link('ty','hung');
+  mk('quang',{name:'Nguyễn Quang'}); mk('dung',{name:'Nguyễn Dũng'}); link('nhac','quang'); link('nhac','dung');
+  mk('hao',{name:'Nguyễn Hào'}); mk('oanh',{name:'Nguyễn Oanh',gender:'female'}); link('huong','hao'); link('dien','oanh');
+  mk('hung2',{name:'Nguyễn Hùng'}); mk('phuong',{name:'Nguyễn Phương',gender:'female'});
+  mk('duc',{name:'Nguyễn Đức'}); mk('vuminh',{name:'Nguyễn Vũ Minh'}); mk('manhduy',{name:'Nguyễn Mạnh Duy Trung'});
+  link('xoai','hung2'); link('xoai','phuong'); link('tam','duc'); link('thue','vuminh'); link('nha','manhduy');
+  mk('thanh',{name:'Nguyễn Thanh'}); mk('thai',{name:'Nguyễn Thái'}); mk('truong',{name:'Nguyễn Trường'}); mk('tuyet',{name:'Nguyễn Tuyết',gender:'female'});
+  link('thuan','thanh'); link('thanhminh','thai'); link('huy','truong'); link('khanh','tuyet');
+  localStorage.setItem(SEED_VER_KEY, String(SEED_VERSION));
+  if (typeof saveTree==='function') saveTree();
+  return data;
+};
