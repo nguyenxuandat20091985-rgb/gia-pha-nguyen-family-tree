@@ -18,6 +18,7 @@
     emit('gia-auth-changed',{user});
     client.auth.onAuthStateChange((_event,session)=>{
       user=session?.user||null; state.user=user; emit('gia-auth-changed',{user});
+      if (user) refreshProfile().catch(()=>{});
     });
     await refreshProfile();
   }
@@ -55,12 +56,57 @@
   }
 
   async function signOut(){ if(client) await client.auth.signOut(); }
-  async function upsertProfile(fields){
-    if(!client||!user) return;
-    const row=Object.assign({id:user.id},fields||{});
-    const {data,error}=await client.from('profiles').upsert(row,{onConflict:'id'}).select().single();
-    if(error) throw error; state.profile=data; return data;
+
+  /** Ensure session user is available; throw clear errors for UI */
+  async function requireUser(){
+    if(!client) throw new Error('Supabase chưa được cấu hình.');
+    if(user) return user;
+    const {data:{session}} = await client.auth.getSession();
+    user = session?.user || null;
+    state.user = user;
+    if(!user) throw new Error('Phiên đăng nhập đã hết. Hãy đăng nhập lại rồi lưu.');
+    return user;
   }
+
+  async function upsertProfile(fields){
+    const u = await requireUser();
+    const name = (fields && fields.display_name != null) ? String(fields.display_name).trim() : '';
+    if(!name) throw new Error('Vui lòng nhập tên hiển thị.');
+    const row = Object.assign({ id: u.id }, fields || {}, { display_name: name });
+
+    // Prefer update first (row usually exists via trigger); then insert if missing
+    let { data, error } = await client.from('profiles').update({
+      display_name: name,
+      phone: fields.phone != null ? fields.phone : undefined,
+      avatar_url: fields.avatar_url != null ? fields.avatar_url : undefined,
+      branch_label: fields.branch_label != null ? fields.branch_label : undefined
+    }).eq('id', u.id).select().maybeSingle();
+
+    if (!error && !data) {
+      const ins = await client.from('profiles').insert(row).select().single();
+      data = ins.data;
+      error = ins.error;
+    }
+
+    // Fallback full upsert if update/insert path still fails
+    if (error) {
+      const up = await client.from('profiles').upsert(row, { onConflict: 'id' }).select().single();
+      data = up.data;
+      error = up.error;
+    }
+
+    if (error) {
+      const msg = error.message || String(error);
+      if (/row-level security|RLS|42501/i.test(msg)) {
+        throw new Error('Không đủ quyền lưu hồ sơ (RLS). Anh chạy file supabase/fix-profile-save.sql trên Supabase SQL Editor.');
+      }
+      throw new Error(msg);
+    }
+    state.profile = data;
+    emit('gia-profile-changed', { profile: data });
+    return data;
+  }
+
   async function syncLocal(tree,events,posts,comments,likes){
     if(!client||!user) return;
     const people=Object.values(tree?.people||{}).map(p=>({
