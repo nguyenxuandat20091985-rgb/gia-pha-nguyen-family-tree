@@ -42,33 +42,36 @@
       return;
     }
     const p = cloud.state.profile;
-    // Profile chưa load: chờ
+    // Profile chưa load: không khóa cứng
     if (!p) {
-      el.classList.remove('hidden');
-      document.body.classList.add('gate-active');
-      document.getElementById('gateIcon').textContent = '⏳';
-      document.getElementById('gateTitle').textContent = 'Đang tải hồ sơ…';
-      document.getElementById('gateMsg').textContent = 'Vui lòng chờ giây lát.';
+      el.classList.add('hidden');
+      document.body.classList.remove('gate-active');
       return;
     }
-    if (p.status === 'approved') {
+    // Chỉ chặn khi status rõ ràng là pending/rejected.
+    // Nếu chưa có cột status (SQL chưa chạy) → cho vào bình thường.
+    const st = p.status || null;
+    if (!st || st === 'approved') {
       el.classList.add('hidden');
       document.body.classList.remove('gate-active');
       return;
     }
     el.classList.remove('hidden');
     document.body.classList.add('gate-active');
-    if (p.status === 'rejected') {
+    if (st === 'rejected') {
       document.getElementById('gateIcon').textContent = '🚫';
       document.getElementById('gateTitle').textContent = 'Không được duyệt';
       document.getElementById('gateMsg').textContent =
         'Tài khoản của bạn chưa được Admin dòng họ chấp nhận. Liên hệ người quản lý gia phả để được hỗ trợ.';
-    } else {
+    } else if (st === 'pending') {
       document.getElementById('gateIcon').textContent = '⏳';
       document.getElementById('gateTitle').textContent = 'Chờ Admin duyệt';
       document.getElementById('gateMsg').textContent =
         'Xin chào ' + (p.display_name || 'thành viên') +
         '. Tài khoản đã đăng nhập thành công nhưng cần Admin dòng họ duyệt trước khi sử dụng đầy đủ.';
+    } else {
+      el.classList.add('hidden');
+      document.body.classList.remove('gate-active');
     }
   }
 
@@ -125,7 +128,7 @@
 
   function showAdminView() {
     if (!window.GiaCloud?.isAdmin?.()) {
-      alert('Chỉ Admin mới vào được.');
+      alert('Chỉ Admin mới vào được. Hãy chạy SQL admin-and-approval.sql rồi đặt role = admin.');
       return;
     }
     ensureAdminView();
@@ -214,10 +217,11 @@
     else btn.classList.add('hidden');
   }
 
-  // Chặn thao tác ghi nếu chưa duyệt
   function guardWrite(e) {
     if (!window.GiaCloud?.state?.user) return;
     if (window.GiaCloud.isApproved?.()) return;
+    // Chỉ chặn khi đang pending/rejected rõ ràng
+    if (!window.GiaCloud.isPending?.() && !window.GiaCloud.isRejected?.()) return;
     const t = e.target.closest(
       '#btnAddRoot,#btnAddEvent,#btnAddPost,#btnSendChat,#personForm,#eventForm,#postForm'
     );
