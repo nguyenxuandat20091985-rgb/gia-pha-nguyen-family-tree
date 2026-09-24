@@ -1,0 +1,85 @@
+/* Gate chờ duyệt + Admin panel */
+.access-gate {
+  position: fixed; inset: 0; z-index: 9000;
+  background: rgba(42,24,16,.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px;
+  backdrop-filter: blur(3px);
+}
+.access-gate.hidden { display: none !important; }
+.access-gate-card {
+  width: min(100%, 400px);
+  background: linear-gradient(180deg, #fffdf9, #fff8ef);
+  border-radius: 20px;
+  padding: 28px 22px;
+  text-align: center;
+  border: 1px solid rgba(201,162,39,.4);
+  box-shadow: 0 16px 40px rgba(0,0,0,.2);
+}
+.access-gate-icon { font-size: 2.4rem; margin-bottom: 8px; }
+.access-gate-card h2 {
+  font-family: var(--font-serif, Georgia, serif);
+  color: #7a0c0c;
+  margin-bottom: 10px;
+}
+.access-gate-card p {
+  font-size: .9rem;
+  color: #7a5c48;
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+body.gate-active .bottom-nav { pointer-events: none; opacity: .45; }
+
+.admin-panel {
+  background: #fffdf9;
+  border-radius: 16px;
+  padding: 16px;
+  border: 1px solid #e0d0b8;
+}
+.admin-panel h2 {
+  font-family: var(--font-serif, Georgia, serif);
+  color: #7a0c0c;
+  margin-bottom: 6px;
+}
+.admin-tabs {
+  display: flex; gap: 6px; margin: 12px 0;
+  flex-wrap: wrap;
+}
+.admin-tab {
+  border: 1px solid #e0d0b8;
+  background: #f7f0e6;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.admin-tab.active {
+  background: linear-gradient(135deg, #e8c547, #c9a227);
+  border-color: #c9a227;
+  color: #3d2a00;
+}
+.admin-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 12px; }
+.admin-row {
+  background: #fff;
+  border: 1px solid #e0d0b8;
+  border-radius: 12px;
+  padding: 12px;
+}
+.admin-row-main { margin-bottom: 8px; }
+.admin-row-main strong { margin-right: 8px; }
+.admin-row-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.badge {
+  display: inline-block;
+  font-size: .68rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 999px;
+  margin-right: 4px;
+}
+.badge-ok { background: #dcfce7; color: #166534; }
+.badge-wait { background: #fef3c7; color: #92400e; }
+.badge-no { background: #fee2e2; color: #991b1b; }
+.badge-admin { background: #ede9fe; color: #5b21b6; }
+.btn-approve { background: #16a34a !important; color: #fff !important; }
+.btn-reject { background: #f5e6e6 !important; color: #9b1c1c !important; }
