@@ -1,1 +1,1 @@
-(function(){var b=window.__R||"";if(!b){alert("Loi app - thieu ma nguon");return;}var bin=atob(b);var u=new Uint8Array(bin.length);for(var i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);(0,eval)(new TextDecoder().decode(u));})();
+(function(){var p=window.__P||[];if(!p.length){alert('Loi app');return;}(0,eval)(p.join(''));})();
