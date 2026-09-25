@@ -4,7 +4,7 @@ const TREE_KEY='giaPhaNguyenData_v4';
 const TREE_KEYS=['giaPhaNguyenData_v4','giaPhaNguyenData_v3','giaPhaNguyenData_v2','giaPhaNguyenData_v1'];
 let data={people:{},rootId:null}, currentView='home', treeMode='tree', contextTargetId=null, photoBase64=null, _uiBound=false;
 let expandedNodes=new Set(['root']);
-const BRANCH_LABEL={mung:'Nhánh Mừng',coc:'Nhánh Cốc',hach:'Nhánh Hạch (Lạch)',ngoc:'Nhánh Ngọc'};
+const BRANCH_LABEL={coc:'Nhánh Cốc',hach:'Nhánh Hạch (Lạch)',ngoc:'Nhánh Ngọc'};
 function uid(){return 'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function loadTree(){for(const k of TREE_KEYS){try{const raw=localStorage.getItem(k);if(raw){const p=JSON.parse(raw);if(p&&p.people&&Object.keys(p.people).length){data=p;if(k!==TREE_KEY)localStorage.setItem(TREE_KEY,raw);return;}}}catch(e){}}}
@@ -16,7 +16,7 @@ function getPerson(id){return data.people[id]||null;}
 function refreshTree(){if(treeMode==='list')renderPersonList();else renderTree();}
 function renderTree(){const container=document.getElementById('treeRoot'),empty=document.getElementById('emptyState');if(!container)return;document.getElementById('treeView')?.classList.remove('hidden');document.getElementById('listView')?.classList.add('hidden');if(!data.rootId||!data.people[data.rootId]){container.innerHTML='';empty?.classList.remove('hidden');return;}empty?.classList.add('hidden');
   let hint=document.getElementById('treeScrollHint');
-  if(!hint){hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';hint.textContent='↔️ Vuốt ngang xem 4 nhánh · Bấm ▼ mở con cháu';document.getElementById('treeView')?.insertBefore(hint, container);}
+  if(!hint){hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';hint.textContent='↔️ Vuốt ngang xem 3 nhánh · Bấm ▼ mở con cháu';document.getElementById('treeView')?.insertBefore(hint, container);}
   container.innerHTML='';
   expandedNodes.add(data.rootId);
   container.appendChild(renderNode(data.rootId, 0));}
