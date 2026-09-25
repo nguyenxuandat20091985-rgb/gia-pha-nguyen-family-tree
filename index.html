@@ -6,13 +6,11 @@
   <meta name="theme-color" content="#7a0c0c" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="description" content="Gia Phả Họ Nguyễn – Trung tâm sinh hoạt dòng họ. Uống nước nhớ nguồn." />
   <title>Gia Phả Họ Nguyễn</title>
   <link rel="stylesheet" href="style.css?v=22" />
   <link rel="stylesheet" href="admin.css?v=2" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" type="image/svg+xml" href="logo.svg" />
-  <link rel="apple-touch-icon" href="logo.svg" />
 </head>
 <body>
   <header class="app-header">
@@ -27,7 +25,6 @@
       <button id="btnInstall" class="btn btn-install hidden">📥 Cài app</button>
     </div>
   </header>
-
   <div id="morningBanner" class="morning-banner hidden">
     <div class="morning-inner">
       <span class="morning-icon">🌿</span>
@@ -35,7 +32,6 @@
       <button type="button" id="btnCloseMorning" class="morning-close">×</button>
     </div>
   </div>
-
   <main id="mainContent">
     <section id="view-account" class="view hidden">
       <div class="account-shell">
@@ -48,9 +44,7 @@
           <p id="authStatus" class="auth-status">Chưa đăng nhập</p>
           <div id="authLogin">
             <p class="auth-hint">Đăng nhập bằng tài khoản Google để tham gia dòng họ.</p>
-            <button id="btnGoogle" class="btn btn-google btn-block" type="button">
-              <span class="g-icon">G</span> Đăng nhập bằng Google
-            </button>
+            <button id="btnGoogle" class="btn btn-google btn-block" type="button"><span class="g-icon">G</span> Đăng nhập bằng Google</button>
           </div>
           <div id="authUser" class="hidden">
             <div class="auth-welcome" id="authWelcome"></div>
@@ -60,70 +54,36 @@
             <button id="btnGoHome" class="btn btn-outline btn-block" type="button">🏠 Về trang chủ</button>
             <button id="btnLogout" class="btn btn-logout btn-block" type="button">Đăng xuất</button>
           </div>
-          <p class="disclaimer">Chỉ đăng nhập bằng Google. Thành viên mới cần Admin duyệt trước khi dùng đầy đủ.</p>
+          <p class="disclaimer">Chỉ đăng nhập bằng Google. Thành viên mới cần Admin duyệt.</p>
         </div>
       </div>
     </section>
-
     <section id="view-home" class="view">
-      <div class="home-hero">
-        <h2>🌳 Gia Phả Họ Nguyễn</h2>
-        <p>Trung tâm sinh hoạt dòng họ</p>
-      </div>
-      <div class="home-block" id="homeEvents">
-        <h3>🕯️ Việc họ hôm nay</h3>
-        <div id="homeEventsList" class="home-list"></div>
-      </div>
-      <div class="home-block" id="homeAnnounce">
-        <h3>📢 Thông báo mới</h3>
-        <div id="homeAnnounceList" class="home-list"></div>
-      </div>
-      <div class="home-block">
-        <h3>🤖 Bản tin dòng họ hôm nay</h3>
-        <div id="homeAiNews" class="ai-news-card"></div>
-      </div>
-      <div class="home-block">
-        <h3>📅 Lịch hôm nay</h3>
-        <div id="homeCalendarToday" class="home-list"></div>
-      </div>
-      <div class="home-actions">
-        <button type="button" class="btn btn-primary btn-block" data-nav="tree">Xem cây gia phả</button>
-      </div>
+      <div class="home-hero"><h2>🌳 Gia Phả Họ Nguyễn</h2><p>Trung tâm sinh hoạt dòng họ</p></div>
+      <div class="home-block" id="homeEvents"><h3>🕯️ Việc họ hôm nay</h3><div id="homeEventsList" class="home-list"></div></div>
+      <div class="home-block" id="homeAnnounce"><h3>📢 Thông báo mới</h3><div id="homeAnnounceList" class="home-list"></div></div>
+      <div class="home-block"><h3>🤖 Bản tin dòng họ hôm nay</h3><div id="homeAiNews" class="ai-news-card"></div></div>
+      <div class="home-block"><h3>📅 Lịch hôm nay</h3><div id="homeCalendarToday" class="home-list"></div></div>
+      <div class="home-actions"><button type="button" class="btn btn-primary btn-block" data-nav="tree">Xem cây gia phả</button></div>
     </section>
-
     <section id="view-tree" class="view hidden">
       <div class="view-toolbar">
         <button type="button" id="btnAddRoot" class="btn btn-primary">+ Thành viên</button>
         <button type="button" id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button>
         <input type="search" id="searchTree" placeholder="Tìm tên..." class="search-input" />
       </div>
-      <div id="treeView" class="tree-container">
-        <div id="treeRoot" class="tree"></div>
-        <div id="emptyState" class="empty-state hidden">
-          <div class="empty-icon">👨‍👩‍👧‍👦</div>
-          <h2>Chưa có dữ liệu gia phả</h2>
-          <p>Bấm + Thành viên để thêm Cụ Tổ.</p>
-        </div>
-      </div>
-      <div id="listView" class="list-container hidden">
-        <div id="personList" class="person-list"></div>
-      </div>
+      <div id="treeView" class="tree-container"><div id="treeRoot" class="tree"></div>
+        <div id="emptyState" class="empty-state hidden"><div class="empty-icon">👨‍👩‍👧‍👦</div><h2>Chưa có dữ liệu</h2></div></div>
+      <div id="listView" class="list-container hidden"><div id="personList" class="person-list"></div></div>
     </section>
-
     <section id="view-events" class="view hidden">
-      <div class="view-toolbar">
-        <button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button>
-      </div>
+      <div class="view-toolbar"><button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button></div>
       <div id="eventsList" class="cards-list"></div>
     </section>
-
     <section id="view-board" class="view hidden">
-      <div class="view-toolbar">
-        <button type="button" id="btnAddPost" class="btn btn-primary">+ Đăng bài</button>
-      </div>
+      <div class="view-toolbar"><button type="button" id="btnAddPost" class="btn btn-primary">+ Đăng bài</button></div>
       <div id="boardList" class="cards-list"></div>
     </section>
-
     <section id="view-chat" class="view hidden">
       <p class="hint-box">💬 Tin nhắn lưu trên máy này.</p>
       <div id="chatMessages" class="chat-messages"></div>
@@ -133,7 +93,6 @@
         <button type="button" id="btnSendChat" class="btn btn-primary">Gửi</button>
       </div>
     </section>
-
     <section id="view-more" class="view hidden">
       <div class="more-menu">
         <button type="button" class="more-item" data-nav="calendar">📅 Lịch dòng họ</button>
@@ -144,7 +103,6 @@
         <button type="button" class="more-item" data-nav="about">ℹ️ Giới thiệu</button>
       </div>
     </section>
-
     <section id="view-calendar" class="view hidden">
       <div class="cal-nav">
         <button type="button" id="btnCalPrev" class="btn btn-secondary">‹</button>
@@ -152,13 +110,8 @@
         <button type="button" id="btnCalNext" class="btn btn-secondary">›</button>
       </div>
       <div id="calGrid" class="cal-grid"></div>
-      <div id="calDayDetail" class="cal-detail"></div>
     </section>
-
-    <section id="view-rituals" class="view hidden">
-      <div id="ritualsList" class="cards-list"></div>
-    </section>
-
+    <section id="view-rituals" class="view hidden"><div id="ritualsList" class="cards-list"></div></section>
     <section id="view-data" class="view hidden">
       <div class="data-panel">
         <h3>Quản lý dữ liệu</h3>
@@ -169,23 +122,21 @@
         <p class="warn-text">Reset chỉ dùng khi cần tải lại dữ liệu mẫu.</p>
         <button type="button" id="btnResetStep1" class="btn btn-danger btn-block">Reset dữ liệu mẫu…</button>
         <div id="resetConfirm" class="hidden">
-          <p>Gõ <strong>RESET</strong> để xác nhận:</p>
+          <p>Gõ <strong>RESET</strong>:</p>
           <input type="text" id="resetTyped" placeholder="RESET" />
-          <button type="button" id="btnResetFinal" class="btn btn-danger btn-block">Xác nhận xóa &amp; tải mẫu</button>
+          <button type="button" id="btnResetFinal" class="btn btn-danger btn-block">Xác nhận</button>
         </div>
       </div>
     </section>
-
     <section id="view-about" class="view hidden">
       <div class="about-card">
         <h3>Gia Phả Họ Nguyễn</h3>
         <p><strong>Nơi lưu giữ cội nguồn – kết nối các thế hệ trong dòng họ.</strong></p>
         <p>🌳 Gia phả · ❤️ Hiếu hỉ · 📅 Lịch · 🙏 Văn khấn · 📰 Bảng tin</p>
-        <p><strong>Uống nước nhớ nguồn – Kính tổ tiên – Gắn kết con cháu.</strong></p>
+        <p><strong>Uống nước nhớ nguồn.</strong></p>
       </div>
     </section>
   </main>
-
   <nav class="bottom-nav" id="bottomNav">
     <button type="button" class="nav-item active" data-nav="home"><span>🏠</span><small>Trang chủ</small></button>
     <button type="button" class="nav-item" data-nav="tree"><span>🌳</span><small>Gia phả</small></button>
@@ -193,23 +144,18 @@
     <button type="button" class="nav-item" data-nav="board"><span>📰</span><small>Bảng tin</small></button>
     <button type="button" class="nav-item" data-nav="more"><span>⋯</span><small>Thêm</small></button>
   </nav>
-
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js?v=1"></script>
   <script>window.GIA_SUPABASE_CONFIG={url:window.GIA_SUPABASE_URL||"",anonKey:window.GIA_SUPABASE_ANON_KEY||""};</script>
   <script src="cloud.js?v=8"></script>
   <script src="rituals.js?v=12"></script>
   <script src="tree-seed.js?v=1"></script>
-  <script src="b38_0.js?v=1"></script>
-  <script src="b38_1.js?v=1"></script>
-  <script src="b38_2.js?v=1"></script>
-  <script src="app.js?v=38"></script>
+  <script src="r0.js?v=1"></script>
+  <script src="r1.js?v=1"></script>
+  <script src="app.js?v=39"></script>
+  <script src="features-ext.js?v=1"></script>
   <script src="auth-ux.js?v=1"></script>
   <script src="gate-admin.js?v=4"></script>
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('./sw.js').catch(function () {});
-    }
-  </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('./sw.js').catch(function(){});}</script>
 </body>
 </html>
