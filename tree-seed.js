@@ -1,7 +1,7 @@
 /* Family tree seed – Cụ Tổ 6 đời Nguyễn Văn Mương */
 window.GIA_TREE_SEED = function(data, saveTree) {
   const SEED_VER_KEY = 'giaPhaSeedVersion';
-  const SEED_VERSION = 5;
+  const SEED_VERSION = 6;
   const ver = parseInt(localStorage.getItem(SEED_VER_KEY) || '0', 10);
   const ids = Object.keys(data.people || {});
   const known = new Set(['root','mung','coc','hach','ngoc','ap','canh','giang','lang','nghia','thu','nhan','gioi','hop','ty','nhac','huong','dien','the','giang2','xoai','tam','thue','nha','thuy','danh','nhom','tam2','hinh','hung','quang','dung','hao','oanh','thuan','thanhminh','thanhngan','manh','cuong','hung2','phuong','duc','vuminh','manhduy','thanh','thai','tuthai','comanh','huy','khanh','bao','truong','tuyet']);
@@ -9,22 +9,22 @@ window.GIA_TREE_SEED = function(data, saveTree) {
   if (ids.length && ver >= SEED_VERSION) return data;
   data = { people: {}, rootId: null };
   const mk = (id, o) => {
-    data.people[id] = { id, name: o.name, gender: o.gender||'male', birthDate: o.birthDate||'', deathDate: o.deathDate||'', deathAnniversary: o.deathAnniversary||'', notes: o.notes||'', photo: null, children: [], spouses: [], sideBranches: [], isSide: false, isRoot: !!o.isRoot, parentId: null };
+    data.people[id] = { id, name: o.name, gender: o.gender||'male', birthDate: o.birthDate||'', deathDate: o.deathDate||'', deathAnniversary: o.deathAnniversary||'', notes: o.notes||'', photo: null, children: [], spouses: [], sideBranches: [], isSide: false, isRoot: !!o.isRoot, parentId: null, branchLabel: o.branchLabel||'' };
   };
   const link = (p, c) => { if (!data.people[p]||!data.people[c]) return; data.people[c].parentId=p; if(!data.people[p].children.includes(c)) data.people[p].children.push(c); };
   const spouse = (a,b) => { if(!data.people[a]||!data.people[b])return; if(!data.people[a].spouses.includes(b))data.people[a].spouses.push(b); if(!data.people[b].spouses.includes(a))data.people[b].spouses.push(a); };
 
   mk('root',{name:'Nguyễn Văn Mương',isRoot:true,notes:'Cụ Tổ 6 đời · Họ Nguyễn'}); data.rootId='root';
-  mk('mung',{name:'Nguyễn Văn Mừng',birthDate:'1913'});
-  mk('coc',{name:'Nguyễn Văn Cốc',birthDate:'1913'});
-  mk('hach',{name:'Nguyễn Văn Hạch',birthDate:'1912',notes:'Còn gọi Nguyễn Văn Lạch'});
-  mk('ngoc',{name:'Nguyễn Văn Ngọc',birthDate:'1914'});
+  mk('mung',{name:'Nguyễn Văn Mừng',birthDate:'1913',branchLabel:'Nhánh Mừng'});
+  mk('coc',{name:'Nguyễn Văn Cốc',birthDate:'1913',branchLabel:'Nhánh Cốc'});
+  mk('hach',{name:'Nguyễn Văn Hạch',birthDate:'1912',notes:'Còn gọi Nguyễn Văn Lạch',branchLabel:'Nhánh Hạch (Lạch)'});
+  mk('ngoc',{name:'Nguyễn Văn Ngọc',birthDate:'1914',branchLabel:'Nhánh Ngọc'});
   ['mung','coc','hach','ngoc'].forEach(id=>link('root',id));
+
   mk('ap',{name:'Nguyễn Văn Ấp'}); mk('canh',{name:'Nguyễn Văn Cảnh'});
   link('coc','ap'); link('coc','canh');
-  mk('giang',{name:'Nguyễn Văn Giang'}); mk('lang',{name:'Nguyễn Văn Lạng'});
-  mk('tuthai',{name:'Tú Thái',gender:'female',notes:'Phối ngẫu nhánh Hạch'});
-  mk('comanh',{name:'Cô Mạnh',gender:'female',notes:'Phối ngẫu nhánh Hạch'});
+  mk('giang',{name:'Nguyễn Văn Giang'}); mk('lang',{name:'Nguyễn Văn Láng'});
+  mk('tuthai',{name:'Từ Thái',gender:'female'}); mk('comanh',{name:'Cô Mạnh',gender:'female'});
   link('hach','giang'); link('hach','lang'); spouse('hach','tuthai'); spouse('hach','comanh');
   mk('nghia',{name:'Nguyễn Văn Nghĩa',notes:'Còn gọi Nghềc'}); mk('thu',{name:'Nguyễn Văn Thu',notes:'Còn gọi Thư'});
   link('ngoc','nghia'); link('ngoc','thu');
@@ -50,7 +50,8 @@ window.GIA_TREE_SEED = function(data, saveTree) {
   link('xoai','hung2'); link('xoai','phuong'); link('tam','duc'); link('thue','vuminh'); link('nha','manhduy');
   mk('thanh',{name:'Nguyễn Thanh'}); mk('thai',{name:'Nguyễn Thái'}); mk('truong',{name:'Nguyễn Trường'}); mk('tuyet',{name:'Nguyễn Tuyết',gender:'female'});
   link('thuan','thanh'); link('thanhminh','thai'); link('huy','truong'); link('khanh','tuyet');
+
   localStorage.setItem(SEED_VER_KEY, String(SEED_VERSION));
-  if (typeof saveTree==='function') saveTree();
+  if (typeof saveTree === 'function') saveTree();
   return data;
 };
