@@ -1,93 +1,44 @@
-/* ===== Family tree – theo hàng từng đời ===== */
 .tree-container {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 8px 4px 32px;
+  padding: 8px 4px 40px;
   margin: 0 -8px;
 }
 .tree-hint {
   text-align: center;
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
-  margin: 0 0 10px;
+  margin: 0 0 12px;
   padding: 6px 10px;
   background: #fff8e7;
   border-radius: 8px;
   border: 1px dashed var(--gold);
 }
-.tree { padding: 8px 0 24px; min-width: min-content; }
-
-.gen-tree {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  align-items: stretch;
-  padding: 0 8px;
-}
-.gen-row {
-  background: rgba(255,248,231,0.35);
-  border: 1px solid rgba(201,162,39,0.3);
-  border-radius: 14px;
-  padding: 12px 10px 14px;
-}
-.gen-row-label {
-  font-family: var(--font-serif);
-  font-weight: 700;
-  font-size: 0.8rem;
-  color: #7a0c0c;
-  text-align: center;
-  margin-bottom: 10px;
-  letter-spacing: 0.4px;
-  padding: 4px 12px;
-  background: linear-gradient(135deg, #f5e6b8, #fff8e7);
-  border-radius: 20px;
-  border: 1px solid var(--gold);
-  display: inline-block;
-  width: 100%;
-  box-sizing: border-box;
-}
-.gen-row-cards {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 12px 14px;
-  align-items: flex-start;
-}
-.gen-cell {
+.tree {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
-  min-width: 110px;
-}
-.parent-hint {
-  font-size: 0.6rem;
-  color: var(--text-muted);
-  max-width: 130px;
-  text-align: center;
-  line-height: 1.2;
-  opacity: 0.85;
+  min-width: min-content;
+  padding: 16px 20px 32px;
 }
 
 .person-card {
   background: var(--card);
   border-radius: 12px;
-  padding: 14px 12px 10px;
-  min-width: 110px;
-  max-width: 150px;
+  padding: 12px 14px;
+  min-width: 120px;
+  max-width: 160px;
   text-align: center;
   border: 1.5px solid var(--border);
   position: relative;
   cursor: pointer;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
-.person-card:active { transform: scale(0.97); }
 .person-card.root-card {
   border: 2px solid var(--gold);
   background: linear-gradient(180deg, #fff8e7, #fffdf9);
   padding-top: 26px;
-  min-width: 160px;
-  max-width: 200px;
+  min-width: 170px;
 }
 .root-badge {
   position: absolute; top: -12px; left: 50%; transform: translateX(-50%);
@@ -97,38 +48,93 @@
   font-family: var(--font-serif);
 }
 .gen-badge {
-  position: absolute;
-  top: -10px;
-  right: -6px;
-  background: linear-gradient(135deg, #1a5276, #2980b9);
-  color: #fff;
-  font-size: 0.58rem;
-  font-weight: 700;
-  padding: 2px 6px;
-  border-radius: 10px;
+  position: absolute; top: -9px; right: -5px;
+  background: #1a5276; color: #fff;
+  font-size: 0.55rem; font-weight: 700;
+  padding: 2px 6px; border-radius: 8px;
 }
-.person-card .name { font-weight: 700; font-size: 0.82rem; line-height: 1.25; }
-.person-card.root-card .name { font-family: var(--font-serif); color: var(--primary); font-size: 0.95rem; }
-.person-card .dates { font-size: 0.68rem; color: var(--text-muted); margin-top: 2px; }
+.person-card .name { font-weight: 700; font-size: 0.85rem; line-height: 1.25; }
+.person-card.root-card .name { font-family: var(--font-serif); color: var(--primary); font-size: 1rem; }
+.person-card .dates { font-size: 0.7rem; color: var(--text-muted); margin-top: 2px; }
 .gio-date { font-size: 0.65rem; color: var(--primary); margin-top: 3px; font-weight: 600; }
-.person-card .photo { width: 44px; height: 44px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); margin: 4px auto 6px; display: block; }
-.person-card.male { border-color: rgba(26,82,118,0.45); }
-.person-card.female { border-color: rgba(160,26,74,0.45); background: #fff5f8; }
+.person-card .photo { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--gold); margin: 4px auto 6px; display: block; }
+.person-card.male { border-color: rgba(26,82,118,0.4); }
+.person-card.female { border-color: rgba(160,26,74,0.4); background: #fff5f8; }
 
+.children-row {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 18px;
+  margin-top: 6px;
+  position: relative;
+  padding-top: 28px;
+}
+.children-row.root-children { gap: 24px; padding-top: 32px; }
+.children-row::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 50%;
+  width: 2px; height: 18px;
+  background: var(--gold);
+  transform: translateX(-50%);
+}
+.child-branch {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
+  flex: 0 0 auto;
+}
+.child-branch::before {
+  content: '';
+  position: absolute;
+  top: -28px; left: 50%;
+  width: 2px; height: 28px;
+  background: var(--border);
+  transform: translateX(-50%);
+}
+.children-row.has-multiple::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 10%; right: 10%;
+  height: 2px;
+  background: var(--border);
+}
+.main-branch {
+  background: rgba(255,248,231,0.55);
+  border: 1px solid rgba(201,162,39,0.4);
+  border-radius: 16px;
+  padding: 12px 12px 14px;
+  min-width: 140px;
+}
 .branch-label {
-  font-size: 0.65rem;
-  font-weight: 700;
-  color: #7a0c0c;
+  font-size: 0.7rem; font-weight: 700; color: #7a0c0c;
   background: linear-gradient(135deg, #f5e6b8, #fff8e7);
   border: 1px solid var(--gold);
-  border-radius: 16px;
-  padding: 2px 8px;
+  border-radius: 20px;
+  padding: 3px 10px;
+  margin-bottom: 8px;
   white-space: nowrap;
   font-family: var(--font-serif);
 }
-.couple { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; justify-content: center; }
-.couple .plus, .gen-cell .plus { color: #c9a227; font-size: 0.8rem; }
-
-.children-row { display: flex; flex-wrap: nowrap; justify-content: center; gap: 12px; padding-top: 20px; position: relative; }
-.child-branch { display: flex; flex-direction: column; align-items: center; }
-.main-branch { background: rgba(255,248,231,0.5); border: 1px solid rgba(201,162,39,0.35); border-radius: 14px; padding: 10px; }
+.branch-toggle {
+  margin-top: 8px;
+  font-size: 0.68rem; font-weight: 600;
+  color: var(--primary);
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 4px 12px;
+  cursor: pointer;
+}
+.branch-toggle.open { background: #fff8e7; border-color: var(--gold); }
+.couple {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: nowrap;
+  justify-content: center;
+}
+.couple .plus { color: #c9a227; font-size: 0.85rem; }
