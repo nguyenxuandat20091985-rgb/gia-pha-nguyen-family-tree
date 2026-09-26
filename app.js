@@ -15,6 +15,37 @@ function renderHome(){const list=document.getElementById('homeEventsList');if(li
 function getPerson(id){return data.people[id]||null;}
 function refreshTree(){if(treeMode==='list')renderPersonList();else renderTree();}
 
+function collectByGen(branchId){
+  const byGen={};
+  const queue=[branchId];
+  const seen=new Set([branchId]);
+  while(queue.length){
+    const id=queue.shift();
+    const p=getPerson(id);
+    if(!p)continue;
+    const g=p.generation!=null?p.generation:0;
+    if(!byGen[g])byGen[g]=[];
+    if(id!==branchId) byGen[g].push(p);
+    (p.spouses||[]).forEach(sid=>{
+      if(seen.has(sid))return;
+      seen.add(sid);
+      const sp=getPerson(sid);
+      if(sp){
+        const sg=sp.generation!=null?sp.generation:g;
+        if(!byGen[sg])byGen[sg]=[];
+        byGen[sg].push(sp);
+      }
+    });
+    const kids=[...(p.children||[]),...(p.sideBranches||[])];
+    kids.forEach(cid=>{
+      if(seen.has(cid))return;
+      seen.add(cid);
+      queue.push(cid);
+    });
+  }
+  return byGen;
+}
+
 function renderTree(){
   const container=document.getElementById('treeRoot'),empty=document.getElementById('emptyState');
   if(!container)return;
@@ -26,7 +57,7 @@ function renderTree(){
   let hint=document.getElementById('treeScrollHint');
   if(!hint){
     hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';
-    hint.textContent='📜 Bố cục giống sơ đồ tay · 3 nhánh ngang · Bấm nhánh để mở/đóng · Bấm tên để sửa';
+    hint.textContent='📜 Giống sơ đồ tay · Vuốt ngang xem đủ 3 nhánh · Bấm ▲/▼ mở nhánh · Bấm tên để sửa';
     document.getElementById('treeView')?.insertBefore(hint, container);
   }
   container.innerHTML='';
@@ -43,15 +74,17 @@ function renderTree(){
 
   const cols=document.createElement('div');
   cols.className='paper-branches';
+
   MAIN_BRANCHES.forEach(bid=>{
-    const p=getPerson(bid);
-    if(!p)return;
+    const head=getPerson(bid);
+    if(!head)return;
     const col=document.createElement('div');
     col.className='paper-col'+(expandedBranches.has(bid)?' open':'');
+
     const label=document.createElement('button');
     label.type='button';
     label.className='paper-branch-btn';
-    label.innerHTML='<span class="paper-branch-name">'+(p.branchLabel||p.name)+'</span><span class="paper-branch-toggle">'+(expandedBranches.has(bid)?'▲':'▼')+'</span>';
+    label.innerHTML='<span>'+(head.branchLabel||head.name)+'</span><span class="paper-branch-toggle">'+(expandedBranches.has(bid)?'▲':'▼')+'</span>';
     label.addEventListener('click',function(e){
       e.stopPropagation();
       if(expandedBranches.has(bid)) expandedBranches.delete(bid);
@@ -59,49 +92,29 @@ function renderTree(){
       refreshTree();
     });
     col.appendChild(label);
-    col.appendChild(createCard(p));
-    (p.spouses||[]).forEach(sid=>{
-      const sp=getPerson(sid);
-      if(sp){const c=createCard(sp);c.classList.add('spouse-card');col.appendChild(c);}
-    });
+    col.appendChild(createCard(head));
+
     if(expandedBranches.has(bid)){
-      const body=document.createElement('div');
-      body.className='paper-col-body';
-      renderBranchDown(bid, body, 1);
-      col.appendChild(body);
+      const byGen=collectByGen(bid);
+      const gens=Object.keys(byGen).map(Number).sort((a,b)=>b-a);
+      gens.forEach(g=>{
+        const people=byGen[g];
+        if(!people||!people.length)return;
+        const genLabel=document.createElement('div');
+        genLabel.className='paper-gen-label';
+        genLabel.textContent='Đời '+g;
+        col.appendChild(genLabel);
+        const row=document.createElement('div');
+        row.className='paper-gen-row';
+        people.forEach(p=>{
+          row.appendChild(createCard(p));
+        });
+        col.appendChild(row);
+      });
     }
     cols.appendChild(col);
   });
   container.appendChild(cols);
-}
-
-function renderBranchDown(parentId, container, depth){
-  const p=getPerson(parentId);
-  if(!p)return;
-  const kids=[...(p.children||[]),...(p.sideBranches||[])];
-  if(!kids.length)return;
-  const row=document.createElement('div');
-  row.className='paper-gen-row';
-  kids.forEach(cid=>{
-    const child=getPerson(cid);
-    if(!child)return;
-    const cell=document.createElement('div');
-    cell.className='paper-cell';
-    cell.appendChild(createCard(child));
-    (child.spouses||[]).forEach(sid=>{
-      const sp=getPerson(sid);
-      if(sp){const c=createCard(sp);c.classList.add('spouse-card');cell.appendChild(c);}
-    });
-    const gk=[...(child.children||[]),...(child.sideBranches||[])];
-    if(gk.length){
-      const sub=document.createElement('div');
-      sub.className='paper-sub';
-      renderBranchDown(cid, sub, depth+1);
-      cell.appendChild(sub);
-    }
-    row.appendChild(cell);
-  });
-  container.appendChild(row);
 }
 
 function createCard(p){
@@ -110,6 +123,7 @@ function createCard(p){
   card.className='person-card '+(p.gender||'male');
   if(p.isSide)card.classList.add('side-branch');
   if(p.isRoot||p.id===data.rootId)card.classList.add('root-card');
+  if(p.gender==='female')card.classList.add('female');
   card.dataset.id=p.id;
   card.style.cursor='pointer';
   if(p.isRoot||p.id===data.rootId){
@@ -119,11 +133,14 @@ function createCard(p){
   }
   if(p.photo){const img=document.createElement('img');img.className='photo';img.src=p.photo;card.appendChild(img);}
   const name=document.createElement('div');name.className='name';name.textContent=p.name;card.appendChild(name);
-  const parts=[];
-  if(p.birthDate)parts.push(p.birthDate);
-  if(p.deathDate)parts.push('– '+p.deathDate);
-  if(parts.length){const dates=document.createElement('div');dates.className='dates';dates.textContent=parts.join(' ');card.appendChild(dates);}
+  if(p.birthDate){const dates=document.createElement('div');dates.className='dates';dates.textContent=p.birthDate;card.appendChild(dates);}
   if(p.deathAnniversary){const g=document.createElement('div');g.className='gio-date';g.textContent='📅 '+p.deathAnniversary;card.appendChild(g);}
+  if(p.parentId&&data.people[p.parentId]&&!p.isRoot){
+    const ph=document.createElement('div');
+    ph.className='parent-hint';
+    ph.textContent='← '+(data.people[p.parentId].name||'').replace('Nguyễn Văn ','N.V. ').replace('Nguyễn ','N. ');
+    card.appendChild(ph);
+  }
   card.addEventListener('click',function(e){e.stopPropagation();showContextMenu(e,p.id);});
   return card;
 }
