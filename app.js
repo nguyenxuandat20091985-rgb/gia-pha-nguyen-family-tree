@@ -4,7 +4,7 @@ const TREE_KEY='giaPhaNguyenData_v4';
 const TREE_KEYS=['giaPhaNguyenData_v4','giaPhaNguyenData_v3','giaPhaNguyenData_v2','giaPhaNguyenData_v1'];
 let data={people:{},rootId:null}, currentView='home', treeMode='tree', contextTargetId=null, photoBase64=null, _uiBound=false;
 let expandedNodes=new Set(['root']);
-const BRANCH_LABEL={coc:'Nhánh Cốc',lach:'Nhánh Lạch',ngoc:'Nhánh Ngọc'};
+const BRANCH_LABEL={coc:'Nhánh Cốc',lach:'Nhánh Lạch',ngoc:'Nhánh Ngọc',ap:'Ấp',oanh4:'Oanh',giang:'Giang',lang:'Láng',nghiec:'Nghĩa',the4:'The'};
 function uid(){return 'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
 function loadTree(){for(const k of TREE_KEYS){try{const raw=localStorage.getItem(k);if(raw){const p=JSON.parse(raw);if(p&&p.people&&Object.keys(p.people).length){data=p;if(k!==TREE_KEY)localStorage.setItem(TREE_KEY,raw);return;}}}catch(e){}}}
@@ -14,12 +14,80 @@ function showView(name){currentView=name;document.querySelectorAll('.view').forE
 function renderHome(){const list=document.getElementById('homeEventsList');if(list)list.innerHTML='<p class="muted">Chào mừng dòng họ Nguyễn.</p>';const ai=document.getElementById('homeAiNews');if(ai)ai.textContent='🌿 Bản tin dòng họ – Uống nước nhớ nguồn.';const cal=document.getElementById('homeCalendarToday');if(cal){const d=new Date();cal.innerHTML='<p><strong>'+d.toLocaleDateString('vi-VN',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'</strong></p>';}const morning=document.getElementById('morningText');if(morning)morning.textContent='Dòng họ Nguyễn – Uống nước nhớ nguồn.';document.getElementById('morningBanner')?.classList.remove('hidden');}
 function getPerson(id){return data.people[id]||null;}
 function refreshTree(){if(treeMode==='list')renderPersonList();else renderTree();}
-function renderTree(){const container=document.getElementById('treeRoot'),empty=document.getElementById('emptyState');if(!container)return;document.getElementById('treeView')?.classList.remove('hidden');document.getElementById('listView')?.classList.add('hidden');if(!data.rootId||!data.people[data.rootId]){container.innerHTML='';empty?.classList.remove('hidden');return;}empty?.classList.add('hidden');
+function renderTree(){
+  const container=document.getElementById('treeRoot'),empty=document.getElementById('emptyState');
+  if(!container)return;
+  document.getElementById('treeView')?.classList.remove('hidden');
+  document.getElementById('listView')?.classList.add('hidden');
+  if(!data.rootId||!data.people[data.rootId]){container.innerHTML='';empty?.classList.remove('hidden');return;}
+  empty?.classList.add('hidden');
   let hint=document.getElementById('treeScrollHint');
-  if(!hint){hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';hint.textContent='↔️ Vuốt ngang xem 3 nhánh (Cốc · Lạch · Ngọc) · Bấm ▼ mở con cháu';document.getElementById('treeView')?.insertBefore(hint, container);}
+  if(!hint){
+    hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';
+    hint.textContent='📜 Cây theo từng đời · Vuốt ngang xem đủ nhánh · Bấm tên để sửa';
+    document.getElementById('treeView')?.insertBefore(hint, container);
+  }
   container.innerHTML='';
-  expandedNodes.add(data.rootId);
-  container.appendChild(renderNode(data.rootId, 0));}
+  container.appendChild(renderByGeneration());
+}
+function renderByGeneration(){
+  const wrap=document.createElement('div');
+  wrap.className='gen-tree';
+  const byGen={};
+  Object.values(data.people).forEach(p=>{
+    const g=p.generation||0;
+    if(!byGen[g])byGen[g]=[];
+    byGen[g].push(p);
+  });
+  const gens=Object.keys(byGen).map(Number).sort((a,b)=>b-a);
+  gens.forEach(g=>{
+    const section=document.createElement('div');
+    section.className='gen-row';
+    const label=document.createElement('div');
+    label.className='gen-row-label';
+    if(g===6) label.textContent='ĐỜI 6 · CỤ TỔ';
+    else if(g===5) label.textContent='ĐỜI 5 · CỤ 5 ĐỜI';
+    else label.textContent='ĐỜI '+g;
+    section.appendChild(label);
+    const cards=document.createElement('div');
+    cards.className='gen-row-cards';
+    const people=byGen[g].slice().sort((a,b)=>{
+      if(a.isRoot)return -1; if(b.isRoot)return 1;
+      const order={coc:1,lach:2,ngoc:3,ap:1,oanh4:2,tutai:1,giang:2,lang:3,conon:4,nghiec:1,the4:2};
+      return (order[a.id]||50)-(order[b.id]||50) || (a.name||'').localeCompare(b.name||'','vi');
+    });
+    people.forEach(p=>{
+      const cell=document.createElement('div');
+      cell.className='gen-cell';
+      if(p.branchLabel){
+        const bl=document.createElement('div');
+        bl.className='branch-label';
+        bl.textContent=p.branchLabel;
+        cell.appendChild(bl);
+      }
+      if(p.parentId && data.people[p.parentId] && g<6){
+        const ph=document.createElement('div');
+        ph.className='parent-hint';
+        ph.textContent='← '+data.people[p.parentId].name;
+        cell.appendChild(ph);
+      }
+      cell.appendChild(createCard(p, 0));
+      (p.spouses||[]).forEach(sid=>{
+        const sp=getPerson(sid);
+        if(sp){
+          const heart=document.createElement('span');
+          heart.className='plus'; heart.textContent='❤';
+          cell.appendChild(heart);
+          cell.appendChild(createCard(sp, 0));
+        }
+      });
+      cards.appendChild(cell);
+    });
+    section.appendChild(cards);
+    wrap.appendChild(section);
+  });
+  return wrap;
+}
 function renderNode(id, depth){
   depth = depth || 0;
   const p=getPerson(id);if(!p)return document.createTextNode('');
@@ -45,32 +113,6 @@ function renderNode(id, depth){
     }
   });
   wrap.appendChild(couple);
-  const kids=[...(p.children||[]),...(p.sideBranches||[])];
-  if(kids.length){
-    if(depth===0) expandedNodes.add(id);
-    if(depth===1 && !expandedNodes.has('__init_'+id)){
-      expandedNodes.add(id);
-      expandedNodes.add('__init_'+id);
-    }
-    const isOpen = expandedNodes.has(id);
-    const toggle=document.createElement('button');
-    toggle.type='button';
-    toggle.className='branch-toggle'+(isOpen?' open':'');
-    toggle.textContent=isOpen?('▲ Thu gọn ('+kids.length+')'):('▼ Xem '+kids.length+' con cháu');
-    toggle.addEventListener('click', function(e){
-      e.stopPropagation();
-      if(expandedNodes.has(id)) expandedNodes.delete(id);
-      else expandedNodes.add(id);
-      refreshTree();
-    });
-    wrap.appendChild(toggle);
-    if(isOpen){
-      const row=document.createElement('div');
-      row.className='children-row'+(kids.length>1?' has-multiple':'')+(depth===0?' root-children':'');
-      kids.forEach(cid => row.appendChild(renderNode(cid, depth+1)));
-      wrap.appendChild(row);
-    }
-  }
   return wrap;
 }
 function createCard(p, depth){const card=document.createElement('div');card.className='person-card '+(p.gender||'male');if(p.isSide)card.classList.add('side-branch');if(p.isRoot||p.id===data.rootId)card.classList.add('root-card');card.dataset.id=p.id;card.style.cursor='pointer';if(p.isRoot||p.id===data.rootId){const b=document.createElement('div');b.className='root-badge';b.textContent='CỤ TỔ 6 ĐỜI';card.appendChild(b);}else if(p.generation){const g=document.createElement('div');g.className='gen-badge';g.textContent='Đời '+p.generation;card.appendChild(g);}if(p.photo){const img=document.createElement('img');img.className='photo';img.src=p.photo;card.appendChild(img);}const name=document.createElement('div');name.className='name';name.textContent=p.name;card.appendChild(name);const parts=[];if(p.birthDate)parts.push(p.birthDate);if(p.deathDate)parts.push('– '+p.deathDate);if(parts.length){const dates=document.createElement('div');dates.className='dates';dates.textContent=parts.join(' ');card.appendChild(dates);}if(p.deathAnniversary){const g=document.createElement('div');g.className='gio-date';g.textContent='📅 Giỗ: '+p.deathAnniversary;card.appendChild(g);}card.addEventListener('click',function(e){e.stopPropagation();showContextMenu(e,p.id);});return card;}
