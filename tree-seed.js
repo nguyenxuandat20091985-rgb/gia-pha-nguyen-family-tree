@@ -1,18 +1,18 @@
-/* Family tree – theo sơ đồ tay, ghi rõ đời */
+/* Cây gia phả Họ Nguyễn – theo sơ đồ tay + ngày giỗ */
 window.GIA_TREE_SEED = function(data, saveTree) {
   const SEED_VER_KEY = 'giaPhaSeedVersion';
-  const SEED_VERSION = 8;
+  const SEED_VERSION = 9;
   const ver = parseInt(localStorage.getItem(SEED_VER_KEY) || '0', 10);
   const ids = Object.keys(data.people || {});
   const known = new Set([
-    'root','coc','lach','ngoc','ap','canh','giang','lang','tuthai','comanh',
-    'nghia','thu','huy','khanh','cuong_ap','hao','oanh_ap',
-    'hop','gioi','gio','nhan','nhac','ty','huong','dien','the','giang2',
-    'thanh','hung_l','minh','ngan','manh','quan','cuong2','hai','hung_a',
-    'xoai','tam','thue','nha','thuy','danh','nhom','tam2','hinh','hung',
-    'quang','dung','hao2','oanh','thuan','thanhminh','bao',
-    'thanhngan','cuong','hung2','phuong','duc','vuminh','manhduy',
-    'thai','truong','tuyet','lieu','dao','dieu','loan','thap','anh','ninh'
+    'root','coc','lach','ngoc','ap','oanh4','tutai','giang','lang','conon',
+    'nghiec','the4','huy','huu','ap3','khay','cang','hao3','oanh3',
+    'hop','gioi','gio','nhan','nhuon','ty','huong','dien','thiet','giang3',
+    'luat','dao','duong','cong','giang_t','thap','anh','minh_t','thuan_t',
+    'truong','hoang','dat','hung_a','minh_a','nghia_a','huong_a','uong',
+    'quy','hoai','cong_a','nhat','hao_a','giao','xo','toai',
+    'thang','dien2','nhu','tiem','my','hinh','thai',
+    'khoi','thanh1','thanh2','phuong','duc','vu','minh1','anh_d','duy','tung'
   ]);
   if (ids.length && !ids.every(id => known.has(id))) return data;
   if (ids.length && ver >= SEED_VERSION) return data;
@@ -25,7 +25,7 @@ window.GIA_TREE_SEED = function(data, saveTree) {
       birthDate: o.birthDate || '', deathDate: o.deathDate || '',
       deathAnniversary: o.deathAnniversary || '',
       notes: o.notes || '',
-      generation: o.generation || null,
+      generation: o.generation != null ? o.generation : null,
       photo: null, children: [], spouses: [], sideBranches: [],
       isSide: false, isRoot: !!o.isRoot, parentId: null,
       branchLabel: o.branchLabel || ''
@@ -42,149 +42,191 @@ window.GIA_TREE_SEED = function(data, saveTree) {
     if (!data.people[b].spouses.includes(a)) data.people[b].spouses.push(a);
   };
 
-  /* ========== ĐỜI 6 – CỤ TỔ ========== */
   mk('root', {
-    name: 'Nguyễn Văn Mương',
-    isRoot: true,
-    generation: 6,
-    notes: 'Cụ Tổ 6 đời · Họ Nguyễn',
-    birthDate: ''
+    name: 'Nguyễn Văn Mương', isRoot: true, generation: 6,
+    deathAnniversary: '2/3',
+    notes: 'Cụ Tổ 6 đời · Giỗ 2/3'
   });
   data.rootId = 'root';
 
-  /* ========== ĐỜI 5 – CỤ 5 ĐỜI (3 con) ========== */
   mk('coc', {
-    name: 'Nguyễn Văn Cốc',
-    generation: 5,
-    branchLabel: 'Nhánh Cốc',
-    notes: 'Đời 5'
+    name: 'Nguyễn Văn Cốc', generation: 5,
+    deathAnniversary: '19/3', branchLabel: 'Nhánh Cốc',
+    notes: 'Đời 5 · Giỗ 19/3'
   });
   mk('lach', {
-    name: 'Nguyễn Văn Lạch',
-    birthDate: '1912',
-    generation: 5,
-    branchLabel: 'Nhánh Lạch',
-    notes: 'Đời 5 · Cụ 5 đời · Còn gọi Hạch'
+    name: 'Nguyễn Văn Lạch', generation: 5,
+    deathAnniversary: '26/12', branchLabel: 'Nhánh Lạch',
+    notes: 'Đời 5 · Cụ 5 đời · Giỗ 26/12 · Còn gọi Hạch'
   });
   mk('ngoc', {
-    name: 'Nguyễn Văn Ngọc',
-    birthDate: '1914',
-    generation: 5,
-    branchLabel: 'Nhánh Ngọc',
-    notes: 'Đời 5'
+    name: 'Nguyễn Văn Ngọc', generation: 5,
+    deathAnniversary: '15/1', branchLabel: 'Nhánh Ngọc',
+    notes: 'Đời 5 · Giỗ 15/1 · Trên sơ đồ còn viết Ngốc'
   });
   link('root', 'coc');
   link('root', 'lach');
   link('root', 'ngoc');
 
-  /* ========== ĐỜI 4 ========== */
-  mk('ap',   { name: 'Nguyễn Văn Ấp',   generation: 4, notes: 'Đời 4' });
-  mk('canh', { name: 'Nguyễn Văn Cảnh', generation: 4, notes: 'Đời 4' });
+  mk('ap', {
+    name: 'Nguyễn Văn Ấp', generation: 4, notes: 'Đời 4 · Nhánh Cốc'
+  });
+  mk('oanh4', {
+    name: 'Nguyễn Văn Oanh', generation: 4, gender: 'male',
+    deathAnniversary: '19/10',
+    notes: 'Đời 4 · Nhánh Cốc · Giỗ 19/10 · (còn gọi Cảnh)'
+  });
   link('coc', 'ap');
-  link('coc', 'canh');
+  link('coc', 'oanh4');
 
-  mk('tuthai', { name: 'Từ Thái', gender: 'female', generation: 4, notes: 'Đời 4 · Vợ Cụ Lạch' });
-  mk('comanh', { name: 'Cô Mạnh', gender: 'female', generation: 4, notes: 'Đời 4 · Vợ Cụ Lạch' });
-  spouse('lach', 'tuthai');
-  spouse('lach', 'comanh');
-  mk('giang', { name: 'Nguyễn Văn Giang', generation: 4, notes: 'Đời 4' });
-  mk('lang',  { name: 'Nguyễn Văn Láng', generation: 4, notes: 'Đời 4' });
+  mk('tutai', {
+    name: 'Tư Tại', generation: 4, gender: 'female',
+    notes: 'Đời 4 · Vợ/con nhánh Lạch · Còn viết Từ Thái'
+  });
+  mk('giang', {
+    name: 'Nguyễn Văn Giang', generation: 4,
+    notes: 'Đời 4 · Nhánh Lạch · Còn viết Ngữ Giông'
+  });
+  mk('lang', {
+    name: 'Nguyễn Văn Láng', generation: 4,
+    deathAnniversary: '24/4',
+    notes: 'Đời 4 · Nhánh Lạch · Giỗ 24/4'
+  });
+  mk('conon', {
+    name: 'Cố Nón', generation: 4, gender: 'female',
+    notes: 'Đời 4 · Vợ/con nhánh Lạch · Còn viết Cô Mạnh'
+  });
+  spouse('lach', 'tutai');
+  spouse('lach', 'conon');
   link('lach', 'giang');
   link('lach', 'lang');
 
-  mk('nghia', { name: 'Nguyễn Văn Nghĩa', generation: 4, notes: 'Đời 4 · Còn gọi Nghềc (Ng.văn Nghềc)' });
-  mk('thu',   { name: 'Nguyễn Văn Thu',   generation: 4, notes: 'Đời 4 · Còn gọi Thư' });
-  link('ngoc', 'nghia');
-  link('ngoc', 'thu');
+  mk('nghiec', {
+    name: 'Nguyễn Văn Nghĩa', generation: 4,
+    notes: 'Đời 4 · Nhánh Ngọc · Còn gọi Nghềc / Nghiếc'
+  });
+  mk('the4', {
+    name: 'Nguyễn Văn The', generation: 4,
+    deathAnniversary: '8/8',
+    notes: 'Đời 4 · Nhánh Ngọc · Giỗ 8/8 · Còn gọi Thu / Thế'
+  });
+  link('ngoc', 'nghiec');
+  link('ngoc', 'the4');
 
-  /* ========== ĐỜI 3 ========== */
-  mk('huy',   { name: 'Nguyễn Huy',   generation: 3, notes: 'Đời 3 · Huy Ấp' });
-  mk('khanh', { name: 'Nguyễn Khánh', generation: 3, notes: 'Đời 3' });
-  mk('bao',   { name: 'Nguyễn Bảo',   generation: 3, notes: 'Đời 3' });
-  mk('thuan', { name: 'Nguyễn Bá Thuận', generation: 3, notes: 'Đời 3' });
-  mk('thanhminh', { name: 'Nguyễn Thanh Minh', generation: 3, notes: 'Đời 3' });
-  ['huy','khanh','bao','thuan','thanhminh'].forEach(id => link('ap', id));
+  mk('huy',  { name: 'Nguyễn Huy',  generation: 3, notes: 'Đời 3' });
+  mk('huu',  { name: 'Nguyễn Hựu',  generation: 3, notes: 'Đời 3' });
+  mk('ap3',  { name: 'Nguyễn Ấp',   generation: 3, notes: 'Đời 3' });
+  mk('khay', { name: 'Nguyễn Khay', generation: 3, notes: 'Đời 3 · Còn viết Khánh' });
+  ['huy','huu','ap3','khay'].forEach(id => link('ap', id));
 
-  mk('thanhngan', { name: 'Nguyễn Thanh Ngân', generation: 3, notes: 'Đời 3' });
-  mk('manh',      { name: 'Nguyễn Mạnh',       generation: 3, notes: 'Đời 3' });
-  mk('cuong',     { name: 'Nguyễn Cương',      generation: 3, notes: 'Đời 3' });
-  link('canh', 'thanhngan');
-  link('canh', 'manh');
-  link('canh', 'cuong');
+  mk('cang',  { name: 'Nguyễn Cang',  generation: 3, notes: 'Đời 3' });
+  mk('hao3',  { name: 'Nguyễn Hảo',   generation: 3, notes: 'Đời 3' });
+  mk('oanh3', { name: 'Nguyễn Oanh',  generation: 3, notes: 'Đời 3' });
+  link('oanh4', 'cang');
+  link('oanh4', 'hao3');
+  link('oanh4', 'oanh3');
 
-  mk('hop',  { name: 'Nguyễn Hợp',  generation: 3, notes: 'Đời 3' });
-  mk('gioi', { name: 'Nguyễn Giỏi', generation: 3, notes: 'Đời 3' });
+  mk('hop',   { name: 'Nguyễn Hợp',      generation: 3, notes: 'Đời 3 · Còn viết Ngữ Huệ/Hợp' });
+  mk('gioi',  { name: 'Nguyễn Giỗ',      generation: 3, notes: 'Đời 3 · Còn viết Giỏi' });
+  mk('gio',   { name: 'Nguyễn Giò',      generation: 3, notes: 'Đời 3' });
+  mk('nhan',  { name: 'Nguyễn Văn Nhẫn', generation: 3, deathAnniversary: '30/1', notes: 'Đời 3 · Giỗ 30/1 · Còn viết Nhận' });
+  mk('nhuon', { name: 'Thị Nhướn',       generation: 3, gender: 'female', notes: 'Đời 3' });
+  mk('ty',    { name: 'Nguyễn Tỵ',       generation: 3, notes: 'Đời 3 · Còn viết Tý' });
+  mk('huong', { name: 'Nguyễn Hướng',    generation: 3, notes: 'Đời 3 · Còn viết Hưởng' });
+  mk('dien',  { name: 'Nguyễn Văn Điền', generation: 3, notes: 'Đời 3' });
+  mk('thiet', { name: 'Nguyễn Văn Thiết',generation: 3, notes: 'Đời 3 · Còn viết Thế' });
+  mk('giang3',{ name: 'Nguyễn Giang',    generation: 3, notes: 'Đời 3' });
   link('giang', 'hop');
   link('giang', 'gioi');
-
-  mk('nhan', { name: 'Nguyễn Văn Nhẫn', birthDate: '1971', generation: 3, notes: 'Đời 3 · ty 30/1' });
-  mk('nhac', { name: 'Nguyễn Nhạc',     generation: 3, notes: 'Đời 3' });
-  mk('ty',   { name: 'Nguyễn Tý',       generation: 3, notes: 'Đời 3' });
+  link('giang', 'gio');
   link('lang', 'nhan');
-  link('lang', 'nhac');
+  link('lang', 'nhuon');
   link('lang', 'ty');
+  link('nghiec', 'huong');
+  link('nghiec', 'dien');
+  link('the4', 'thiet');
+  link('the4', 'giang3');
 
-  mk('huong', { name: 'Nguyễn Hưởng', generation: 3, notes: 'Đời 3' });
-  mk('dien',  { name: 'Nguyễn Điền',  generation: 3, notes: 'Đời 3' });
-  link('nghia', 'huong');
-  link('nghia', 'dien');
+  mk('luat',    { name: 'Nguyễn Luật',   generation: 3, notes: 'Đời 3' });
+  mk('dao',     { name: 'Nguyễn Đạo',    generation: 3, notes: 'Đời 3' });
+  mk('duong',   { name: 'Nguyễn Dưỡng',  generation: 3, notes: 'Đời 3' });
+  mk('cong',    { name: 'Nguyễn Công',   generation: 3, notes: 'Đời 3' });
+  mk('giang_t', { name: 'Nguyễn Giang',  generation: 3, notes: 'Đời 3 · con The' });
+  mk('thap',    { name: 'Nguyễn Tháp',   generation: 3, notes: 'Đời 3' });
+  mk('anh',     { name: 'Nguyễn Anh',    generation: 3, notes: 'Đời 3' });
+  mk('minh_t',  { name: 'Nguyễn Minh',   generation: 3, notes: 'Đời 3' });
+  mk('thuan_t', { name: 'Nguyễn Thuận',  generation: 3, notes: 'Đời 3' });
+  ['luat','dao','duong','cong','giang_t','thap','anh','minh_t','thuan_t'].forEach(id => link('the4', id));
 
-  mk('the',    { name: 'Nguyễn Văn Thế', generation: 3, notes: 'Đời 3' });
-  mk('giang2', { name: 'Nguyễn Giang',   generation: 3, notes: 'Đời 3' });
-  link('thu', 'the');
-  link('thu', 'giang2');
+  mk('truong', { name: 'Nguyễn Trường', generation: 2, notes: 'Đời 2' });
+  mk('hoang',  { name: 'Nguyễn Hoàng',  generation: 2, notes: 'Đời 2' });
+  mk('dat',    { name: 'Nguyễn Đạt',    generation: 2, notes: 'Đời 2' });
+  mk('hung_a', { name: 'Nguyễn Hưng',   generation: 2, notes: 'Đời 2' });
+  mk('minh_a', { name: 'Nguyễn Minh',   generation: 2, notes: 'Đời 2' });
+  mk('nghia_a',{ name: 'Nguyễn Nghĩa',  generation: 2, notes: 'Đời 2' });
+  mk('huong_a',{ name: 'Nguyễn Hưởng',  generation: 2, notes: 'Đời 2' });
+  mk('uong',   { name: 'Nguyễn Uông',   generation: 2, notes: 'Đời 2' });
+  mk('quy',    { name: 'Nguyễn Quý',    generation: 2, notes: 'Đời 2' });
+  mk('hoai',   { name: 'Nguyễn Hoài',   generation: 2, notes: 'Đời 2' });
+  mk('cong_a', { name: 'Nguyễn Công',   generation: 2, notes: 'Đời 2' });
+  mk('nhat',   { name: 'Nguyễn Nhật',   generation: 2, notes: 'Đời 2' });
+  mk('hao_a',  { name: 'Nguyễn Hảo',    generation: 2, notes: 'Đời 2' });
+  mk('giao',   { name: 'Nguyễn Giao',   generation: 2, notes: 'Đời 2' });
+  link('huy', 'truong');
+  link('huy', 'hoang');
+  link('huu', 'dat');
+  link('ap3', 'hung_a');
+  link('ap3', 'minh_a');
+  link('khay', 'nghia_a');
+  link('khay', 'huong_a');
+  link('cang', 'uong');
+  link('cang', 'quy');
+  link('hao3', 'hoai');
+  link('hao3', 'cong_a');
+  link('oanh3', 'nhat');
+  link('oanh3', 'hao_a');
+  link('oanh3', 'giao');
 
-  /* ========== ĐỜI 2 ========== */
-  mk('thue', { name: 'Nguyễn Thuế', generation: 2, notes: 'Đời 2' });
-  mk('nha',  { name: 'Nguyễn Nhà',  generation: 2, notes: 'Đời 2' });
-  mk('thuy', { name: 'Nguyễn Thủy', gender: 'female', generation: 2, notes: 'Đời 2' });
-  mk('tam',  { name: 'Nguyễn Tám',  generation: 2, notes: 'Đời 2' });
-  mk('nhom', { name: 'Nguyễn Nhóm', generation: 2, notes: 'Đời 2' });
-  mk('tam2', { name: 'Nguyễn Tâm',  generation: 2, notes: 'Đời 2' });
-  mk('hinh', { name: 'Nguyễn Hình', generation: 2, notes: 'Đời 2' });
-  ['thue','nha','thuy','tam','nhom','tam2'].forEach(id => link('nhan', id));
+  mk('xo',   { name: 'Nguyễn Xô',   generation: 2, notes: 'Đời 2 · Còn viết Xoài' });
+  mk('toai', { name: 'Nguyễn Toại', generation: 2, notes: 'Đời 2' });
+  link('nhan', 'xo');
+  link('nhan', 'toai');
 
-  mk('hung', { name: 'Nguyễn Hùng', generation: 2, notes: 'Đời 2' });
+  mk('thang', { name: 'Nguyễn Thắng', generation: 2, notes: 'Đời 2' });
+  mk('dien2', { name: 'Nguyễn Diễn',  generation: 2, notes: 'Đời 2' });
+  mk('nhu',   { name: 'Nguyễn Nhu',   generation: 2, notes: 'Đời 2' });
+  mk('tiem',  { name: 'Nguyễn Tiệm',  generation: 2, notes: 'Đời 2' });
+  mk('my',    { name: 'Nguyễn Mỹ',    generation: 2, gender: 'female', notes: 'Đời 2' });
+  mk('hinh',  { name: 'Nguyễn Hinh',  generation: 2, notes: 'Đời 2 · Còn viết Hình' });
+  mk('thai',  { name: 'Nguyễn Thái',  generation: 2, notes: 'Đời 2' });
   link('ty', 'hinh');
-  link('ty', 'hung');
+  link('ty', 'thai');
+  link('hop', 'thang');
+  link('hop', 'dien2');
+  link('gioi', 'nhu');
+  link('gio', 'tiem');
+  link('gio', 'my');
 
-  mk('quang', { name: 'Nguyễn Quang', generation: 2, notes: 'Đời 2' });
-  mk('dung',  { name: 'Nguyễn Dũng',  generation: 2, notes: 'Đời 2' });
-  link('nhac', 'quang');
-  link('nhac', 'dung');
-
-  mk('danh', { name: 'Nguyễn Đảnh', generation: 2, notes: 'Đời 2' });
-  link('gioi', 'danh');
-
-  mk('hao2', { name: 'Nguyễn Hào', generation: 2, notes: 'Đời 2' });
-  mk('oanh', { name: 'Nguyễn Oanh', gender: 'female', generation: 2, notes: 'Đời 2' });
-  link('huong', 'hao2');
-  link('dien', 'oanh');
-
-  mk('lieu', { name: 'Nguyễn Liễu', gender: 'female', generation: 2, notes: 'Đời 2' });
-  mk('dao',  { name: 'Nguyễn Đào',  gender: 'female', generation: 2, notes: 'Đời 2' });
-  mk('dieu', { name: 'Nguyễn Diệu', gender: 'female', generation: 2, notes: 'Đời 2' });
-  mk('loan', { name: 'Nguyễn Loan', gender: 'female', generation: 2, notes: 'Đời 2' });
-  mk('thap', { name: 'Nguyễn Thập', generation: 2, notes: 'Đời 2' });
-  mk('anh',  { name: 'Nguyễn Anh',  generation: 2, notes: 'Đời 2' });
-  mk('ninh', { name: 'Nguyễn Ninh', generation: 2, notes: 'Đời 2' });
-  ['lieu','dao','dieu','loan','thap','anh','ninh'].forEach(id => link('the', id));
-
-  /* ========== ĐỜI 1 ========== */
-  mk('truong', { name: 'Nguyễn Trường', generation: 1, notes: 'Đời 1' }); link('huy', 'truong');
-  mk('tuyet',  { name: 'Nguyễn Tuyết', gender: 'female', generation: 1, notes: 'Đời 1' }); link('khanh', 'tuyet');
-  mk('thanh',  { name: 'Nguyễn Thanh', generation: 1, notes: 'Đời 1' }); link('thuan', 'thanh');
-  mk('thai',   { name: 'Nguyễn Thái',  generation: 1, notes: 'Đời 1' }); link('thanhminh', 'thai');
-
-  mk('hung2',   { name: 'Nguyễn Hùng', generation: 1, notes: 'Đời 1' });
-  mk('phuong',  { name: 'Nguyễn Phương', gender: 'female', generation: 1, notes: 'Đời 1' });
-  link('thue', 'hung2');
-  link('nha', 'phuong');
-  mk('duc',     { name: 'Nguyễn Đức', generation: 1, notes: 'Đời 1' }); link('tam', 'duc');
-  mk('vuminh',  { name: 'Nguyễn Vũ Minh', generation: 1, notes: 'Đời 1' });
-  mk('manhduy', { name: 'Nguyễn Mạnh Duy Trung', generation: 1, notes: 'Đời 1' });
-  link('nhom', 'vuminh');
-  link('tam2', 'manhduy');
+  mk('khoi',    { name: 'Nguyễn Khởi', generation: 1, notes: 'Đời 1' });
+  mk('thanh1',  { name: 'Nguyễn Thành', generation: 1, notes: 'Đời 1' });
+  mk('thanh2',  { name: 'Nguyễn Thành', generation: 1, notes: 'Đời 1' });
+  mk('phuong',  { name: 'Nguyễn Hoàng Phương', generation: 1, gender: 'female', notes: 'Đời 1' });
+  mk('duc',     { name: 'Nguyễn Đức', generation: 1, notes: 'Đời 1' });
+  mk('vu',      { name: 'Nguyễn Vũ', generation: 1, notes: 'Đời 1' });
+  mk('minh1',   { name: 'Nguyễn Minh', generation: 1, notes: 'Đời 1' });
+  mk('anh_d',   { name: 'Nguyễn Anh', generation: 1, notes: 'Đời 1' });
+  mk('duy',     { name: 'Nguyễn Duy', generation: 1, notes: 'Đời 1' });
+  mk('tung',    { name: 'Nguyễn Tùng', generation: 1, notes: 'Đời 1' });
+  link('xo', 'khoi');
+  link('xo', 'thanh1');
+  link('toai', 'thanh2');
+  link('toai', 'phuong');
+  link('thang', 'duc');
+  link('dien2', 'vu');
+  link('nhu', 'minh1');
+  link('tiem', 'anh_d');
+  link('my', 'duy');
+  link('hinh', 'tung');
 
   localStorage.setItem(SEED_VER_KEY, String(SEED_VERSION));
   if (typeof saveTree === 'function') saveTree();
