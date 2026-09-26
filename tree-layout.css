@@ -25,7 +25,7 @@
 .person-card {
   background: var(--card);
   border-radius: 12px;
-  padding: 10px 12px;
+  padding: 14px 12px 10px;
   min-width: 120px;
   max-width: 160px;
   text-align: center;
@@ -49,6 +49,19 @@
   color: white; font-size: 0.65rem; font-weight: 700;
   padding: 4px 12px; border-radius: 16px; white-space: nowrap;
   font-family: var(--font-serif); letter-spacing: 0.3px;
+}
+.gen-badge {
+  position: absolute;
+  top: -10px;
+  right: -6px;
+  background: linear-gradient(135deg, #1a5276, #2980b9);
+  color: #fff;
+  font-size: 0.6rem;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 10px;
+  white-space: nowrap;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 .person-card .name { font-weight: 700; font-size: 0.85rem; line-height: 1.25; }
 .person-card.root-card .name { font-family: var(--font-serif); color: var(--primary); font-size: 1rem; }
