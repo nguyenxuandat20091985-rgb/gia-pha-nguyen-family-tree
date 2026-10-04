@@ -401,3 +401,16 @@ main { padding: 12px 14px 24px; }
 .gallery-carousel .gallery-item{flex:0 0 82%;width:82%;aspect-ratio:16/10;scroll-snap-align:center;border-radius:14px;box-shadow:0 5px 16px rgba(74,8,8,.09)}
 @media(min-width:600px){.gallery-carousel .gallery-item{flex-basis:48%;width:48%}}
 .home-gallery-card{overflow:hidden}.home-gallery-card .gallery-caption{font-size:.75rem}
+
+
+/* ===== CUSTOM DIALOG – Gia Phả Họ Nguyễn ===== */
+.custom-dialog-overlay{position:fixed;inset:0;z-index:10001;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(34,18,10,.52);backdrop-filter:blur(3px);opacity:1;transition:opacity .18s ease}
+.custom-dialog-overlay.hidden{display:flex;opacity:0;pointer-events:none}
+.custom-dialog{width:min(92vw,420px);max-height:min(86vh,620px);overflow:auto;background:linear-gradient(180deg,#fffdf9,#fff8ef);border:1px solid rgba(201,162,39,.45);border-top:4px solid var(--gold);border-radius:20px;padding:22px 18px 18px;box-shadow:0 18px 55px rgba(50,20,10,.25);text-align:left;animation:customDialogIn .2s ease-out}
+@keyframes customDialogIn{from{transform:translateY(12px) scale(.98);opacity:0}to{transform:none;opacity:1}}
+.custom-dialog-brand{width:42px;height:42px;margin:0 auto 8px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#7a0c0c,#c9a227);color:#fff;font-size:20px;box-shadow:0 5px 14px rgba(122,12,12,.2)}
+.custom-dialog-title{text-align:center;font-family:var(--font-serif);font-size:1.18rem;color:var(--primary);margin:0 0 8px}
+.custom-dialog-message{text-align:center;font-size:.9rem;line-height:1.55;color:var(--text);white-space:pre-wrap;margin:0}
+.custom-dialog-field{margin-top:14px}.custom-dialog-field label{display:block;font-size:.78rem;font-weight:700;color:var(--text-muted);margin-bottom:5px}.custom-dialog-field input{width:100%;box-sizing:border-box;padding:12px 13px;border:1.5px solid var(--border);border-radius:11px;background:#fff;font:inherit;font-size:1rem;outline:none}.custom-dialog-field input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(201,162,39,.14)}
+.custom-dialog-actions{display:flex;gap:10px;margin-top:20px}.custom-dialog-actions .btn{flex:1;min-height:46px;border-radius:12px;font-weight:700;touch-action:manipulation}.custom-dialog-actions .btn-secondary{background:#f0e6d8;color:var(--text);border:1px solid var(--border)}
+@media(max-width:420px){.custom-dialog{width:calc(100vw - 28px);padding:20px 15px 15px}.custom-dialog-actions{position:sticky;bottom:0;background:linear-gradient(180deg,rgba(255,248,239,0),#fff8ef 25%);padding-top:8px}}
