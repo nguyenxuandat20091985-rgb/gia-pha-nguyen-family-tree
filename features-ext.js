@@ -79,7 +79,7 @@
     });
   });
 
-  document.getElementById('btnAddEvent')?.addEventListener('click',async()=>{
+  document.getElementById('btnAddEvent')?.addEventListener('pointerup',async e=>{e.preventDefault();
     const v=await window.GiaDialog?.form([
       {key:'title',label:'Tên sự kiện *',placeholder:'Ví dụ: Giỗ Cụ Tổ'},
       {key:'date',label:'Ngày',placeholder:'dd/mm/yyyy'},
@@ -89,7 +89,7 @@
     if(!v||!(v.title||'').trim())return;
     const list=loadJSON(EV_KEY,[]);list.push({id:uid(),title:v.title.trim(),date:(v.date||'').trim(),type:v.type||'Sự kiện',body:(v.body||'').trim(),created:Date.now()});saveJSON(EV_KEY,list);renderEvents();
   });
-  document.getElementById('btnAddPost')?.addEventListener('click',async()=>{
+  document.getElementById('btnAddPost')?.addEventListener('pointerup',async e=>{e.preventDefault();
     const v=await window.GiaDialog?.form([
       {key:'title',label:'Tiêu đề *',placeholder:'Nhập tiêu đề bài đăng'},
       {key:'body',label:'Nội dung',type:'textarea',placeholder:'Viết nội dung bài đăng...',rows:5},
