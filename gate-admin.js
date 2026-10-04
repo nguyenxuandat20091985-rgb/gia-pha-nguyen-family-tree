@@ -127,9 +127,9 @@
     return view;
   }
 
-  function showAdminView() {
+  async function showAdminView() {
     if (!window.GiaCloud?.isAdmin?.()) {
-      alert('Chỉ Admin mới vào được.');
+      await window.GiaDialog?.alert('Chỉ Admin mới vào được.','Quản trị thành viên');
       return;
     }
     ensureAdminView();
@@ -224,25 +224,25 @@
           try {
             if (act === 'approve') {
               await window.GiaCloud.setMemberStatus(id, 'approved');
-              alert('Đã duyệt thành viên.');
+              await window.GiaDialog?.alert('Đã duyệt thành viên.','Quản trị thành viên');
             }
             if (act === 'reject') {
               await window.GiaCloud.setMemberStatus(id, 'rejected');
-              alert('Đã từ chối.');
+              await window.GiaDialog?.alert('Đã từ chối thành viên.','Quản trị thành viên');
             }
             if (act === 'make-admin') {
               await window.GiaCloud.setMemberStatus(id, 'approved');
               await window.GiaCloud.setMemberRole(id, 'admin');
-              alert('Đã trao quyền Admin.');
+              await window.GiaDialog?.alert('Đã trao quyền Admin.','Quản trị thành viên');
             }
             if (act === 'make-member') {
               await window.GiaCloud.setMemberRole(id, 'member');
-              alert('Đã bỏ quyền Admin.');
+              await window.GiaDialog?.alert('Đã bỏ quyền Admin.','Quản trị thành viên');
             }
             const f = document.querySelector('.admin-tab.active')?.dataset.filter || 'all';
             await renderAdminList(f);
           } catch (e) {
-            alert('Lỗi: ' + (e?.message || e) + '\n\nNếu báo RLS, chạy lại SQL admin-and-approval.sql trên Supabase.');
+            await window.GiaDialog?.alert('Lỗi: ' + (e?.message || e) + '\n\nNếu báo RLS, chạy lại SQL admin-and-approval.sql trên Supabase.','Quản trị thành viên');
             btn.disabled = false;
           }
         });
@@ -272,7 +272,7 @@
     e.preventDefault();
     e.stopPropagation();
     updateGate();
-    alert('Tài khoản đang chờ Admin duyệt. Chưa thể thêm dữ liệu.');
+    window.GiaDialog?.alert('Tài khoản đang chờ Admin duyệt. Chưa thể thêm dữ liệu.','Tài khoản thành viên');
   }
 
   document.addEventListener('click', guardWrite, true);
