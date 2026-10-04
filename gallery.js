@@ -54,11 +54,31 @@
   function bind(){
     $('galleryOpenUpload')?.addEventListener('click',()=>$('galleryFile')?.click());
     $('galleryFile')?.addEventListener('change',e=>{
-      const f=e.target.files?.[0];if(!f)return;
-      if(f.size>MAX_FILE){alert('Tệp tải lên trực tiếp tối đa 2 MB. Với video lớn hơn, anh dùng URL để lưu.');e.target.value='';return;}
-      const type=f.type.startsWith('video/')?'video':'image', r=new FileReader();
-      r.onload=()=>{try{addItem({id:uid(),type,url:r.result,title:f.name,note:'',created:Date.now()});}catch(err){alert(err.message||'Không thể lưu tệp.');}};
-      r.readAsDataURL(f);e.target.value='';
+      const files=Array.from(e.target.files||[]);if(!files.length)return;
+      const oversized=files.filter(f=>f.size>MAX_FILE);
+      if(oversized.length){alert(oversized.length+' tệp vượt quá 2 MB và sẽ được bỏ qua. Anh có thể dùng URL cho video lớn.');}
+      const valid=files.filter(f=>f.size<=MAX_FILE);
+      if(!valid.length){e.target.value='';return;}
+      let list=load(), pending=valid.length, added=0;
+      valid.forEach(f=>{
+        const type=f.type.startsWith('video/')?'video':'image', reader=new FileReader();
+        reader.onload=()=>{
+          try{
+            const item={id:uid(),type,url:reader.result,title:f.name,note:'',created:Date.now()};
+            const candidate=[...list,item];
+            if(JSON.stringify(candidate).length<=MAX_STORE){list.push(item);added++;}
+            else if(added===0){alert('Kho localStorage không đủ chỗ cho tệp này. Hãy dùng URL hoặc xóa bớt nội dung.');}
+          }catch(err){}
+          pending--;
+          if(pending===0){
+            try{save(list);}catch(err){alert(err.message||'Không thể lưu các tệp.');}
+            render('galleryGrid',999,true);render('homeGalleryPreview',4,false);
+            if(added)alert('Đã thêm '+added+' ảnh/video vào thư viện.');
+          }
+        };
+        reader.readAsDataURL(f);
+      });
+      e.target.value='';
     });
     $('galleryAddUrl')?.addEventListener('click',()=>{
       const url=($('galleryUrl')?.value||'').trim();if(!url){alert('Nhập URL ảnh hoặc video.');return;}
@@ -75,7 +95,7 @@
       const sec=document.createElement('section');sec.id='view-gallery';sec.className='view hidden';
       sec.innerHTML='<div class="gallery-panel"><div class="view-toolbar"><button type="button" class="btn btn-primary" id="galleryOpenUpload">+ Tải ảnh/video</button><button type="button" class="btn btn-secondary" style="background:#f0e6d8;color:var(--text);border:0" data-nav="home">← Trang chủ</button></div>'+
       '<div class="gallery-note">Ảnh/video tải trực tiếp được lưu trong localStorage trên thiết bị này. Video lớn nên dùng URL để tránh đầy bộ nhớ trình duyệt.</div>'+
-      '<div class="gallery-upload-row"><div class="gallery-url-row"><input id="galleryUrl" type="url" placeholder="Dán URL ảnh/video để test"/><select id="galleryType"><option value="image">Ảnh</option><option value="video">Video</option></select></div><input id="galleryTitle" type="text" placeholder="Tên kỷ niệm (không bắt buộc)"/><button type="button" class="btn btn-primary btn-block" id="galleryAddUrl">+ Thêm từ URL</button><input id="galleryFile" type="file" accept="image/*,video/*" hidden/></div>'+
+      '<div class="gallery-upload-row"><div class="gallery-url-row"><input id="galleryUrl" type="url" placeholder="Dán URL ảnh/video để test"/><select id="galleryType"><option value="image">Ảnh</option><option value="video">Video</option></select></div><input id="galleryTitle" type="text" placeholder="Tên kỷ niệm (không bắt buộc)"/><button type="button" class="btn btn-primary btn-block" id="galleryAddUrl">+ Thêm từ URL</button><input id="galleryFile" type="file" accept="image/*,video/*" multiple hidden/></div>'+
       '<div id="galleryGrid" class="gallery-grid" style="margin-top:14px"></div></div>';
       main.appendChild(sec);
     }
