@@ -46,25 +46,27 @@
   }
   function form(fields,title='Gia Phả Họ Nguyễn',message=''){
     return new Promise(resolve=>{
-      const overlay=document.createElement('div');
-      overlay.className='custom-dialog-overlay';
+      const existing=document.getElementById('giaDialogRoot'); if(existing) existing.remove();
+      const overlay=document.createElement('div'); overlay.id='giaDialogRoot'; overlay.className='custom-dialog-overlay';
       const controls=fields.map((f,i)=>{
         const type=f.type||'text', id='customDialogField_'+i;
         if(type==='select') return '<div class="custom-dialog-field"><label for="'+id+'">'+esc(f.label)+'</label><select id="'+id+'">'+(f.options||[]).map(o=>'<option value="'+esc(o.value)+'"'+(String(o.value)===String(f.value??'')?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
-        return '<div class="custom-dialog-field"><label for="'+id+'">'+esc(f.label)+'</label>'+(type==='textarea'?'<textarea id="'+id+'" rows="'+(f.rows||3)+'" placeholder="'+esc(f.placeholder||'')+'">'+esc(f.value||'')+'</textarea>':'<input id="'+id+'" type="'+esc(type)+'" value="'+esc(f.value||'')+'" placeholder="'+esc(f.placeholder||'')" autocomplete="off"/>')+'</div>';
+        return '<div class="custom-dialog-field"><label for="'+id+'">'+esc(f.label)+'</label>'+(type==='textarea'?'<textarea id="'+id+'" rows="'+(f.rows||4)+'" placeholder="'+esc(f.placeholder||'')+'">'+esc(f.value||'')+'</textarea>':'<input id="'+id+'" type="'+esc(type)+'" value="'+esc(f.value||'')+'" placeholder="'+esc(f.placeholder||'')+'" autocomplete="off"/>')+'</div>';
       }).join('');
-      overlay.innerHTML='<div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-brand">🌿</div><h2 class="custom-dialog-title">'+esc(title)+'</h2>'+(message?'<p class="custom-dialog-message">'+esc(message)+'</p>':'')+'<div class="custom-dialog-fields">'+controls+'</div><div class="custom-dialog-actions"><button type="button" class="btn btn-secondary custom-dialog-cancel">Huỷ</button><button type="button" class="btn btn-primary custom-dialog-ok">Đồng ý</button></div></div>';
+      overlay.innerHTML='<div class="custom-dialog" role="dialog" aria-modal="true"><div class="custom-dialog-brand">🌿</div><h2 class="custom-dialog-title">'+esc(title)+'</h2>'+(message?'<p class="custom-dialog-message">'+esc(message)+'</p>':'')+'<form class="custom-dialog-form"><div class="custom-dialog-fields">'+controls+'</div><div class="custom-dialog-actions"><button type="button" class="btn btn-secondary custom-dialog-cancel">Huỷ</button><button type="submit" class="btn btn-primary custom-dialog-ok">Gửi</button></div></form></div>';
       document.body.appendChild(overlay);
-      const cancel=overlay.querySelector('.custom-dialog-cancel'),ok=overlay.querySelector('.custom-dialog-ok');
-      const finish=value=>{overlay.classList.add('hidden');setTimeout(()=>overlay.remove(),180);resolve(value);};
-      active={overlay,resolve:finish};
-      cancel.onclick=()=>{active=null;finish(null);};
-      ok.onclick=()=>{const out={};fields.forEach((f,i)=>{out[f.key]=overlay.querySelector('#customDialogField_'+i)?.value??'';});active=null;finish(out);};
-      overlay.addEventListener('click',e=>{if(e.target===overlay){active=null;finish(null);}});
-      overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();active=null;finish(null);}});
-      requestAnimationFrame(()=>overlay.querySelector('input,textarea,select')?.focus());
+      const formEl=overlay.querySelector('.custom-dialog-form'), cancel=overlay.querySelector('.custom-dialog-cancel');
+      let settled=false;
+      const finish=value=>{if(settled)return;settled=true;document.body.classList.remove('custom-dialog-open');overlay.classList.add('hidden');setTimeout(()=>overlay.remove(),180);resolve(value);};
+      active={overlay,resolve:finish}; document.body.classList.add('custom-dialog-open');
+      cancel.addEventListener('click',()=>finish(null));
+      formEl.addEventListener('submit',e=>{e.preventDefault();e.stopPropagation();const out={};fields.forEach((f,i)=>{out[f.key]=overlay.querySelector('#customDialogField_'+i)?.value??'';});finish(out);});
+      overlay.addEventListener('click',e=>{if(e.target===overlay)finish(null);});
+      overlay.addEventListener('keydown',e=>{if(e.key==='Escape'){e.preventDefault();finish(null);}});
+      setTimeout(()=>overlay.querySelector('input,textarea,select')?.focus(),30);
     });
   }
+
   window.GiaDialog={
     alert:(message,title='Gia Phả Họ Nguyễn')=>open({kind:'alert',message,title,okText:'Đồng ý'}),
     confirm:(message,title='Gia Phả Họ Nguyễn')=>open({kind:'confirm',message,title,okText:'Đồng ý'}),
