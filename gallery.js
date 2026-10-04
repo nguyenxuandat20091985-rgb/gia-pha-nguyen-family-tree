@@ -4,6 +4,8 @@
   const KEY='giaPhaMediaGallery_v1';
   const MAX_FILE=2*1024*1024;
   const MAX_STORE=3.5*1024*1024;
+  // Anh có thể đổi URL này sang album Google Photos riêng của dòng họ khi đã có link.
+  const FAMILY_ALBUM_URL='https://photos.google.com/albums';
   const $=id=>document.getElementById(id);
   const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;};
   const uid=()=> 'media_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -52,6 +54,7 @@
   }
   function addItem(item){const list=load();list.push(item);save(list);render('galleryGrid',999,true);render('homeGalleryPreview',4,false);}
   function bind(){
+    document.querySelectorAll('[data-gallery-album]').forEach(a=>{a.href=FAMILY_ALBUM_URL;});
     $('galleryOpenUpload')?.addEventListener('click',()=>$('galleryFile')?.click());
     $('galleryFile')?.addEventListener('change',e=>{
       const files=Array.from(e.target.files||[]);if(!files.length)return;
