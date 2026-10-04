@@ -5,7 +5,7 @@
   const MAX_FILE=2*1024*1024;
   const MAX_STORE=3.5*1024*1024;
   // Anh có thể đổi URL này sang album Google Photos riêng của dòng họ khi đã có link.
-  const FAMILY_ALBUM_URL='https://photos.google.com/albums';
+  const FAMILY_ALBUM_URL='https://photos.app.goo.gl/dpfNisTdXCJpwMYp6';
   const $=id=>document.getElementById(id);
   const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;};
   const uid=()=> 'media_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
