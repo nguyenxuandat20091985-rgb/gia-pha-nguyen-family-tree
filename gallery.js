@@ -67,6 +67,7 @@
       catch(err){alert(err.message||'Không thể lưu URL.');}
     });
     document.querySelectorAll('[data-nav="gallery"]').forEach(b=>b.addEventListener('click',showGallery));
+    document.querySelectorAll('#view-gallery [data-nav="home"]').forEach(b=>b.addEventListener('click',()=>window.GiaApp?.showView('home')));
   }
   function init(){
     const main=$('mainContent');if(!main)return;
