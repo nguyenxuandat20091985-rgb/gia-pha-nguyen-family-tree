@@ -92,6 +92,17 @@
     document.querySelectorAll('[data-nav="gallery"]').forEach(b=>b.addEventListener('click',showGallery));
     document.querySelectorAll('#view-gallery [data-nav="home"]').forEach(b=>b.addEventListener('click',()=>window.GiaApp?.showView('home')));
   }
+  let homeCarouselTimer=null;
+  function startHomeCarousel(){
+    if(homeCarouselTimer)clearInterval(homeCarouselTimer);
+    const box=$('homeGalleryPreview');if(!box)return;
+    homeCarouselTimer=setInterval(()=>{
+      if(document.hidden||!box.children.length)return;
+      const first=box.children[0], step=first.offsetWidth+10;
+      if(box.scrollLeft+box.clientWidth>=box.scrollWidth-8)box.scrollTo({left:0,behavior:'smooth'});
+      else box.scrollBy({left:step,behavior:'smooth'});
+    },4500);
+  }
   function init(){
     const main=$('mainContent');if(!main)return;
     if(!$('view-gallery')){
