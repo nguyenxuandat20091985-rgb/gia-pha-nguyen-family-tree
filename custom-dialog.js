@@ -13,7 +13,7 @@
   function open(opts){
     return new Promise(resolve=>{
       const overlay=document.createElement('div');
-      overlay.className='custom-dialog-overlay';
+      overlay.className='custom-dialog-overlay'; overlay.style.zIndex='99999';
       overlay.innerHTML=
         '<div class="custom-dialog" role="dialog" aria-modal="true" aria-labelledby="customDialogTitle">'+
           '<div class="custom-dialog-brand">🌿</div>'+
@@ -47,7 +47,7 @@
   function form(fields,title='Gia Phả Họ Nguyễn',message=''){
     return new Promise(resolve=>{
       const existing=document.getElementById('giaDialogRoot'); if(existing) existing.remove();
-      const overlay=document.createElement('div'); overlay.id='giaDialogRoot'; overlay.className='custom-dialog-overlay';
+      const overlay=document.createElement('div'); overlay.id='giaDialogRoot'; overlay.className='custom-dialog-overlay'; overlay.style.zIndex='99999';
       const controls=fields.map((f,i)=>{
         const type=f.type||'text', id='customDialogField_'+i;
         if(type==='select') return '<div class="custom-dialog-field"><label for="'+id+'">'+esc(f.label)+'</label><select id="'+id+'">'+(f.options||[]).map(o=>'<option value="'+esc(o.value)+'"'+(String(o.value)===String(f.value??'')?' selected':'')+'>'+esc(o.label)+'</option>').join('')+'</select></div>';
