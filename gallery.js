@@ -27,8 +27,8 @@
       if(e.target.closest('[data-del-media]'))return;
       const m=load().find(x=>x.id===el.dataset.id);if(m)openViewer(m);
     }));
-    box.querySelectorAll('[data-del-media]').forEach(b=>b.addEventListener('click',function(e){
-      e.stopPropagation();if(!confirm('Xóa kỷ niệm này khỏi thiết bị?'))return;
+    box.querySelectorAll('[data-del-media]').forEach(b=>b.addEventListener('click',async function(e){
+      e.stopPropagation();if(!(await window.GiaDialog?.confirm('Xóa kỷ niệm này khỏi thiết bị?','Xóa kỷ niệm')))return;
       save(load().filter(x=>x.id!==b.dataset.delMedia));render('galleryGrid',999,true);render('homeGalleryPreview',5,false);
     }));
   }
@@ -59,7 +59,7 @@
     $('galleryFile')?.addEventListener('change',e=>{
       const files=Array.from(e.target.files||[]);if(!files.length)return;
       const oversized=files.filter(f=>f.size>MAX_FILE);
-      if(oversized.length){alert(oversized.length+' tệp vượt quá 2 MB và sẽ được bỏ qua. Anh có thể dùng URL cho video lớn.');}
+      if(oversized.length){await window.GiaDialog?.alert(oversized.length+' tệp vượt quá 2 MB và sẽ được bỏ qua. Anh có thể dùng URL cho video lớn.','Thư viện Ảnh & Video');}
       const valid=files.filter(f=>f.size<=MAX_FILE);
       if(!valid.length){e.target.value='';return;}
       let list=load(), pending=valid.length, added=0;
@@ -70,13 +70,13 @@
             const item={id:uid(),type,url:reader.result,title:f.name,note:'',created:Date.now()};
             const candidate=[...list,item];
             if(JSON.stringify(candidate).length<=MAX_STORE){list.push(item);added++;}
-            else if(added===0){alert('Kho localStorage không đủ chỗ cho tệp này. Hãy dùng URL hoặc xóa bớt nội dung.');}
+            else if(added===0){window.GiaDialog?.alert('Kho lưu trữ trên thiết bị không đủ chỗ cho tệp này. Hãy dùng URL hoặc Album chung.','Thư viện Ảnh & Video');}
           }catch(err){}
           pending--;
           if(pending===0){
-            try{save(list);}catch(err){alert(err.message||'Không thể lưu các tệp.');}
+            try{save(list);}catch(err){window.GiaDialog?.alert(err.message||'Không thể lưu các tệp.','Thư viện Ảnh & Video');}
             render('galleryGrid',999,true);render('homeGalleryPreview',3,false);
-            if(added)alert('Đã thêm '+added+' ảnh/video vào thư viện.');
+            if(added)window.GiaDialog?.alert('Đã thêm '+added+' ảnh/video vào thư viện.','Thư viện Ảnh & Video');
           }
         };
         reader.readAsDataURL(f);
@@ -84,10 +84,10 @@
       e.target.value='';
     });
     $('galleryAddUrl')?.addEventListener('click',()=>{
-      const url=($('galleryUrl')?.value||'').trim();if(!url){alert('Nhập URL ảnh hoặc video.');return;}
+      const url=($('galleryUrl')?.value||'').trim();if(!url){window.GiaDialog?.alert('Vui lòng nhập URL ảnh hoặc video.','Thư viện Ảnh & Video');return;}
       const type=($('galleryType')?.value||'image'),title=(($('galleryTitle')?.value||'').trim()||'Kỷ niệm dòng họ');
       try{addItem({id:uid(),type,url,title,note:'',created:Date.now()});$('galleryUrl').value='';$('galleryTitle').value='';}
-      catch(err){alert(err.message||'Không thể lưu URL.');}
+      catch(err){window.GiaDialog?.alert(err.message||'Không thể lưu URL.','Thư viện Ảnh & Video');}
     });
     document.querySelectorAll('[data-nav="gallery"]').forEach(b=>b.addEventListener('click',showGallery));
     document.querySelectorAll('#view-gallery [data-nav="home"]').forEach(b=>b.addEventListener('click',()=>window.GiaApp?.showView('home')));
