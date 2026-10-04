@@ -386,3 +386,8 @@ main { padding: 12px 14px 24px; }
 .gallery-modal-inner{width:min(96vw,760px);max-height:90vh;background:#fffdf9;border-radius:16px;overflow:auto;padding:12px}
 .gallery-modal-media{max-height:72vh;width:100%;object-fit:contain;background:#18120f;border-radius:10px}
 .gallery-modal-close{float:right;border:0;background:#f0e6d8;border-radius:50%;width:34px;height:34px;font-size:1.2rem;cursor:pointer}
+
+/* Home family memories gallery actions */
+.home-gallery-actions{display:flex;gap:8px;flex-wrap:wrap;align-items:center;justify-content:flex-end;margin-top:8px}
+.home-gallery-contribute{display:inline-flex;align-items:center;justify-content:center;text-decoration:none!important;background:#fff4df!important;color:#8a5a00!important;border:1px solid #f0d29a!important}
+@media(max-width:560px){.home-gallery-head{flex-direction:column}.home-gallery-actions{width:100%;justify-content:stretch}.home-gallery-actions .btn{flex:1;min-width:0}}
