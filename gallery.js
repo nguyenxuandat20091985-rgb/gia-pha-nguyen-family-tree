@@ -56,7 +56,7 @@
   function bind(){
     document.querySelectorAll('[data-gallery-album]').forEach(a=>{a.href=FAMILY_ALBUM_URL;});
     $('galleryOpenUpload')?.addEventListener('click',()=>window.open(FAMILY_ALBUM_URL,'_blank','noopener'));
-    $('galleryFile')?.addEventListener('change',e=>{
+    $('galleryFile')?.addEventListener('change',async e=>{
       const files=Array.from(e.target.files||[]);if(!files.length)return;
       const oversized=files.filter(f=>f.size>MAX_FILE);
       if(oversized.length){await window.GiaDialog?.alert(oversized.length+' tệp vượt quá 2 MB và sẽ được bỏ qua. Anh có thể dùng URL cho video lớn.','Thư viện Ảnh & Video');}
