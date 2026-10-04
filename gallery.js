@@ -2,10 +2,10 @@
 (function(){
   'use strict';
   const KEY='giaPhaMediaGallery_v1';
+  const FAMILY_ALBUM_URL='https://photos.app.goo.gl/dpfNisTdXCJpwMYp6';
   const MAX_FILE=2*1024*1024;
   const MAX_STORE=3.5*1024*1024;
   // Anh có thể đổi URL này sang album Google Photos riêng của dòng họ khi đã có link.
-  const FAMILY_ALBUM_URL='https://photos.app.goo.gl/dpfNisTdXCJpwMYp6';
   const $=id=>document.getElementById(id);
   const esc=s=>{const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;};
   const uid=()=> 'media_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -29,7 +29,7 @@
     }));
     box.querySelectorAll('[data-del-media]').forEach(b=>b.addEventListener('click',function(e){
       e.stopPropagation();if(!confirm('Xóa kỷ niệm này khỏi thiết bị?'))return;
-      save(load().filter(x=>x.id!==b.dataset.delMedia));render('galleryGrid',999,true);render('homeGalleryPreview',4,false);
+      save(load().filter(x=>x.id!==b.dataset.delMedia));render('galleryGrid',999,true);render('homeGalleryPreview',3,false);
     }));
   }
   function openViewer(m){
@@ -52,7 +52,7 @@
     if(window.GiaApp?.showView)window.GiaApp.showView('gallery');
     render('galleryGrid',999,true);
   }
-  function addItem(item){const list=load();list.push(item);save(list);render('galleryGrid',999,true);render('homeGalleryPreview',4,false);}
+  function addItem(item){const list=load();list.push(item);save(list);render('galleryGrid',999,true);render('homeGalleryPreview',3,false);}
   function bind(){
     document.querySelectorAll('[data-gallery-album]').forEach(a=>{a.href=FAMILY_ALBUM_URL;});
     $('galleryOpenUpload')?.addEventListener('click',()=>$('galleryFile')?.click());
@@ -75,7 +75,7 @@
           pending--;
           if(pending===0){
             try{save(list);}catch(err){alert(err.message||'Không thể lưu các tệp.');}
-            render('galleryGrid',999,true);render('homeGalleryPreview',4,false);
+            render('galleryGrid',999,true);render('homeGalleryPreview',3,false);
             if(added)alert('Đã thêm '+added+' ảnh/video vào thư viện.');
           }
         };
@@ -102,7 +102,7 @@
       '<div id="galleryGrid" class="gallery-grid" style="margin-top:14px"></div></div>';
       main.appendChild(sec);
     }
-    bind();render('homeGalleryPreview',4,false);
+    bind();render('homeGalleryPreview',3,false);
   }
   const wait=()=>{if(window.GiaApp)init();else setTimeout(wait,30);};wait();
   window.GiaGallery={showGallery,render:()=>render('galleryGrid',999,true)};
