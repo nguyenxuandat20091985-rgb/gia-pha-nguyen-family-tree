@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
 <meta name="theme-color" content="#7a0c0c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="default"/>
 <title>Gia Phả Họ Nguyễn</title>
 <link rel="stylesheet" href="style.css?v=22"/>
 <link rel="stylesheet" href="tree-layout.css?v=7"/>
@@ -36,7 +37,23 @@
 <section id="view-events" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button></div><div id="eventsList" class="cards-list"></div></section>
 <section id="view-board" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddPost" class="btn btn-primary">+ Đăng bài</button></div><div id="boardList" class="cards-list"></div></section>
 <section id="view-chat" class="view hidden"><p class="hint-box">💬 Tin nhắn lưu trên máy này.</p><div id="chatMessages" class="chat-messages"></div><div class="chat-compose"><input type="text" id="chatAuthor" placeholder="Tên bạn"/><textarea id="chatInput" rows="2" placeholder="Nhắn tin..."></textarea><button type="button" id="btnSendChat" class="btn btn-primary">Gửi</button></div></section>
-<section id="view-more" class="view hidden"><div class="more-menu"><button type="button" class="more-item" data-nav="calendar">📅 Lịch</button><button type="button" class="more-item" data-nav="rituals">🙏 Văn khấn</button><button type="button" class="more-item" data-nav="chat">💬 Chat</button><button type="button" class="more-item" data-nav="data">💾 Dữ liệu</button><button type="button" class="more-item" data-nav="account">👤 Tài khoản</button><button type="button" class="more-item" data-nav="about">ℹ️ Giới thiệu</button></div></section>
+
+<section id="view-more" class="view hidden">
+  <div class="more-menu">
+    <button type="button" class="more-item" data-nav="account">👤 Tài khoản</button>
+    <button type="button" class="more-item" data-nav="calendar">📅 Lịch dòng họ</button>
+    <button type="button" class="more-item" data-nav="rituals">🙏 Văn khấn</button>
+    <button type="button" class="more-item" data-nav="chat">💬 Trò chuyện dòng tộc</button>
+    <button type="button" class="more-item" data-nav="family-fund">🏮 Sổ vàng dòng họ</button>
+    <button type="button" class="more-item" data-nav="liaison">👥 Ban liên lạc</button>
+    <button type="button" class="more-item" data-nav="data">💾 Dữ liệu gia phả</button>
+    <button type="button" class="more-item" data-nav="about">ℹ️ Giới thiệu</button>
+  </div>
+</section>
+
+<section id="view-family-fund" class="view hidden"><div class="about-card"><h3>🏮 Sổ vàng dòng họ</h3><p>Không gian dự kiến để ghi nhận đóng góp và các khoản sinh hoạt của dòng họ.</p><p class="muted">Chức năng quản lý thu – chi sẽ được triển khai riêng, không ảnh hưởng dữ liệu gia phả hiện tại.</p></div></section>
+<section id="view-liaison" class="view hidden"><div class="about-card"><h3>👥 Ban liên lạc</h3><p>Danh sách dự kiến dành cho Trưởng họ, các chi họ và thành viên Ban liên lạc.</p><p class="muted">Chức năng quản lý thành viên và quyền liên lạc sẽ được triển khai riêng.</p></div></section>
+
 <section id="view-calendar" class="view hidden"><div class="cal-nav"><button type="button" id="btnCalPrev" class="btn btn-secondary">‹</button><h3 id="calTitle"></h3><button type="button" id="btnCalNext" class="btn btn-secondary">›</button></div><div id="calGrid" class="cal-grid"></div></section>
 <section id="view-rituals" class="view hidden"><div id="ritualsList" class="cards-list"></div></section>
 <section id="view-data" class="view hidden"><div class="data-panel"><h3>Quản lý dữ liệu</h3><button type="button" id="btnExport" class="btn btn-primary btn-block">Xuất JSON</button><button type="button" id="btnImport" class="btn btn-secondary btn-block">Nhập JSON</button><input type="file" id="importFile" accept=".json" hidden/><hr/><button type="button" id="btnResetStep1" class="btn btn-danger btn-block">Reset dữ liệu mẫu…</button><div id="resetConfirm" class="hidden"><p>Gõ <strong>RESET</strong>:</p><input type="text" id="resetTyped" placeholder="RESET"/><button type="button" id="btnResetFinal" class="btn btn-danger btn-block">Xác nhận</button></div></div></section>
