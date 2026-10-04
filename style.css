@@ -417,3 +417,15 @@ main { padding: 12px 14px 24px; }
 
 /* Mobile-safe custom forms */
 body.custom-dialog-open{overflow:hidden;touch-action:none}.custom-dialog-overlay{z-index:2147483000;touch-action:auto;-webkit-tap-highlight-color:transparent}.custom-dialog{pointer-events:auto;position:relative}.custom-dialog-form{display:block;width:100%}.custom-dialog-fields{width:100%}.custom-dialog-actions{display:flex;gap:10px}.custom-dialog-actions button{display:flex;align-items:center;justify-content:center;min-height:52px;padding:12px 18px;font-size:16px;cursor:pointer;-webkit-appearance:none;appearance:none;user-select:none}.custom-dialog-ok{font-weight:800}.custom-dialog-cancel{font-weight:700}@media(max-width:600px){.custom-dialog-overlay{align-items:flex-end;padding:10px}.custom-dialog{width:100%;max-width:520px;max-height:88vh;border-radius:20px 20px 16px 16px;padding:20px 15px 14px}.custom-dialog-field{margin-top:12px}.custom-dialog-field input,.custom-dialog-field select,.custom-dialog-field textarea{font-size:16px;min-height:48px}.custom-dialog-field textarea{min-height:96px}.custom-dialog-actions{position:sticky;bottom:0;padding-top:10px}.custom-dialog-actions button{min-height:54px;flex:1}.custom-dialog-message{font-size:14px}}
+
+
+/* ===== MOBILE TOUCH SAFETY ===== */
+button,[role="button"],[onclick]{position:relative;z-index:1000;pointer-events:auto;touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+button:disabled{pointer-events:none;}
+.app-header,.bottom-nav,.nav-item,.more-item,.view-toolbar,.form-actions,.post-actions,.gallery-toolbar,.gallery-upload-row{position:relative;z-index:1000;}
+.modal,.gallery-modal,.custom-dialog-overlay,.access-gate{z-index:99999 !important;pointer-events:auto;touch-action:auto;}
+.custom-dialog-overlay{position:fixed !important;inset:0 !important;display:flex !important;}
+.custom-dialog-overlay.hidden{display:none !important;pointer-events:none !important;}
+.custom-dialog,.custom-dialog-form,.custom-dialog-actions,.custom-dialog-field,.custom-dialog-field input,.custom-dialog-field select,.custom-dialog-field textarea{position:relative;z-index:100000;pointer-events:auto;touch-action:auto;}
+.custom-dialog-actions button{z-index:100001;min-height:52px;cursor:pointer;pointer-events:auto;touch-action:manipulation;}
+body.custom-dialog-open{overflow:hidden;overscroll-behavior:none;}
