@@ -12,7 +12,21 @@
   function loadJSON(k,f){try{const r=localStorage.getItem(k);return r?JSON.parse(r):f;}catch(e){return f;}}
   function saveJSON(k,v){localStorage.setItem(k,JSON.stringify(v));}
 
-  function loadFund(){ return loadJSON(FUND_KEY,[]).filter(x=>x && x.id && x.eventId && x.name); }
+  const FUND_CLEANUP_KEY='giaPhaFamilyFund_cleanup_v1';
+  function loadFund(){
+    let rows=loadJSON(FUND_KEY,[]).filter(x=>x && x.id && x.eventId && x.name);
+    if(!localStorage.getItem(FUND_CLEANUP_KEY)){
+      const legacy=[
+        ['Nguyễn Văn Minh','gio-2026',2000000],
+        ['Nguyễn Thị Lan','gio-2026',1000000],
+        ['Nguyễn Xuân Hùng','nha-tho',5000000],
+        ['Nguyễn Văn Nam','khuyen-hoc',500000]
+      ];
+      rows=rows.filter(x=>!legacy.some(([name,eventId,amount])=>x.name===name&&x.eventId===eventId&&Number(x.amount)===amount));
+      saveJSON(FUND_KEY,rows);localStorage.setItem(FUND_CLEANUP_KEY,'1');
+    }
+    return rows;
+  }
   function formatMoney(n){return new Intl.NumberFormat('vi-VN').format(Number(n)||0)+' ₫';}
 
   function renderFund(){
