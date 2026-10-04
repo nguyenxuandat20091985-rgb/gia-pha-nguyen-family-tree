@@ -21,7 +21,7 @@
   }
   function render(targetId,limit,canDelete){
     const box=$(targetId);if(!box)return;
-    const list=load().slice().reverse().slice(0,limit||999);
+    const list=load().slice().reverse().slice(0,Math.min(limit||999,targetId==='homeGalleryPreview'?5:999));
     box.innerHTML=list.length?list.map(m=>mediaHtml(m,canDelete)).join(''):'<div class="gallery-empty">Chưa có ảnh/video. Hãy thêm kỷ niệm đầu tiên cho dòng họ.</div>';
     box.querySelectorAll('.gallery-item').forEach(el=>el.addEventListener('click',function(e){
       if(e.target.closest('[data-del-media]'))return;
@@ -29,7 +29,7 @@
     }));
     box.querySelectorAll('[data-del-media]').forEach(b=>b.addEventListener('click',function(e){
       e.stopPropagation();if(!confirm('Xóa kỷ niệm này khỏi thiết bị?'))return;
-      save(load().filter(x=>x.id!==b.dataset.delMedia));render('galleryGrid',999,true);render('homeGalleryPreview',3,false);
+      save(load().filter(x=>x.id!==b.dataset.delMedia));render('galleryGrid',999,true);render('homeGalleryPreview',5,false);
     }));
   }
   function openViewer(m){
@@ -52,10 +52,10 @@
     if(window.GiaApp?.showView)window.GiaApp.showView('gallery');
     render('galleryGrid',999,true);
   }
-  function addItem(item){const list=load();list.push(item);save(list);render('galleryGrid',999,true);render('homeGalleryPreview',3,false);}
+  function addItem(item){const list=load();list.push(item);save(list);render('galleryGrid',999,true);render('homeGalleryPreview',5,false);}
   function bind(){
     document.querySelectorAll('[data-gallery-album]').forEach(a=>{a.href=FAMILY_ALBUM_URL;});
-    $('galleryOpenUpload')?.addEventListener('click',()=>$('galleryFile')?.click());
+    $('galleryOpenUpload')?.addEventListener('click',()=>window.open(FAMILY_ALBUM_URL,'_blank','noopener'));
     $('galleryFile')?.addEventListener('change',e=>{
       const files=Array.from(e.target.files||[]);if(!files.length)return;
       const oversized=files.filter(f=>f.size>MAX_FILE);
@@ -97,7 +97,7 @@
     if(!$('view-gallery')){
       const sec=document.createElement('section');sec.id='view-gallery';sec.className='view hidden';
       sec.innerHTML='<div class="gallery-panel"><div class="view-toolbar"><button type="button" class="btn btn-primary" id="galleryOpenUpload">+ Tải ảnh/video</button><button type="button" class="btn btn-secondary" style="background:#f0e6d8;color:var(--text);border:0" data-nav="home">← Trang chủ</button></div>'+
-      '<div class="gallery-note">Ảnh/video tải trực tiếp được lưu trong localStorage trên thiết bị này. Video lớn nên dùng URL để tránh đầy bộ nhớ trình duyệt.</div>'+
+      '<div class="gallery-note">Để ứng dụng luôn nhẹ và không tràn bộ nhớ, ảnh/video dung lượng lớn được lưu tại Album Google Photos chung. Thư viện trong app chỉ giữ vài mục nhẹ từ URL để làm kỷ niệm nổi bật.</div>'+
       '<div class="gallery-upload-row"><div class="gallery-url-row"><input id="galleryUrl" type="url" placeholder="Dán URL ảnh/video để test"/><select id="galleryType"><option value="image">Ảnh</option><option value="video">Video</option></select></div><input id="galleryTitle" type="text" placeholder="Tên kỷ niệm (không bắt buộc)"/><button type="button" class="btn btn-primary btn-block" id="galleryAddUrl">+ Thêm từ URL</button><input id="galleryFile" type="file" accept="image/*,video/*" multiple hidden/></div>'+
       '<div id="galleryGrid" class="gallery-grid" style="margin-top:14px"></div></div>';
       main.appendChild(sec);
