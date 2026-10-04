@@ -394,3 +394,10 @@ main { padding: 12px 14px 24px; }
 
 .home-gallery-cta{display:flex;align-items:center;gap:12px;margin-top:14px;padding:15px 16px;border-radius:16px;text-decoration:none!important;background:var(--primary);color:#fff!important;box-shadow:0 8px 22px rgba(0,0,0,.12)}
 .home-gallery-cta strong{display:block;font-size:15px}.home-gallery-cta small{display:block;margin-top:3px;opacity:.9;font-size:12px}.home-gallery-cta-icon{font-size:26px}.home-gallery-cta-arrow{margin-left:auto;font-size:24px}.home-gallery-cta:hover{transform:translateY(-1px)}
+
+/* Home memories: mobile-first swipe carousel */
+.gallery-carousel{display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding:2px 2px 8px;overscroll-behavior-x:contain}
+.gallery-carousel::-webkit-scrollbar{display:none}
+.gallery-carousel .gallery-item{flex:0 0 82%;width:82%;aspect-ratio:16/10;scroll-snap-align:center;border-radius:14px;box-shadow:0 5px 16px rgba(74,8,8,.09)}
+@media(min-width:600px){.gallery-carousel .gallery-item{flex-basis:48%;width:48%}}
+.home-gallery-card{overflow:hidden}.home-gallery-card .gallery-caption{font-size:.75rem}
