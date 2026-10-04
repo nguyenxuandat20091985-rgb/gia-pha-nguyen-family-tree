@@ -19,8 +19,15 @@
 <section id="view-account" class="view hidden"><div class="account-shell"><div class="account-hero"><div class="account-avatar" id="authAvatar">👤</div><h2>Tài khoản thành viên</h2></div><div class="account-card"><p id="authStatus" class="auth-status">Chưa đăng nhập</p><div id="authLogin"><p class="auth-hint">Đăng nhập Google</p><div id="btnGoogle" class="btn-block google-login-host" aria-label="Đăng nhập bằng Google"></div></div><div id="authUser" class="hidden"><div class="auth-welcome" id="authWelcome"></div><input id="authName" placeholder="Tên hiển thị"/><button id="btnSaveProfile" class="btn btn-primary btn-block" type="button">Lưu thông tin</button><button id="btnGoHome" class="btn btn-outline btn-block" type="button">Về trang chủ</button><button id="btnLogout" class="btn btn-logout btn-block" type="button">Đăng xuất</button></div></div></div></section>
 <section id="view-home" class="view"><div class="home-hero"><h2>🌳 Gia Phả Họ Nguyễn</h2><p>Trung tâm sinh hoạt dòng họ</p></div><div class="home-block" id="homeEvents"><h3>🕯️ Việc họ hôm nay</h3><div id="homeEventsList" class="home-list"></div></div><div class="home-block"><h3>🤖 Bản tin dòng họ</h3><div id="homeAiNews" class="ai-news-card"></div></div><div class="home-block"><h3>📅 Lịch hôm nay</h3><div id="homeCalendarToday" class="home-list"></div></div><section class="home-gallery-card" id="homeGalleryCard">
   <div class="home-gallery-head">
-    <div><span class="home-gallery-kicker">KHO LƯU NIỆM</span><h3>🖼️ Thư viện Ảnh &amp; Video dòng họ</h3><p>Lưu giữ những khoảnh khắc, hình ảnh và video kỷ niệm của dòng họ.</p></div>
-    <button type="button" class="btn btn-primary home-gallery-open" data-nav="gallery">Mở thư viện</button>
+    <div>
+      <span class="home-gallery-kicker">KHO LƯU NIỆM</span>
+      <h3>🖼️ Thư viện Kỷ Niệm Dòng Họ</h3>
+      <p>Ảnh và video kỷ niệm hiển thị trực tiếp trên trang chủ để mọi người cùng xem, lưu giữ và đóng góp.</p>
+    </div>
+    <div class="home-gallery-actions">
+      <button type="button" class="btn btn-primary home-gallery-open" data-nav="gallery">Mở thư viện</button>
+      <a class="btn btn-secondary home-gallery-contribute" data-gallery-album href="https://photos.google.com/albums" target="_blank" rel="noopener">📸 Đóng góp ảnh &amp; video</a>
+    </div>
   </div>
   <div id="homeGalleryPreview" class="gallery-grid gallery-grid-preview"></div>
 </section></section>
