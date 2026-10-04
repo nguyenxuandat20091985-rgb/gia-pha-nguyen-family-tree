@@ -12,14 +12,14 @@
     const list=loadJSON(EV_KEY,[]);
     if(!list.length){box.innerHTML='<p class="muted">Chưa có sự kiện. Bấm + Tạo sự kiện.</p>';return;}
     box.innerHTML=list.slice().reverse().map(ev=>'<div class="event-card"><div class="event-type">'+(ev.type||'Sự kiện')+'</div><h4>'+esc(ev.title)+'</h4>'+(ev.date?'<p class="meta">📅 '+esc(ev.date)+'</p>':'')+(ev.body?'<div class="event-body">'+esc(ev.body)+'</div>':'')+'<button type="button" class="btn btn-small" data-del="'+esc(ev.id)+'">Xóa</button></div>').join('');
-    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(!confirm('Xóa?'))return;saveJSON(EV_KEY,loadJSON(EV_KEY,[]).filter(x=>x.id!==b.dataset.del));renderEvents();});
+    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(!(await window.GiaDialog?.confirm('Xóa sự kiện này?','Xóa sự kiện')))return;saveJSON(EV_KEY,loadJSON(EV_KEY,[]).filter(x=>x.id!==b.dataset.del));renderEvents();});
   }
   function renderBoard(){
     const box=document.getElementById('boardList');if(!box)return;
     const list=loadJSON(POST_KEY,[]);
     if(!list.length){box.innerHTML='<p class="muted">Chưa có bài. Bấm + Đăng bài.</p>';return;}
     box.innerHTML=list.slice().reverse().map(p=>'<div class="post-card"><h4>'+esc(p.title)+'</h4><p class="meta">'+esc(p.author||'')+(p.date?' · '+esc(p.date):'')+'</p><div class="event-body">'+esc(p.body)+'</div><button type="button" class="btn btn-small" data-del="'+esc(p.id)+'">Xóa</button></div>').join('');
-    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=()=>{if(!confirm('Xóa?'))return;saveJSON(POST_KEY,loadJSON(POST_KEY,[]).filter(x=>x.id!==b.dataset.del));renderBoard();});
+    box.querySelectorAll('[data-del]').forEach(b=>b.onclick=async()=>{if(!(await window.GiaDialog?.confirm('Xóa bài viết này?','Xóa bài đăng')))return;saveJSON(POST_KEY,loadJSON(POST_KEY,[]).filter(x=>x.id!==b.dataset.del));renderBoard();});
   }
   function renderChat(){
     const box=document.getElementById('chatMessages');if(!box)return;
@@ -79,18 +79,24 @@
     });
   });
 
-  document.getElementById('btnAddEvent')?.addEventListener('click',()=>{
-    const title=prompt('Tên sự kiện');if(!title)return;
-    const date=prompt('Ngày','')||'';
-    const type=prompt('Loại (Giỗ/Hiếu hỉ/Họp họ)','Hiếu hỉ')||'Sự kiện';
-    const body=prompt('Ghi chú','')||'';
-    const list=loadJSON(EV_KEY,[]);list.push({id:uid(),title,date,type,body,created:Date.now()});saveJSON(EV_KEY,list);renderEvents();
+  document.getElementById('btnAddEvent')?.addEventListener('click',async()=>{
+    const v=await window.GiaDialog?.form([
+      {key:'title',label:'Tên sự kiện *',placeholder:'Ví dụ: Giỗ Cụ Tổ'},
+      {key:'date',label:'Ngày',placeholder:'dd/mm/yyyy'},
+      {key:'type',label:'Loại sự kiện',type:'select',value:'Hiếu hỉ',options:[{value:'Giỗ',label:'Giỗ'},{value:'Hiếu hỉ',label:'Hiếu hỉ'},{value:'Họp họ',label:'Họp họ'},{value:'Khác',label:'Khác'}]},
+      {key:'body',label:'Ghi chú',type:'textarea',placeholder:'Nội dung hoặc ghi chú'}
+    ],'Tạo sự kiện','Nhập thông tin sự kiện của dòng họ.');
+    if(!v||!(v.title||'').trim())return;
+    const list=loadJSON(EV_KEY,[]);list.push({id:uid(),title:v.title.trim(),date:(v.date||'').trim(),type:v.type||'Sự kiện',body:(v.body||'').trim(),created:Date.now()});saveJSON(EV_KEY,list);renderEvents();
   });
-  document.getElementById('btnAddPost')?.addEventListener('click',()=>{
-    const title=prompt('Tiêu đề');if(!title)return;
-    const body=prompt('Nội dung')||'';
-    const author=prompt('Tên','Thành viên')||'Thành viên';
-    const list=loadJSON(POST_KEY,[]);list.push({id:uid(),title,body,author,date:new Date().toLocaleDateString('vi-VN')});saveJSON(POST_KEY,list);renderBoard();
+  document.getElementById('btnAddPost')?.addEventListener('click',async()=>{
+    const v=await window.GiaDialog?.form([
+      {key:'title',label:'Tiêu đề *',placeholder:'Nhập tiêu đề bài đăng'},
+      {key:'body',label:'Nội dung',type:'textarea',placeholder:'Viết nội dung bài đăng...',rows:5},
+      {key:'author',label:'Tên người đăng',value:'Thành viên',placeholder:'Tên hiển thị'}
+    ],'Đăng bài','Chia sẻ thông tin với bà con trong dòng họ.');
+    if(!v||!(v.title||'').trim())return;
+    const list=loadJSON(POST_KEY,[]);list.push({id:uid(),title:v.title.trim(),body:(v.body||'').trim(),author:(v.author||'Thành viên').trim()||'Thành viên',date:new Date().toLocaleDateString('vi-VN')});saveJSON(POST_KEY,list);renderBoard();
   });
   document.getElementById('btnSendChat')?.addEventListener('click',()=>{
     const input=document.getElementById('chatInput');const text=(input?.value||'').trim();if(!text)return;
@@ -106,7 +112,7 @@
   document.getElementById('btnImport')?.addEventListener('click',()=>document.getElementById('importFile')?.click());
   document.getElementById('importFile')?.addEventListener('change',e=>{
     const f=e.target.files&&e.target.files[0];if(!f)return;
-    const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(r.result);if(p.tree&&window.GiaApp){Object.assign(window.GiaApp.data,p.tree);window.GiaApp.saveTree();}if(p.events)saveJSON(EV_KEY,p.events);if(p.posts)saveJSON(POST_KEY,p.posts);if(p.chat)saveJSON(CHAT_KEY,p.chat);alert('Đã nhập dữ liệu');}catch(err){alert('File lỗi');}};r.readAsText(f);
+    const r=new FileReader();r.onload=()=>{try{const p=JSON.parse(r.result);if(p.tree&&window.GiaApp){Object.assign(window.GiaApp.data,p.tree);window.GiaApp.saveTree();}if(p.events)saveJSON(EV_KEY,p.events);if(p.posts)saveJSON(POST_KEY,p.posts);if(p.chat)saveJSON(CHAT_KEY,p.chat);await window.GiaDialog?.alert('Đã nhập dữ liệu thành công.','Nhập dữ liệu');}catch(err){await window.GiaDialog?.alert('Tệp dữ liệu không hợp lệ hoặc đã bị lỗi.','Nhập dữ liệu');}};r.readAsText(f);
   });
 
   if(!document.getElementById('featStyle')){const s=document.createElement('style');s.id='featStyle';s.textContent='.cal-weekdays,.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}.cal-weekdays{font-size:.75rem;font-weight:700;color:var(--primary);margin-bottom:8px}.cal-day{padding:10px 4px;border-radius:10px;background:var(--card);border:1px solid var(--border)}.cal-day.empty{background:transparent;border:none}.cal-day.today{background:linear-gradient(135deg,#7a0c0c,#c9a227);color:#fff;font-weight:700}.chat-bubble{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:10px 12px;margin-bottom:8px}.chat-messages{max-height:50vh;overflow-y:auto}.tree-container{overflow-x:auto}';document.head.appendChild(s);}
