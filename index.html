@@ -17,7 +17,13 @@
 <div id="morningBanner" class="morning-banner hidden"><div class="morning-inner"><span class="morning-icon">🌿</span><p id="morningText"></p><button type="button" id="btnCloseMorning" class="morning-close">×</button></div></div>
 <main id="mainContent">
 <section id="view-account" class="view hidden"><div class="account-shell"><div class="account-hero"><div class="account-avatar" id="authAvatar">👤</div><h2>Tài khoản thành viên</h2></div><div class="account-card"><p id="authStatus" class="auth-status">Chưa đăng nhập</p><div id="authLogin"><p class="auth-hint">Đăng nhập Google</p><div id="btnGoogle" class="btn-block google-login-host" aria-label="Đăng nhập bằng Google"></div></div><div id="authUser" class="hidden"><div class="auth-welcome" id="authWelcome"></div><input id="authName" placeholder="Tên hiển thị"/><button id="btnSaveProfile" class="btn btn-primary btn-block" type="button">Lưu thông tin</button><button id="btnGoHome" class="btn btn-outline btn-block" type="button">Về trang chủ</button><button id="btnLogout" class="btn btn-logout btn-block" type="button">Đăng xuất</button></div></div></div></section>
-<section id="view-home" class="view"><div class="home-hero"><h2>🌳 Gia Phả Họ Nguyễn</h2><p>Trung tâm sinh hoạt dòng họ</p></div><div class="home-block" id="homeEvents"><h3>🕯️ Việc họ hôm nay</h3><div id="homeEventsList" class="home-list"></div></div><div class="home-block"><h3>🤖 Bản tin dòng họ</h3><div id="homeAiNews" class="ai-news-card"></div></div><div class="home-block"><h3>📅 Lịch hôm nay</h3><div id="homeCalendarToday" class="home-list"></div></div><div class="home-actions"><button type="button" class="btn btn-primary btn-block" data-nav="tree">Xem cây gia phả</button></div></section>
+<section id="view-home" class="view"><div class="home-hero"><h2>🌳 Gia Phả Họ Nguyễn</h2><p>Trung tâm sinh hoạt dòng họ</p></div><div class="home-block" id="homeEvents"><h3>🕯️ Việc họ hôm nay</h3><div id="homeEventsList" class="home-list"></div></div><div class="home-block"><h3>🤖 Bản tin dòng họ</h3><div id="homeAiNews" class="ai-news-card"></div></div><div class="home-block"><h3>📅 Lịch hôm nay</h3><div id="homeCalendarToday" class="home-list"></div></div><section class="home-gallery-card" id="homeGalleryCard">
+  <div class="home-gallery-head">
+    <div><span class="home-gallery-kicker">KHO LƯU NIỆM</span><h3>🖼️ Thư viện Ảnh &amp; Video dòng họ</h3><p>Lưu giữ những khoảnh khắc, hình ảnh và video kỷ niệm của dòng họ.</p></div>
+    <button type="button" class="btn btn-primary home-gallery-open" data-nav="gallery">Mở thư viện</button>
+  </div>
+  <div id="homeGalleryPreview" class="gallery-grid gallery-grid-preview"></div>
+</section></section>
 <section id="view-tree" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddRoot" class="btn btn-primary">+ Thành viên</button><button type="button" id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button><input type="search" id="searchTree" placeholder="Tìm tên..." class="search-input"/></div><div id="treeView" class="tree-container"><div id="treeRoot" class="tree"></div><div id="emptyState" class="empty-state hidden"><h2>Chưa có dữ liệu</h2></div></div><div id="listView" class="list-container hidden"><div id="personList" class="person-list"></div></div></section>
 <section id="view-events" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button></div><div id="eventsList" class="cards-list"></div></section>
 <section id="view-board" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddPost" class="btn btn-primary">+ Đăng bài</button></div><div id="boardList" class="cards-list"></div></section>
@@ -41,6 +47,7 @@
 <script src="tree-seed.js?v=10"></script>
 <script src="app.js?v=51"></script>
 <script src="features-ext.js?v=1"></script>
+<script src="gallery.js?v=1"></script>
 <script src="auth-ux.js?v=1"></script>
 <script src="gate-admin.js?v=4"></script>
 </body>
