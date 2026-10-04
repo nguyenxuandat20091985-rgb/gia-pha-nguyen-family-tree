@@ -79,7 +79,7 @@
     });
   });
 
-  document.getElementById('btnAddEvent')?.addEventListener('pointerup',async e=>{e.preventDefault();
+  document.getElementById('btnAddEvent')?.addEventListener('click',async e=>{e.preventDefault();
     const v=await window.GiaDialog?.form([
       {key:'title',label:'Tên sự kiện *',placeholder:'Ví dụ: Giỗ Cụ Tổ'},
       {key:'date',label:'Ngày',placeholder:'dd/mm/yyyy'},
