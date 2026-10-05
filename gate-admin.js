@@ -32,7 +32,7 @@ async function pinGate(){
  if(pin==null)return false;
  const ok=window.GiaAdminAuth?.verifyPin?window.GiaAdminAuth.verifyPin(pin):String(pin)==='482916';
  if(!ok){await window.GiaDialog?.alert('Mã PIN không đúng.','Từ chối truy cập');return false;}
- unlocked=true;record('Đăng nhập Admin','Mở Trung tâm quản trị');return true;
+ unlocked=true; window.GiaCloud?.claimOwner?.(); record('Đăng nhập Admin','Mở Trung tâm quản trị'); return true;
 }
 async function openGate(){if(!(await pinGate()))return;const v=ensureView();document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));v.classList.remove('hidden');document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav==='more'));renderTab();window.scrollTo(0,0);}
 function closeAdmin(){document.getElementById('view-admin')?.classList.add('hidden');window.GiaApp?.showView('home');}
@@ -44,7 +44,7 @@ async function renderRoles(box){
  box.innerHTML='<div class="admin-card"><h3>🛡️ Phân quyền tài khoản</h3><p class="muted">Mỗi thành viên chỉ có một cấp quyền chính: <b>Admin</b>, <b>Trưởng họ</b> hoặc <b>Thành viên xem</b>. Quyền Admin/Trưởng họ được liên kết trực tiếp với khả năng chỉnh sửa cây gia phả.</p><div id="roleList">Đang tải…</div></div>';
  if(!window.GiaCloud?.listMembers){box.querySelector('#roleList').textContent='Danh sách thành viên chưa sẵn sàng.';return;}
  try{
-   const rows=await window.GiaCloud.listMembers(), me=window.GiaCloud.state.user?.id;
+   const rows=await window.GiaCloud.listMembers(), me=window.GiaCloud.state.user?.sub;
    box.querySelector('#roleList').innerHTML=(rows||[]).map(m=>{
      const role=m.role||'member', status=m.status||'pending';
      return '<div class="admin-member-card">'+
