@@ -2,7 +2,7 @@
 'use strict';
 const TREE_KEY='giaPhaNguyenData_v4';
 const TREE_KEYS=['giaPhaNguyenData_v4','giaPhaNguyenData_v3','giaPhaNguyenData_v2','giaPhaNguyenData_v1'];
-let data={people:{},rootId:null}, currentView='home', treeMode='tree', contextTargetId=null, photoBase64=null, _uiBound=false, treeWriteUnlocked=false;
+let data={people:{},rootId:null}, currentView='home', treeMode='tree', contextTargetId=null, photoBase64=null, _uiBound=false, treeWriteUnlocked=false, adminTreeWriteSession=false;
 let expandedNodes=new Set(['root','coc','lach','ngoc']);
 function uid(){return 'id_'+Date.now().toString(36)+Math.random().toString(36).slice(2,7);}
 function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
@@ -22,16 +22,19 @@ function hasTreeWriteRole(){
     p.treeWrite===true || p.can_edit_tree===true || p.can_manage_tree===true
   );
 }
-async function ensureTreeWriteAccess(){
-  if(!window.GiaCloud?.state?.user){
+async function ensureTreeWriteAccess(options){
+  options=options||{};
+  const adminAuthorized=options.fromAdmin===true || adminTreeWriteSession===true;
+  if(!window.GiaCloud?.state?.user && !adminAuthorized){
     await window.GiaDialog?.alert('Vui lòng đăng nhập tài khoản được cấp quyền quản trị gia phả.','Chế độ chỉ xem');
     return false;
   }
-  if(!hasTreeWriteRole()){
+  if(!hasTreeWriteRole() && !adminAuthorized){
     await window.GiaDialog?.alert('Tài khoản này đang ở chế độ chỉ xem. Chỉ Admin, Trưởng họ hoặc tài khoản được cấp quyền mới được thêm, sửa, xóa thành viên.','Phân quyền gia phả');
     return false;
   }
   if(treeWriteUnlocked)return true;
+  if(adminAuthorized){ treeWriteUnlocked=true; updateTreeAccessUI(); refreshTree(); return true; }
   const pin=await window.GiaDialog?.prompt(
     'Nhập mã PIN quản trị để mở quyền chỉnh sửa Cây gia phả.',
     '',
@@ -45,22 +48,25 @@ async function ensureTreeWriteAccess(){
     return false;
   }
   treeWriteUnlocked=true;
+  if(adminAuthorized)adminTreeWriteSession=true;
   updateTreeAccessUI();
+  refreshTree();
   return true;
 }
-function lockTreeEditing(){treeWriteUnlocked=false;hideContextMenu();closePersonModal();updateTreeAccessUI();}
+function lockTreeEditing(){treeWriteUnlocked=false;adminTreeWriteSession=false;hideContextMenu();closePersonModal();updateTreeAccessUI();}
 function updateTreeAccessUI(){
   const add=document.getElementById('btnAddRoot');
   const mode=document.getElementById('treeAccessMode');
   const writable=hasTreeWriteRole();
   if(add)add.classList.toggle('hidden',!writable || !treeWriteUnlocked);
   if(mode){
-    mode.textContent=treeWriteUnlocked&&writable?'🔒 Khóa lại':'👁️ Chỉ xem';
-    mode.classList.toggle('write',treeWriteUnlocked&&writable);
+    const active=treeWriteUnlocked&&(writable||adminTreeWriteSession);
+    mode.textContent=active?'🔒 Khóa lại':'👁️ Chỉ xem';
+    mode.classList.toggle('write',active);
     mode.title=treeWriteUnlocked&&writable?'Khóa chế độ chỉnh sửa':'Bấm để xác thực quyền chỉnh sửa';
   }
   const menu=document.getElementById('contextMenu');
-  if(menu&&!writable)menu.classList.add('hidden');
+  if(menu&&!writable&&!adminTreeWriteSession)menu.classList.add('hidden');
 }
 function refreshTree(){if(treeMode==='list')renderPersonList();else renderTree();}
 
@@ -165,5 +171,6 @@ window.addEventListener('gia-auth-changed',()=>{treeWriteUnlocked=false;updateTr
 window.addEventListener('gia-profile-changed',()=>{treeWriteUnlocked=false;updateTreeAccessUI();});
 document.getElementById('treeAccessMode')?.addEventListener('click',async()=>{if(treeWriteUnlocked){lockTreeEditing();return;}await ensureTreeWriteAccess();});
 ensureTreeUI();loadTree();seedIfEmpty();showView('home');
-window.GiaApp={showView,data,saveTree,seedIfEmpty,refreshTree,requestTreeWriteAccess:ensureTreeWriteAccess,lockTreeEditing,isTreeWriteUnlocked:()=>treeWriteUnlocked};
+window.GiaApp={showView,data,saveTree,seedIfEmpty,refreshTree,requestTreeWriteAccess:ensureTreeWriteAccess,
+    authorizeTreeFromAdmin:()=>ensureTreeWriteAccess({fromAdmin:true}),lockTreeEditing,isTreeWriteUnlocked:()=>treeWriteUnlocked};
 })();
