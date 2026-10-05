@@ -4,6 +4,8 @@
 
   const USER_KEY = 'giaPhaGoogleUser_v1';
   const PROFILE_KEY = 'giaPhaProfile_v1';
+  const MEMBERS_KEY = 'giaPhaMembers_v1';
+  const AUTO_APPROVAL_KEY = 'giaPhaAutoApproval_v1';
   const HOME_URL = 'https://gia-pha-nguyen-hazel.vercel.app/?v=24';
   const CLIENT_ID = '408192797989-d8uuj830okbfd0jvefnbhbsg8f3qo7o7.apps.googleusercontent.com';
 
@@ -24,6 +26,35 @@
 
   function write(key, value) {
     localStorage.setItem(key, JSON.stringify(value));
+  }
+
+  function readMembers() { return read(MEMBERS_KEY, {}); }
+  function writeMembers(rows) { write(MEMBERS_KEY, rows); }
+  function autoApprovalEnabled() { return localStorage.getItem(AUTO_APPROVAL_KEY) === 'true'; }
+  function ensureMember(user, profile) {
+    const rows = readMembers();
+    const id = user.sub;
+    const existing = rows[id];
+    if (!existing) {
+      rows[id] = Object.assign({
+        id,
+        email: user.email || '',
+        display_name: profile.display_name || user.name || 'Thành viên',
+        avatar_url: profile.avatar_url || user.picture || '',
+        role: 'member',
+        status: autoApprovalEnabled() ? 'approved' : 'pending',
+        created_at: new Date().toISOString()
+      }, profile);
+      writeMembers(rows);
+    } else {
+      rows[id] = Object.assign({}, existing, {
+        email: user.email || existing.email || '',
+        display_name: profile.display_name || existing.display_name || user.name || 'Thành viên',
+        avatar_url: profile.avatar_url || existing.avatar_url || user.picture || ''
+      });
+      writeMembers(rows);
+    }
+    return rows[id];
   }
 
   function decodeJwtPayload(token) {
@@ -66,9 +97,11 @@
     if (user && user.email) {
       state.user = user;
       state.profile = Object.assign(
-        { id: user.sub, display_name: user.name, avatar_url: user.picture, email: user.email, status: 'approved' },
+        { id: user.sub, display_name: user.name, avatar_url: user.picture, email: user.email, status: 'pending', role: 'member' },
         read(PROFILE_KEY, {})
       );
+      const member = ensureMember(user, state.profile);
+      state.profile = Object.assign({}, state.profile, member);
       emit('gia-auth-changed', { user });
       emit('gia-profile-changed', { profile: state.profile });
     }
@@ -136,7 +169,7 @@
     const profile = Object.assign({}, state.profile || {}, fields || {}, {
       id: state.user.sub,
       email: state.user.email,
-      status: 'approved'
+      status: state.profile?.status || (autoApprovalEnabled() ? 'approved' : 'pending')
     });
     profile.display_name = String(profile.display_name || state.user.name || '').trim() || state.user.name;
     profile.avatar_url = profile.avatar_url || state.user.picture || '';
@@ -176,10 +209,27 @@
     ensureProfile,
     refreshProfile: async function () { return state.profile; },
     isConfigured: function () { return true; },
-    isApproved: function () { return !!state.user; },
-    isPending: function () { return false; },
-    isRejected: function () { return false; },
-    isAdmin: function () { return false; }
+    isApproved: function () { return !!state.user && state.profile?.status === 'approved'; },
+    isPending: function () { return !!state.user && state.profile?.status === 'pending'; },
+    isRejected: function () { return !!state.user && state.profile?.status === 'rejected'; },
+    isAdmin: function () { return state.profile?.role === 'admin' || state.profile?.is_admin === true; },
+    listMembers: async function () {
+      return Object.values(readMembers()).sort((a,b) => String(a.display_name||'').localeCompare(String(b.display_name||''),'vi'));
+    },
+    setMemberStatus: async function (id, status) {
+      const rows = readMembers(); if (!rows[id]) throw new Error('Không tìm thấy thành viên.');
+      rows[id].status = status; writeMembers(rows);
+      if (state.user?.sub === id) { state.profile = Object.assign({}, state.profile, rows[id]); write(PROFILE_KEY, state.profile); emit('gia-profile-changed', {profile: state.profile}); emit('gia-auth-changed', {user: state.user}); }
+      return rows[id];
+    },
+    setMemberRole: async function (id, role) {
+      const rows = readMembers(); if (!rows[id]) throw new Error('Không tìm thấy thành viên.');
+      rows[id].role = role || 'member'; rows[id].is_admin = role === 'admin'; writeMembers(rows);
+      if (state.user?.sub === id) { state.profile = Object.assign({}, state.profile, rows[id]); write(PROFILE_KEY, state.profile); emit('gia-profile-changed', {profile: state.profile}); emit('gia-auth-changed', {user: state.user}); }
+      return rows[id];
+    },
+    getAutoApproval: function () { return autoApprovalEnabled(); },
+    setAutoApproval: async function (enabled) { localStorage.setItem(AUTO_APPROVAL_KEY, enabled ? 'true' : 'false'); return enabled; }
   };
 
   restoreUser();
