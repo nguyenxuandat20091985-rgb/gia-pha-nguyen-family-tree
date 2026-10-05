@@ -24,6 +24,13 @@ function ensureView(){
  document.getElementById('mainContent')?.appendChild(v);
  v.querySelectorAll('[data-tab]').forEach(b=>b.onclick=(e)=>{e.preventDefault();e.stopPropagation();activeTab=b.dataset.tab;renderTab();});
  document.getElementById('adminLock').onclick=()=>{unlocked=false;window.GiaApp?.lockTreeEditing?.();closeAdmin();};
+ // Delegated fallback keeps Admin controls clickable even when another app layer re-renders the view.
+ v.onclick=(e)=>{
+   const tab=e.target.closest?.('[data-tab]');
+   if(tab && v.contains(tab)){e.preventDefault();e.stopPropagation();activeTab=tab.dataset.tab;renderTab();return;}
+   const go=e.target.closest?.('[data-go]');
+   if(go && v.contains(go)){e.preventDefault();e.stopPropagation();activeTab=go.dataset.go;renderTab();}
+ };
  return v;
 }
 async function pinGate(){
