@@ -80,12 +80,14 @@
     };
     state.user = user;
     state.profile = Object.assign(
-      { id: user.sub, display_name: user.name, avatar_url: user.picture, email: user.email, status: 'approved' },
+      { id: user.sub, display_name: user.name, avatar_url: user.picture, email: user.email, status: 'pending', role: 'member' },
       read(PROFILE_KEY, {})
     );
     state.profile.display_name = state.profile.display_name || user.name;
     state.profile.avatar_url = state.profile.avatar_url || user.picture;
     state.profile.email = state.profile.email || user.email;
+    const member = ensureMember(user, state.profile);
+    state.profile = Object.assign({}, state.profile, member);
     write(USER_KEY, user);
     write(PROFILE_KEY, state.profile);
     emit('gia-auth-changed', { user });
