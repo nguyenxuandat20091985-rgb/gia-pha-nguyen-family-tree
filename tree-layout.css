@@ -2,10 +2,10 @@
   position: relative;
   z-index: 1;
   overflow-x: auto;
-  overflow-y: visible;
+  overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  overscroll-behavior-x: contain;
-  touch-action: pan-x;
+  overscroll-behavior: auto;
+  touch-action: auto;
   padding: 8px 4px calc(var(--nav-h) + 40px + env(safe-area-inset-bottom, 0px));
   margin: 0 -4px;
 }
