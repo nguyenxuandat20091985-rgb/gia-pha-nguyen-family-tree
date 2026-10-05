@@ -265,7 +265,7 @@
       } else {
         rows[id].role = role || 'member';
         rows[id].is_admin = role === 'admin';
-        rows[id].family_role = role === 'truongho' ? 'truongho' : (rows[id].family_role === 'truongho' ? 'member' : rows[id].family_role);
+        rows[id].family_role = role === 'truongho' ? 'truongho' : 'member';
       }
       writeMembers(rows);
       if (state.user?.sub === id) { state.profile = Object.assign({}, state.profile, rows[id]); write(PROFILE_KEY, state.profile); emit('gia-profile-changed', {profile: state.profile}); emit('gia-auth-changed', {user: state.user}); }
