@@ -16,7 +16,7 @@ function hasTreeWriteRole(){
   const p=window.GiaCloud?.state?.profile||{};
   const role=String(p.role||p.family_role||p.member_role||'').toLowerCase().replace(/[\s_-]+/g,'');
   return !!window.GiaCloud?.state?.user && (
-    role==='admin' || role==='truongho' || role==='truongho' ||
+    window.GiaCloud?.isAdmin?.() === true || role==='admin' || role==='truongho' || role==='truongho' ||
     role==='quantri' || role==='manager' || role==='moderator' ||
     p.is_admin===true || p.isAdmin===true || p.tree_write===true ||
     p.treeWrite===true || p.can_edit_tree===true || p.can_manage_tree===true
