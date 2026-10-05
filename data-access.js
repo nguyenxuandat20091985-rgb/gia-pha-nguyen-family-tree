@@ -3,6 +3,7 @@
 (function(){
 'use strict';
 const ADMIN_PIN='482916'; // Admin PIN; replace with a private value before sharing
+window.GiaAdminAuth={verifyPin:function(pin){return String(pin||'')===ADMIN_PIN;}};
 let unlocked=false;
 let modal;
 function build(){
