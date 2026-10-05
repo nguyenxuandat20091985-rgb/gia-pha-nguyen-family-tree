@@ -160,7 +160,7 @@ document.getElementById('btnResetStep1')?.addEventListener('click',()=>document.
 document.getElementById('btnResetFinal')?.addEventListener('click',async()=>{if((document.getElementById('resetTyped')?.value||'')!=='RESET'){await window.GiaDialog?.alert('Vui lòng gõ đúng chữ RESET để xác nhận.','Xác nhận đặt lại dữ liệu');return;}TREE_KEYS.forEach(k=>localStorage.removeItem(k));localStorage.removeItem('giaPhaSeedVersion');data={people:{},rootId:null};expandedNodes=new Set(['root','coc','lach','ngoc']);seedIfEmpty();await window.GiaDialog?.alert('Đã tải lại cây theo sơ đồ.','Gia Phả Họ Nguyễn');showView('tree');});
 document.getElementById('btnGoHome')?.addEventListener('click',()=>showView('home'));
 window.addEventListener('gia-auth-changed',()=>{treeWriteUnlocked=false;updateTreeAccessUI();});
-window.addEventListener('gia-profile-changed',()=>{updateTreeAccessUI();});
+window.addEventListener('gia-profile-changed',()=>{treeWriteUnlocked=false;updateTreeAccessUI();});
 ensureTreeUI();loadTree();seedIfEmpty();showView('home');
 window.GiaApp={showView,data,saveTree,seedIfEmpty,refreshTree};
 })();
