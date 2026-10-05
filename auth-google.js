@@ -6,6 +6,8 @@
   const PROFILE_KEY = 'giaPhaProfile_v1';
   const MEMBERS_KEY = 'giaPhaMembers_v1';
   const AUTO_APPROVAL_KEY = 'giaPhaAutoApproval_v1';
+  const OWNER_EMAIL = 'nguyenxuandat20091985@gmail.com';
+  const OWNER_ID_KEY = 'giaPhaOwnerId_v1';
   const HOME_URL = 'https://gia-pha-nguyen-hazel.vercel.app/?v=24';
   const CLIENT_ID = '408192797989-d8uuj830okbfd0jvefnbhbsg8f3qo7o7.apps.googleusercontent.com';
 
@@ -31,8 +33,38 @@
   function readMembers() { return read(MEMBERS_KEY, {}); }
   function writeMembers(rows) { write(MEMBERS_KEY, rows); }
   function autoApprovalEnabled() { return localStorage.getItem(AUTO_APPROVAL_KEY) === 'true'; }
+  function ownerId() { return localStorage.getItem(OWNER_ID_KEY) || ''; }
+  function isOwner(user) {
+    if (!user) return false;
+    const email = String(user.email || '').trim().toLowerCase();
+    const savedOwner = ownerId();
+    return email === OWNER_EMAIL || (!!savedOwner && savedOwner === user.sub);
+  }
+  function claimOwnerIfNeeded(user) {
+    if (!user) return false;
+    if (isOwner(user)) {
+      if (!ownerId()) localStorage.setItem(OWNER_ID_KEY, user.sub);
+      return true;
+    }
+    if (!ownerId() && Object.keys(readMembers()).length === 0) {
+      localStorage.setItem(OWNER_ID_KEY, user.sub);
+      return true;
+    }
+    return false;
+  }
+  function ensureOwnerRecord(user, row) {
+    if (!user || !row || !isOwner(user)) return row;
+    row.role = 'admin';
+    row.family_role = 'truongho';
+    row.member_role = 'truongho';
+    row.is_admin = true;
+    row.is_owner = true;
+    row.status = 'approved';
+    return row;
+  }
   function ensureMember(user, profile) {
     const rows = readMembers();
+    claimOwnerIfNeeded(user);
     const id = user.sub;
     const existing = rows[id];
     if (!existing) {
@@ -54,6 +86,8 @@
       });
       writeMembers(rows);
     }
+    rows[id] = ensureOwnerRecord(user, rows[id]);
+    writeMembers(rows);
     return rows[id];
   }
 
@@ -214,7 +248,7 @@
     isApproved: function () { return !!state.user && state.profile?.status === 'approved'; },
     isPending: function () { return !!state.user && state.profile?.status === 'pending'; },
     isRejected: function () { return !!state.user && state.profile?.status === 'rejected'; },
-    isAdmin: function () { return state.profile?.role === 'admin' || state.profile?.is_admin === true; },
+    isAdmin: function () { return state.profile?.role === 'admin' || state.profile?.is_admin === true || state.profile?.is_owner === true; },
     listMembers: async function () {
       return Object.values(readMembers()).sort((a,b) => String(a.display_name||'').localeCompare(String(b.display_name||''),'vi'));
     },
@@ -226,11 +260,20 @@
     },
     setMemberRole: async function (id, role) {
       const rows = readMembers(); if (!rows[id]) throw new Error('Không tìm thấy thành viên.');
-      rows[id].role = role || 'member'; rows[id].is_admin = role === 'admin'; writeMembers(rows);
+      if (rows[id].is_owner || String(rows[id].email || '').trim().toLowerCase() === OWNER_EMAIL) {
+        rows[id] = ensureOwnerRecord({sub:id,email:rows[id].email}, rows[id]);
+      } else {
+        rows[id].role = role || 'member';
+        rows[id].is_admin = role === 'admin';
+        rows[id].family_role = role === 'truongho' ? 'truongho' : (rows[id].family_role === 'truongho' ? 'member' : rows[id].family_role);
+      }
+      writeMembers(rows);
       if (state.user?.sub === id) { state.profile = Object.assign({}, state.profile, rows[id]); write(PROFILE_KEY, state.profile); emit('gia-profile-changed', {profile: state.profile}); emit('gia-auth-changed', {user: state.user}); }
       return rows[id];
     },
     getAutoApproval: function () { return autoApprovalEnabled(); },
+    isOwner: function () { return !!state.user && isOwner(state.user); },
+    claimOwner: function () { if (!state.user) return false; const ok=claimOwnerIfNeeded(state.user); const m=ensureMember(state.user,state.profile||{}); state.profile=Object.assign({},state.profile,m); write(PROFILE_KEY,state.profile); return ok || isOwner(state.user); },
     setAutoApproval: async function (enabled) { localStorage.setItem(AUTO_APPROVAL_KEY, enabled ? 'true' : 'false'); return enabled; }
   };
 
