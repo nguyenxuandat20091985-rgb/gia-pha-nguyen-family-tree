@@ -48,14 +48,16 @@ async function ensureTreeWriteAccess(){
   updateTreeAccessUI();
   return true;
 }
+function lockTreeEditing(){treeWriteUnlocked=false;hideContextMenu();closePersonModal();updateTreeAccessUI();}
 function updateTreeAccessUI(){
   const add=document.getElementById('btnAddRoot');
   const mode=document.getElementById('treeAccessMode');
   const writable=hasTreeWriteRole();
-  if(add)add.classList.toggle('hidden',!writable);
+  if(add)add.classList.toggle('hidden',!writable || !treeWriteUnlocked);
   if(mode){
-    mode.textContent=treeWriteUnlocked&&writable?'🔓 Đã xác thực chỉnh sửa':'👁️ Chỉ xem';
+    mode.textContent=treeWriteUnlocked&&writable?'🔒 Khóa lại':'👁️ Chỉ xem';
     mode.classList.toggle('write',treeWriteUnlocked&&writable);
+    mode.title=treeWriteUnlocked&&writable?'Khóa chế độ chỉnh sửa':'Bấm để xác thực quyền chỉnh sửa';
   }
   const menu=document.getElementById('contextMenu');
   if(menu&&!writable)menu.classList.add('hidden');
@@ -73,7 +75,7 @@ function renderTree(){
   let hint=document.getElementById('treeScrollHint');
   if(!hint){
     hint=document.createElement('p');hint.id='treeScrollHint';hint.className='tree-hint';
-    hint.textContent='📜 Sơ đồ ô như bản vẽ · Vuốt ngang · Bấm ▼ mở nhánh · Bấm tên để sửa';
+    hint.textContent=treeWriteUnlocked&&hasTreeWriteRole()?'📜 Chế độ chỉnh sửa · Vuốt ngang · Bấm ▼ mở nhánh · Bấm tên để sửa':'📜 Chế độ chỉ xem · Vuốt ngang · Bấm ▼ mở nhánh';
     document.getElementById('treeView')?.insertBefore(hint, container);
   }
   container.innerHTML='';
@@ -126,7 +128,7 @@ function createCard(p){
   if(p.isRoot||p.id===data.rootId)card.classList.add('root-card');
   if(p.gender==='female')card.classList.add('female');
   card.dataset.id=p.id;
-  card.style.cursor='pointer';
+  card.style.cursor=treeWriteUnlocked&&hasTreeWriteRole()?'pointer':'default';
   if(p.isRoot||p.id===data.rootId){
     const b=document.createElement('div');b.className='root-badge';b.textContent='CỤ TỔ ĐỜI 1';card.appendChild(b);
   } else if(p.generation){
@@ -161,6 +163,7 @@ document.getElementById('btnResetFinal')?.addEventListener('click',async()=>{if(
 document.getElementById('btnGoHome')?.addEventListener('click',()=>showView('home'));
 window.addEventListener('gia-auth-changed',()=>{treeWriteUnlocked=false;updateTreeAccessUI();});
 window.addEventListener('gia-profile-changed',()=>{treeWriteUnlocked=false;updateTreeAccessUI();});
+document.getElementById('treeAccessMode')?.addEventListener('click',async()=>{if(treeWriteUnlocked){lockTreeEditing();return;}await ensureTreeWriteAccess();});
 ensureTreeUI();loadTree();seedIfEmpty();showView('home');
 window.GiaApp={showView,data,saveTree,seedIfEmpty,refreshTree};
 })();
