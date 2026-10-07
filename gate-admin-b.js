@@ -11,7 +11,12 @@ async function renderMembers(box){
 }
 function renderTreeAdmin(box){
  box.innerHTML='<div class="admin-card"><h3>🌳 Sửa cây gia phả</h3><p class="muted">Mở trình sửa cây trên trang Gia phả.</p><button type="button" class="btn btn-primary" id="btnOpenTreeEdit">Mở trình sửa cây</button></div>';
- box.querySelector('#btnOpenTreeEdit').onclick=()=>{window.GiaApp?.unlockTreeEditing?.();window.GiaApp?.showView?.('tree');};
+ box.querySelector('#btnOpenTreeEdit').onclick=async()=>{
+  const ok=await window.GiaApp?.authorizeTreeFromAdmin?.();
+  if(ok===false)return;
+  window.GiaAdminLog?.record?.('Mở quyền sửa cây','Admin mở chỉnh sửa từ Trung tâm quản trị');
+  window.GiaApp?.showView?.('tree');
+};
 }
 function renderData(box){
  box.innerHTML='<div class="admin-card"><h3>💾 Dữ liệu gia phả</h3><p class="muted">Sao lưu / khôi phục dữ liệu local.</p><div class="admin-quick"><button type="button" id="btnExportData">Xuất JSON</button><button type="button" id="btnImportData">Nhập JSON</button></div><input type="file" id="importFile" accept="application/json" class="hidden"/></div>';
