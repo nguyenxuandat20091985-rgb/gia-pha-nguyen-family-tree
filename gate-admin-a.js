@@ -6,7 +6,7 @@ let unlocked=false, activeTab='overview';
 const esc=s=>{const d=document.createElement('div');d.textContent=s==null?'':String(s);return d.innerHTML;};
 const load=(k,f)=>{try{const v=localStorage.getItem(k);return v?JSON.parse(v):f;}catch(e){return f;}};
 const save=(k,v)=>localStorage.setItem(k,JSON.stringify(v));
-function record(action,detail){const rows=load(LOG_KEY,[]);rows.unshift({id:'log_'+Date.now().toString(36),time:new Date().toISOString(),action,detail:detail||'',actor:window.GiaCloud?.state?.profile?.display_name||window.GiaCloud?.state?.user?.email||'Quản trị viên'});save(LOG_KEY,rows.slice(0,300));}
+function record(action,detail){const actor=window.GiaCloud?.state?.profile?.display_name||window.GiaCloud?.state?.user?.email||'Quản trị viên';const detailText=detail||'';const rows=load(LOG_KEY,[]);rows.unshift({id:'log_'+Date.now().toString(36),time:new Date().toISOString(),action,detail:detailText,actor});save(LOG_KEY,rows.slice(0,300));try{const w=window.GiaCloud?.writeAudit;if(w)Promise.resolve(w(action,detailText)).catch(e=>console.warn('admin audit sync',e));}catch(e){console.warn('admin audit sync',e);}}
 window.GiaAdminLog={record,read:()=>load(LOG_KEY,[])};
 function ensureMenu(){
  const more=document.querySelector('#view-more .more-menu'); if(!more)return;
