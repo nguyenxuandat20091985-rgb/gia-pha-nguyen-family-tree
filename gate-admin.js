@@ -20,7 +20,7 @@ function ensureView(){
  v.innerHTML='<div class="admin-shell">'+
  '<div class="admin-hero"><div class="admin-hero-icon">🛡️</div><div><span>TRUNG TÂM QUẢN TRỊ</span><h2>Admin — Gia Phả Họ Nguyễn</h2><p>Quản lý quyền, thành viên, cây gia phả, dữ liệu và nhật ký trên một màn hình.</p></div><button type="button" id="adminLock" class="admin-lock">🔒 Khóa</button></div>'+
  '<div class="admin-status" id="adminStatus"></div>'+
- '<div class="admin-dashboard-grid" id="adminDashboardGrid"><button type="button" class="admin-dashboard-card" data-tab="overview"><span class="admin-card-icon">📊</span><span class="admin-card-copy"><b>Tổng quan</b><small>Trạng thái hệ thống</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="roles"><span class="admin-card-icon">🛡️</span><span class="admin-card-copy"><b>Phân quyền</b><small>Admin & Trưởng họ</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="members"><span class="admin-card-icon">👥</span><span class="admin-card-copy"><b>Thành viên & Duyệt</b><small>Phê duyệt yêu cầu</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="tree"><span class="admin-card-icon">🌳</span><span class="admin-card-copy"><b>Sửa cây gia phả</b><small>Quản lý các nhánh</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="data"><span class="admin-card-icon">💾</span><span class="admin-card-copy"><b>Dữ liệu gia phả</b><small>Sao lưu & khôi phục</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="logs"><span class="admin-card-icon">📜</span><span class="admin-card-copy"><b>Nhật ký hoạt động</b><small>Lịch sử thay đổi</small></span><span class="admin-card-arrow">›</span></button></div><div id="adminBody"></div></div></div>';
+ '<div class="admin-dashboard-grid" id="adminDashboardGrid"><button type="button" class="admin-dashboard-card" data-tab="overview"><span class="admin-card-icon">📊</span><span class="admin-card-copy"><b>Tổng quan</b><small>Trạng thái hệ thống</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="roles"><span class="admin-card-icon">🛡️</span><span class="admin-card-copy"><b>Phân quyền</b><small>Chủ quản & Trưởng họ</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="members"><span class="admin-card-icon">👥</span><span class="admin-card-copy"><b>Thành viên & Duyệt</b><small>Phê duyệt yêu cầu</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="tree"><span class="admin-card-icon">🌳</span><span class="admin-card-copy"><b>Sửa cây gia phả</b><small>Quản lý các nhánh</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="data"><span class="admin-card-icon">💾</span><span class="admin-card-copy"><b>Dữ liệu gia phả</b><small>Sao lưu & khôi phục</small></span><span class="admin-card-arrow">›</span></button><button type="button" class="admin-dashboard-card" data-tab="logs"><span class="admin-card-icon">📜</span><span class="admin-card-copy"><b>Nhật ký hoạt động</b><small>Lịch sử thay đổi</small></span><span class="admin-card-arrow">›</span></button></div><div id="adminBody"></div></div></div>';
  document.getElementById('mainContent')?.appendChild(v);
  v.querySelectorAll('[data-tab]').forEach(b=>{const activate=e=>{e.preventDefault();e.stopPropagation();activeTab=b.dataset.tab;renderTab();requestAnimationFrame(()=>document.getElementById('adminBody')?.scrollIntoView({behavior:'smooth',block:'start'}));};b.onclick=activate;b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){activate(e);}};});
  document.getElementById('adminLock').onclick=()=>{unlocked=false;window.GiaApp?.lockTreeEditing?.();closeAdmin();};
@@ -43,22 +43,22 @@ async function pinGate(){
 }
 async function openGate(){if(!(await pinGate()))return;const v=ensureView();document.querySelectorAll('.view').forEach(x=>x.classList.add('hidden'));v.classList.remove('hidden');document.querySelectorAll('.nav-item').forEach(b=>b.classList.toggle('active',b.dataset.nav==='more'));renderTab();window.scrollTo(0,0);}
 function closeAdmin(){document.getElementById('view-admin')?.classList.add('hidden');window.GiaApp?.showView('home');}
-function setStatus(){const p=window.GiaCloud?.state?.profile||{}, role=p.role||p.family_role||p.member_role||'member';const el=document.getElementById('adminStatus');if(el)el.innerHTML='<span>🔐 Đã xác thực Admin</span><b>'+esc(p.display_name||'Quản trị viên')+'</b><em>'+esc(role==='truongho'?'Trưởng họ':role==='admin'?'Admin':'Quyền cục bộ')+'</em>';}
+function setStatus(){const p=window.GiaCloud?.state?.profile||{}, tech=window.GiaCloud?.isTechAdmin?.()===true, role=tech?'tech_admin':(p.role||'member');const el=document.getElementById('adminStatus');if(el)el.innerHTML='<span>🔐 Đã xác thực Admin</span><b>'+esc(p.display_name||'Quản trị viên')+'</b><em>'+esc(role==='tech_admin'?'Chủ quản hệ thống (Tech Admin)':role==='truongho'?'Trưởng họ':'Thành viên')+'</em>';}
 function renderTab(){if(!unlocked)return;setStatus();const v=ensureView();v.querySelectorAll('[data-tab]').forEach(b=>{const on=b.dataset.tab===activeTab;b.classList.toggle('active',on);b.setAttribute('aria-selected',on?'true':'false');});const body=document.getElementById('adminBody');if(!body)return;body.classList.remove('admin-content-enter');void body.offsetWidth;body.classList.add('admin-content-enter');({overview:renderOverview,roles:renderRoles,members:renderMembers,tree:renderTreeAdmin,data:renderData,logs:renderLogs}[activeTab]||renderOverview)(body);}
 function renderOverview(box){const people=load(TREE_KEY,{people:{}}).people||{};const logs=load(LOG_KEY,[]);const req=load(REQ_KEY,[]).filter(x=>x.status==='pending');const cloud=window.GiaCloud;box.innerHTML='<div class="admin-stat-grid"><div><strong>'+Object.keys(people).length+'</strong><span>Thành viên cây</span></div><div><strong>'+logs.length+'</strong><span>Nhật ký</span></div><div><strong>'+req.length+'</strong><span>Yêu cầu chờ xử lý</span></div><div><strong>'+(cloud?.state?.user?'Đã đăng nhập':'Chưa đăng nhập')+'</strong><span>Tài khoản hiện tại</span></div></div><div class="admin-card"><h3>⚡ Thao tác nhanh</h3><div class="admin-quick"><button data-go="members">👥 Quản lý thành viên</button><button data-go="tree">🌳 Mở trình sửa cây</button><button data-go="data">💾 Sao lưu / khôi phục</button><button data-go="logs">📜 Xem nhật ký</button></div></div><div class="admin-note">ℹ️ Màn hình <b>Gia phả → Chỉ xem</b> vẫn là trạng thái an toàn mặc định. Chỉ khi tài khoản có quyền và đã xác thực PIN mới mở được chỉnh sửa.</div>';
  box.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{activeTab=b.dataset.go;renderTab();});}
 async function renderRoles(box){
- const me=window.GiaCloud?.state?.user?.sub||'', owner=window.GiaCloud?.isOwner?.()===true;
+ const me=window.GiaCloud?.state?.user?.id||window.GiaCloud?.state?.user?.sub||'', owner=window.GiaCloud?.isTechAdmin?.()===true;
  const myProfile=window.GiaCloud?.state?.profile||{};
- const myRole=owner?'admin':(myProfile.role||'member');
+ const myRole=owner?'tech_admin':(myProfile.role||'member');
  const canManageRoles=owner;
  const canManageMembers=owner||myRole==='truongho';
- box.innerHTML='<div class="admin-card"><h3>🛡️ Phân quyền tài khoản</h3>'+
-   '<p class="muted">Ba cấp quyền được tách biệt: <b>Chủ quản hệ thống (Tech Admin)</b> → <b>Trưởng họ</b> → <b>Thành viên</b>. Chủ quản không tự động kiêm Trưởng họ.</p>'+
+ box.innerHTML='<div class="admin-card"><h3>🛡️ Phân quyền · Chủ quản & Trưởng họ</h3>'+
+   '<p class="muted">Ba cấp quyền tách biệt: <b>Chủ quản hệ thống (Tech Admin)</b> → <b>Trưởng họ</b> → <b>Thành viên</b>. Chủ quản không tự động kiêm Trưởng họ.</p>'+
    '<div class="admin-role-help">'+
-     '<div><b>🛡️ Chủ quản hệ thống (Tech Admin)</b><small>Quản lý toàn bộ tính năng kỹ thuật và là cấp duy nhất được cấp/thu hồi Admin hoặc Trưởng họ.</small></div>'+
-     '<div><b>🏮 Trưởng họ</b><small>Quản lý nội dung gia phả và duyệt thành viên; không được cấp/thu hồi Admin hoặc Trưởng họ.</small></div>'+
-     '<div><b>👁️ Thành viên</b><small>Tham gia và xem nội dung theo quyền thành viên; không có quyền phân quyền tài khoản khác.</small></div>'+
+     '<div><b>🛡️ Chủ quản hệ thống (Tech Admin)</b><small>Quản lý kỹ thuật và phân quyền cấp cao; là cấp duy nhất được cấp hoặc thu hồi Trưởng họ. Tài khoản này được khóa bảo vệ.</small></div>'+
+     '<div><b>🏮 Trưởng họ</b><small>Được Chủ quản cấp; duyệt/từ chối thành viên và quản lý nội dung gia phả trong phạm vi. Chỉ quản lý thành viên ở cấp cơ bản, không cấp Admin hoặc Trưởng họ.</small></div>'+
+     '<div><b>👁️ Thành viên</b><small>Quyền cơ bản sau khi được duyệt: xem/tham gia. Không có quyền phân quyền tài khoản khác.</small></div>'+
    '</div>'+
    '<div id="roleList">Đang tải…</div></div>';
  if(!window.GiaCloud?.listMembers){box.querySelector('#roleList').textContent='Danh sách thành viên chưa sẵn sàng.';return;}
@@ -66,24 +66,20 @@ async function renderRoles(box){
    const rows=await window.GiaCloud.listMembers();
    box.querySelector('#roleList').innerHTML=(rows||[]).map(m=>{
      const isOwnerMember=!!m.is_tech_admin || String(m.email||'').trim().toLowerCase()==='nguyenxuandat20091985@gmail.com';
-     const role=isOwnerMember?'admin':(m.role||'member');
+     const role=isOwnerMember?'tech_admin':(m.role||'member');
      const isSelf=m.id===me;
-     const isAdmin=role==='admin';
      const isTruongHo=role==='truongho';
-     const canChangeAdmin=canManageRoles && !isSelf && !isOwnerMember;
      const canChangeTruongHo=canManageRoles && !isSelf && !isOwnerMember;
      const canChangeMember=canManageRoles || (myRole==='truongho' && !isSelf && !isOwnerMember);
-     const adminDisabled=(!canChangeAdmin)?'disabled':'';
      const truongDisabled=(!canChangeTruongHo)?'disabled':'';
      const memberDisabled=(!canChangeMember)?'disabled':'';
-     const roleLabel=isOwnerMember?'Chủ quản · Tech Admin':isAdmin?'Tech Admin':isTruongHo?'Trưởng họ':'Thành viên xem';
+     const roleLabel=isOwnerMember?'Chủ quản · Tech Admin':isTruongHo?'Trưởng họ':'Thành viên';
      return '<div class="admin-member-card">'+
        '<div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc((m.display_name||'T').charAt(0).toUpperCase())+'</div><div><strong>'+esc(m.display_name||'Chưa đặt tên')+'</strong><div class="muted">'+esc(m.email||'')+'</div></div></div>'+
        '<span class="admin-role '+esc(role)+'">'+roleLabel+'</span></div>'+
        '<div class="admin-permission-switches">'+
-         '<button type="button" class="admin-permission '+(isAdmin?'active':'')+'" data-role="admin" data-id="'+esc(m.id)+'" '+adminDisabled+'>🛡️ Admin</button>'+
-         '<button type="button" class="admin-permission '+((role==='truongho'||m.family_role==='truongho')?'active':'')+'" data-role="truongho" data-id="'+esc(m.id)+'" '+truongDisabled+'>🏮 Trưởng họ</button>'+
-         '<button type="button" class="admin-permission '+((role==='member')?'active':'')+'" data-role="member" data-id="'+esc(m.id)+'" '+memberDisabled+'>👁️ Thành viên xem</button>'+
+         '<button type="button" class="admin-permission '+(isTruongHo?'active':'')+'" data-role="truongho" data-id="'+esc(m.id)+'" '+truongDisabled+'>🏮 Trưởng họ</button>'+
+         '<button type="button" class="admin-permission '+((role==='member')?'active':'')+'" data-role="member" data-id="'+esc(m.id)+'" '+memberDisabled+'>👁️ Thành viên</button>'+
        '</div>'+
        '<div class="admin-member-meta"><span class="badge '+(m.status==='approved'?'badge-ok':m.status==='rejected'?'badge-no':'badge-wait')+'">'+(m.status==='approved'?'Đã duyệt':m.status==='rejected'?'Từ chối':'Chờ duyệt')+'</span>'+(isSelf?'<small>Tài khoản hiện tại</small>':'')+(isOwnerMember?'<small>👑 Chủ quản hệ thống</small>':'')+'</div>'+
      '</div>';
@@ -93,10 +89,9 @@ async function renderRoles(box){
      if(!targetRow)return;
      const targetIsOwner=!!targetRow.is_tech_admin||String(targetRow.email||'').trim().toLowerCase()==='nguyenxuandat20091985@gmail.com';
      if(target===me || targetIsOwner){await window.GiaDialog?.alert('Tài khoản Chủ quản hệ thống (Tech Admin) được bảo vệ và không thể bị hạ quyền.','Bảo vệ Chủ quản');return;}
-     if(role==='admin' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Chủ quản hệ thống (Tech Admin) mới được cấp hoặc thu hồi quyền Admin.','Phân quyền');return;}
      if(role==='truongho' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Chủ quản hệ thống (Tech Admin) mới được cấp hoặc thu hồi quyền Trưởng họ.','Phân quyền');return;}
      if(role==='member' && !(canManageRoles||myRole==='truongho')){await window.GiaDialog?.alert('Bạn không có quyền thay đổi quyền thành viên.','Phân quyền');return;}
-     const label=role==='admin'?'Admin':role==='truongho'?'Trưởng họ':'Thành viên xem';
+     const label=role==='truongho'?'Trưởng họ':'Thành viên';
      if(!(await window.GiaDialog?.confirm('Đặt quyền "'+label+'" cho '+(targetRow.display_name||targetRow.email)+'?','Xác nhận phân quyền')))return;
      try{
        await window.GiaCloud.setMemberStatus(target,'approved');
