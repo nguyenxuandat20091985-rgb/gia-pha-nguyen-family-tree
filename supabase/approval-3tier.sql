@@ -1,7 +1,7 @@
 -- ============================================================
 -- Gia Phả Họ Nguyễn – Duyệt 3 cấp + đồng bộ nhiều máy
 -- Chạy 1 LẦN trong Supabase → SQL Editor → Run
--- Chủ quản → Trưởng họ → Thành viên liên quan
+-- Admin → Trưởng họ → Thành viên liên quan
 -- ============================================================
 
 -- 1) Cột bổ sung
@@ -21,7 +21,7 @@ alter table public.profiles
   add constraint profiles_role_check
   check (role in ('member', 'truongho', 'admin'));
 
--- 3) Khóa Chủ quản (tech admin)
+-- 3) Khóa Admin (tech admin)
 update public.profiles
 set role = 'admin',
     status = 'approved',
@@ -83,7 +83,6 @@ as $$
       and p.status = 'approved'
       and (
         p.is_tech_admin = true
-        or p.role = 'admin'
         or p.role = 'truongho'
         or p.family_role = 'truongho'
       )
@@ -123,7 +122,7 @@ begin
   end if;
   if exists (
     select 1 from public.profiles t
-    where t.id = target_id and (t.is_tech_admin = true or t.role = 'admin')
+    where t.id = target_id and t.is_tech_admin = true
   ) then
     raise exception 'Không đổi trạng thái tài khoản Chủ quản';
   end if;
