@@ -53,7 +53,14 @@ function renderData(box){
 }
 function renderLogs(box){
  const rows=load(LOG_KEY,[]);
- box.innerHTML='<div class="admin-card"><h3>📜 Nhật ký hoạt động</h3><div class="admin-log-list">'+(rows.slice(0,50).map(r=>'<div class="admin-log-item"><strong>'+esc(r.action)+'</strong><div class="muted">'+esc(r.detail||'')+' · '+esc(r.actor||'')+' · '+esc(r.time||'')+'</div></div>').join('')||'<p class="muted">Chưa có nhật ký.</p>')+'</div></div>';
+ box.innerHTML='<div class="admin-card"><h3>📜 Nhật ký hoạt động</h3><div style="display:flex;justify-content:flex-end;margin:10px 0"><button type="button" id="btnClearAdminLogs" class="admin-permission">🗑️ Xóa nhật ký</button></div><div class="admin-log-list">'+(rows.slice(0,50).map(r=>'<div class="admin-log-item"><strong>'+esc(r.action)+'</strong><div class="muted">'+esc(r.detail||'')+' · '+esc(r.actor||'')+' · '+esc(r.time||'')+'</div></div>').join('')||'<p class="muted">Chưa có nhật ký.</p>')+'</div></div>';
+ const btn=box.querySelector('#btnClearAdminLogs');
+ if(btn) btn.onclick=async()=>{
+   if(!(await window.GiaDialog?.confirm('Xóa toàn bộ nhật ký hoạt động trên thiết bị này? Thao tác không thể hoàn tác.','Xóa nhật ký')))return;
+   localStorage.removeItem(LOG_KEY);
+   await window.GiaDialog?.alert('Đã xóa toàn bộ nhật ký.','Nhật ký hoạt động');
+   renderLogs(box);
+ };
 }
 function bootPending(){ensureMenu();}
 document.addEventListener('DOMContentLoaded',bootPending);
