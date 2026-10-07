@@ -760,7 +760,7 @@
     } = await client
       .from('profiles')
       .select(
-        'id,display_name,phone,role,family_role,status,created_at,avatar_url,is_tech_admin'
+        'id,display_name,email,phone,role,family_role,status,created_at,avatar_url,is_tech_admin'
       )
       .order(
         'created_at',
