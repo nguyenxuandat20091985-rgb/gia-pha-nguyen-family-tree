@@ -26,12 +26,14 @@
 .admin-quick{display:flex;flex-wrap:wrap;gap:8px}
 .admin-quick button,.admin-filter-row button{min-height:42px;padding:8px 12px;border-radius:10px;border:1px solid rgba(122,12,12,.2);background:#fff;cursor:pointer;font-size:.82rem}
 .admin-note{margin-top:10px;font-size:.82rem;color:#5c4030;background:#fff8ef;border-radius:10px;padding:10px}
-.admin-member-card{border:1px solid rgba(122,12,12,.12);border-radius:12px;padding:12px;margin-bottom:10px;background:#fffdf9}
+.admin-member-card{border:1px solid rgba(122,12,12,.12);border-radius:12px;padding:12px;margin-bottom:10px;background:#fffdf9;overflow:hidden}
 .admin-member-owner{border-color:rgba(201,162,39,.5);background:linear-gradient(180deg,#fffdf5,#fff8e8)}
-.admin-member-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
-.admin-member-identity{display:flex;gap:10px;align-items:center}
-.admin-avatar{width:40px;height:40px;border-radius:50%;background:#7a0c0c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
-.admin-role{font-size:.72rem;padding:4px 8px;border-radius:999px;background:#f3e6d8;color:#7a0c0c;white-space:nowrap}
+.admin-member-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px;flex-wrap:wrap}
+.admin-member-identity{display:flex;gap:10px;align-items:center;min-width:0;flex:1 1 160px}
+.admin-member-identity>div:last-child{min-width:0;overflow:hidden}
+.admin-member-identity .muted{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.admin-avatar{width:40px;height:40px;border-radius:50%;background:#7a0c0c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;flex-shrink:0}
+.admin-role{font-size:.72rem;padding:4px 8px;border-radius:999px;background:#f3e6d8;color:#7a0c0c;white-space:nowrap;flex-shrink:0;align-self:flex-start}
 .admin-role.tech_admin{background:#7a0c0c;color:#fff}
 .admin-role.truongho{background:#c9a227;color:#3a2010}
 .badge{font-size:.72rem;padding:3px 8px;border-radius:999px}
