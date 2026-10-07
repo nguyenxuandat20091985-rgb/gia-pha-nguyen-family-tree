@@ -1,0 +1,32 @@
+/* Tài khoản — mobile touch-safe */
+#view-account{position:relative;z-index:5;pointer-events:auto}
+#view-account .account-shell,
+#view-account .account-card,
+#view-account .account-actions{position:relative;z-index:6;pointer-events:auto}
+#view-account button.account-btn,
+#view-account .btn{
+  position:relative!important;z-index:10!important;
+  pointer-events:auto!important;touch-action:manipulation!important;
+  -webkit-tap-highlight-color:rgba(201,162,39,.25);
+  min-height:48px!important;font-size:.92rem!important;
+  cursor:pointer!important;width:100%;
+}
+#view-account input#authName{
+  position:relative;z-index:10;pointer-events:auto;
+  min-height:48px;font-size:16px;
+}
+.account-login-block{margin-top:4px}
+.account-user-block{margin-top:4px}
+.account-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px}
+.account-role-badge{
+  display:inline-flex;align-items:center;justify-content:center;
+  margin:0 auto 10px;padding:6px 12px;border-radius:999px;
+  font-size:.72rem;font-weight:800;text-align:center;
+}
+.account-role-tech{background:linear-gradient(135deg,#7a0c0c,#9a1c1c);color:#fff}
+.account-role-truongho{background:linear-gradient(135deg,#fff1b8,#e8c547);color:#5e0b0b;border:1px solid #c9a227}
+.account-role-member{background:#f3f0ea;color:#5c5043;border:1px solid var(--border)}
+.account-email-line{text-align:center;font-size:.78rem;margin:0 0 12px;word-break:break-all}
+#view-account .google-login-host{min-height:48px;display:flex;justify-content:center;align-items:center}
+#view-account .auth-hint{text-align:center;color:var(--text-muted);font-size:.85rem;margin-bottom:12px}
+.account-tagline{text-align:center;font-size:.8rem;color:var(--text-muted);margin-top:2px}
