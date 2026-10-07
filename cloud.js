@@ -771,7 +771,49 @@
 
     if(error) throw error;
 
-    return data || [];
+    let invites = [];
+    const ir = await client
+      .from('admin_member_invites')
+      .select('id,full_name,email,desired_family_role,status,linked_profile_id,created_at,updated_at')
+      .eq('status','pending')
+      .order('created_at',{ascending:false});
+    if(!ir.error){
+      invites = (ir.data || []).map(x=>({
+        id:'invite:'+x.id,
+        invite_id:x.id,
+        display_name:x.full_name,
+        email:x.email,
+        phone:'',
+        role:x.desired_family_role,
+        family_role:x.desired_family_role,
+        status:'pending',
+        is_invite:true,
+        is_tech_admin:false,
+        created_at:x.created_at
+      }));
+    }
+    return [...invites,...(data || [])];
+  }
+
+  async function createMemberInvite(fullName,email){
+    await requireUser();
+    if(!isTechAdmin()) throw new Error('Chỉ Admin mới được thêm thành viên để phân quyền.');
+    const name=String(fullName||'').trim();
+    const mail=String(email||'').trim().toLowerCase();
+    if(!name) throw new Error('Vui lòng nhập họ tên.');
+    if(!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(mail)) throw new Error('Gmail không hợp lệ.');
+    const {data,error}=await client.rpc('admin_create_member_invite',{p_full_name:name,p_email:mail});
+    if(error) throw error;
+    return data;
+  }
+
+  async function setInviteRole(inviteId,role){
+    await requireUser();
+    if(!isTechAdmin()) throw new Error('Chỉ Admin mới được cấp / thu hồi Trưởng họ.');
+    if(!['member','truongho'].includes(role)) throw new Error('Quyền không hợp lệ.');
+    const {data,error}=await client.rpc('admin_set_invite_role',{p_invite_id:inviteId,p_family_role:role});
+    if(error) throw error;
+    return data;
   }
 
   /*
