@@ -62,109 +62,156 @@ async function renderRoles(box){
  const myRole=isTech?'tech_admin':((window.GiaCloud?.state?.profile?.role)||'member');
  const canGrantTH=isTech;
  const canManage=isTech||myRole==='truongho';
- box.innerHTML='<div class="admin-card admin-roles-card"><h3>🛡️ Phân quyền tài khoản</h3><p class="admin-roles-flow"><b>Quy tắc 3 cấp (bắt buộc)</b><br/><span class="admin-flow-step">👑 Chủ quản</span> <span class="admin-flow-arrow">→</span> <span class="admin-flow-step">🏮 Trưởng họ</span> <span class="admin-flow-arrow">→</span> <span class="admin-flow-step">👁️ Thành viên liên quan</span></p><div class="admin-role-help"><div><b>👑 Chủ quản hệ thống</b><small>Tài khoản <b>'+esc(OWNER_EMAIL)+'</b>. Gán / thu hồi <b>Trưởng họ</b>. Khóa bảo vệ — không kiêm Trưởng họ, không bị hạ quyền.</small></div><div><b>🏮 Trưởng họ</b><small>Do Chủ quản bổ nhiệm. Duyệt thành viên mới và cấp quyền <b>Thành viên liên quan</b>. Không được cấp Chủ quản hay Trưởng họ mới.</small></div><div><b>👁️ Thành viên liên quan</b><small>Do Trưởng họ (hoặc Chủ quản) cấp. Tham gia / phụ trách việc họ; không phân quyền cho người khác.</small></div></div><div id="roleList" class="admin-role-list">Đang tải danh sách…</div></div>';
+
+ box.innerHTML=
+  '<div class="admin-card admin-roles-card">'+
+    '<h3>🛡️ Phân quyền</h3>'+
+    '<p class="admin-roles-one-line muted">👑 Chủ quản → 🏮 Trưởng họ → 👁️ Thành viên · Chờ duyệt cần phê duyệt</p>'+
+    '<div id="roleList" class="admin-role-list">Đang tải…</div>'+
+  '</div>';
+
  const list=box.querySelector('#roleList');
+
  const paint=async()=>{
   let rows=[]; let errMsg='';
-  try{ if(window.GiaCloud?.listMembers){ rows=await window.GiaCloud.listMembers()||[]; } else { errMsg='Chưa kết nối Supabase / GiaCloud.'; } }catch(e){ errMsg=String(e?.message||e); rows=[]; }
-  const isOwnerRow=m=>{ const em=String(m.email||'').trim().toLowerCase(); return !!m.is_tech_admin || em===OWNER_EMAIL || (String(m.id)===meId && isTech); };
+  try{
+    if(window.GiaCloud?.listMembers){ rows=await window.GiaCloud.listMembers()||[]; }
+    else { errMsg='Chưa kết nối GiaCloud.'; }
+  }catch(e){ errMsg=String(e?.message||e); rows=[]; }
+
+  const isOwnerRow=m=>{
+    const em=String(m.email||'').trim().toLowerCase();
+    return !!m.is_tech_admin || em===OWNER_EMAIL || (String(m.id)===meId && isTech);
+  };
+
   const ownerFromDb=rows.find(isOwnerRow);
   const ownerName=ownerFromDb?.display_name||meName||'dat nguyen';
   const ownerEmail=ownerFromDb?.email||OWNER_EMAIL;
-  let html='<div class="admin-member-card admin-member-owner"><div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc((ownerName||'C').charAt(0).toUpperCase())+'</div><div><strong>'+esc(ownerName)+'</strong><div class="muted">'+esc(ownerEmail)+'</div></div></div><span class="admin-role tech_admin">👑 Chủ quản hệ thống</span></div><p class="admin-owner-lock">🔒 Tài khoản được bảo vệ — không cấp/hạ quyền, không gộp vai Trưởng họ.</p><div class="admin-member-meta"><span class="badge badge-ok">Đã duyệt</span><small>Cấp 1 · Điểm bắt đầu phân quyền</small></div></div>';
-  if(errMsg && !rows.length){ html+='<p class="warn-text" style="margin:10px 0">'+esc(errMsg)+'</p><div class="admin-note">Đăng nhập Google bằng tài khoản Chủ quản rồi mở lại Phân quyền để tải danh sách thành viên thật từ Supabase.</div>'; list.innerHTML=html; return; }
+
+  // 1) Chủ quản
+  let html=
+    '<div class="admin-member-card admin-member-owner">'+
+      '<div class="admin-member-head">'+
+        '<div class="admin-member-identity">'+
+          '<div class="admin-avatar">'+esc((ownerName||'C').charAt(0).toUpperCase())+'</div>'+
+          '<div><strong>'+esc(ownerName)+'</strong><div class="muted">'+esc(ownerEmail)+'</div></div>'+
+        '</div>'+
+        '<span class="admin-role tech_admin">👑 Chủ quản</span>'+
+      '</div>'+
+      '<div class="admin-member-meta"><span class="badge badge-ok">Đã duyệt</span><small>🔒 Bảo vệ</small></div>'+
+    '</div>';
+
+  if(errMsg && !rows.length){
+    html+='<p class="warn-text" style="margin:10px 0">'+esc(errMsg)+'</p>';
+    list.innerHTML=html;
+    return;
+  }
+
   const others=rows.filter(m=>!isOwnerRow(m));
   const truong=others.filter(m=>(m.role||'')==='truongho');
   const pending=others.filter(m=>{ const st=m.status||'pending'; return st==='pending'||st==='rejected'; });
   const related=others.filter(m=>(m.role||'member')!=='truongho' && (m.status||'pending')==='approved');
+
   const card=(m)=>{
-   const role=m.role||'member'; const isTH=role==='truongho'; const st=m.status||'pending';
-   const stL=st==='approved'?'Đã duyệt':st==='rejected'?'Từ chối':'Chờ duyệt';
-   const stC=st==='approved'?'badge-ok':st==='rejected'?'badge-no':'badge-wait';
-   const name=m.display_name||'Chưa đặt tên'; const id=String(m.id); const contact=m.email||m.phone||id;
-   let acts='';
-   if(canGrantTH){
-    if(st!=='approved') acts+='<button type="button" class="admin-permission admin-btn-approve" data-act="approve" data-id="'+esc(id)+'">✅ Duyệt tài khoản</button>';
-    acts+='<button type="button" class="admin-permission '+(isTH?'active':'')+'" data-act="role" data-role="truongho" data-id="'+esc(id)+'">🏮 Cấp Trưởng họ</button>';
-    acts+='<button type="button" class="admin-permission '+(!isTH && st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên liên quan</button>';
-   } else if(canManage){
-    if(st!=='approved') acts+='<button type="button" class="admin-permission admin-btn-approve" data-act="approve" data-id="'+esc(id)+'">✅ Duyệt tài khoản</button>';
-    if(isTH) acts+='<p class="admin-action-hint muted">Không đổi được quyền Trưởng họ (chỉ Chủ quản).</p>';
-    else acts+='<button type="button" class="admin-permission '+(st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên liên quan</button>';
-   } else acts='<p class="admin-action-hint muted">Bạn không có quyền thao tác.</p>';
-   return '<div class="admin-member-card" data-id="'+esc(id)+'"><div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc(name.charAt(0).toUpperCase())+'</div><div><strong>'+esc(name)+'</strong><div class="muted">'+esc(contact)+'</div></div></div><span class="admin-role '+(isTH?'truongho':'member')+'">'+(isTH?'🏮 Trưởng họ':'👁️ Thành viên liên quan')+'</span></div><div class="admin-permission-switches">'+acts+'</div><div class="admin-member-meta"><span class="badge '+stC+'">'+stL+'</span></div></div>';
-  };
-  html+='<div class="admin-role-section"><h4 class="admin-role-section-title">🏮 Trưởng họ <small>('+truong.length+')</small></h4>';
-  html+=truong.length?truong.map(card).join(''):'<p class="muted admin-empty-hint">Chưa có Trưởng họ. Chủ quản chọn một thành viên đã duyệt → bấm <b>🏮 Cấp Trưởng họ</b>.</p>';
-  html+='</div><div class="admin-role-section"><h4 class="admin-role-section-title">👁️ Thành viên liên quan <small>('+related.length+')</small></h4>';
-  html+=related.length?related.map(card).join(''):'<p class="muted admin-empty-hint">Chưa có thành viên liên quan đã duyệt.</p>';
-  html+='</div><div class="admin-role-section"><h4 class="admin-role-section-title">⏳ Chờ duyệt / từ chối <small>('+pending.length+')</small></h4>';
-  html+=pending.length?pending.map(card).join(''):'<p class="muted admin-empty-hint">Không có yêu cầu chờ. Khi có người đăng ký Google, họ sẽ hiện tại đây.</p>';
-  html+='</div>';
-  if(!others.length){ html+='<div class="admin-note" style="margin-top:12px">📋 <b>Chưa có thành viên đăng ký trên hệ thống.</b><br/><b>Luồng thao tác:</b><br/>1. Thành viên đăng nhập Google → vào <b>Chờ duyệt</b><br/>2. <b>Chủ quản</b> bấm <b>Duyệt</b> hoặc <b>Cấp Trưởng họ</b><br/>3. <b>Trưởng họ</b> duyệt thêm <b>Thành viên liên quan</b></div>'; }
-  list.innerHTML=html;
-  list.querySelectorAll('[data-act]').forEach(btn=>{
-   btn.onclick=async(ev)=>{
-    ev.preventDefault(); ev.stopPropagation();
-    const id=btn.dataset.id, act=btn.dataset.act;
-    const target=rows.find(x=>String(x.id)===String(id));
-    if(!target){ await window.GiaDialog?.alert('Không tìm thấy tài khoản.','Phân quyền'); return; }
-    if(isOwnerRow(target)){ await window.GiaDialog?.alert('Tài khoản Chủ quản được bảo vệ, không đổi quyền.','Bảo vệ Chủ quản'); return; }
-    try{
-     btn.disabled=true;
-     if(act==='approve'){
-      if(!(await window.GiaDialog?.confirm('Duyệt « '+(target.display_name||id)+' » vào dòng họ?','Duyệt thành viên'))){btn.disabled=false;return;}
-      await window.GiaCloud.setMemberStatus(id,'approved');
-      record('Duyệt thành viên',target.display_name||id);
-      await window.GiaDialog?.alert('Đã duyệt thành viên.','Phân quyền');
-     } else if(act==='role'){
-      const role=btn.dataset.role;
-      if(role==='truongho' && !canGrantTH){ await window.GiaDialog?.alert('Chỉ Chủ quản hệ thống mới được cấp / thu hồi Trưởng họ.','Phân quyền'); btn.disabled=false; return; }
-      if(role==='member' && !canManage){ await window.GiaDialog?.alert('Bạn không có quyền đặt Thành viên liên quan.','Phân quyền'); btn.disabled=false; return; }
-      const label=role==='truongho'?'Trưởng họ':'Thành viên liên quan';
-      if(!(await window.GiaDialog?.confirm('Đặt quyền « '+label+' » cho '+(target.display_name||id)+'?','Xác nhận phân quyền'))){btn.disabled=false;return;}
-      try{ await window.GiaCloud.setMemberStatus(id,'approved'); }catch(_e){}
-      await window.GiaCloud.setMemberRole(id, role);
-      record('Thay đổi quyền', label+' · '+(target.display_name||id));
-      await window.GiaDialog?.alert('Đã cập nhật: « '+label+' ».','Phân quyền');
-     }
-     await paint();
-    }catch(e){
-     await window.GiaDialog?.alert('Không thao tác được: '+(e?.message||e)+'\n\nCần đăng nhập đúng tài khoản Chủ quản và Supabase đang hoạt động.','Phân quyền');
-     btn.disabled=false;
+    const role=m.role||'member';
+    const isTH=role==='truongho';
+    const st=m.status||'pending';
+    const stL=st==='approved'?'Đã duyệt':st==='rejected'?'Từ chối':'Chờ duyệt';
+    const stC=st==='approved'?'badge-ok':st==='rejected'?'badge-no':'badge-wait';
+    const name=m.display_name||'Chưa đặt tên';
+    const id=String(m.id);
+    const contact=m.email||m.phone||id;
+    let acts='';
+
+    if(canGrantTH){
+      if(st!=='approved'){
+        acts+='<button type="button" class="admin-permission admin-btn-approve" data-act="approve" data-id="'+esc(id)+'">✅ Duyệt</button>';
+        acts+='<button type="button" class="admin-permission admin-btn-reject" data-act="reject" data-id="'+esc(id)+'">🚫 Từ chối</button>';
+      }
+      if(st==='approved' || st==='pending'){
+        acts+='<button type="button" class="admin-permission '+(isTH?'active':'')+'" data-act="role" data-role="truongho" data-id="'+esc(id)+'">🏮 Cấp Trưởng họ</button>';
+      }
+      if(isTH || st==='approved'){
+        acts+='<button type="button" class="admin-permission '+(!isTH && st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên</button>';
+      }
+    } else if(canManage){
+      if(st!=='approved'){
+        acts+='<button type="button" class="admin-permission admin-btn-approve" data-act="approve" data-id="'+esc(id)+'">✅ Duyệt</button>';
+        acts+='<button type="button" class="admin-permission admin-btn-reject" data-act="reject" data-id="'+esc(id)+'">🚫 Từ chối</button>';
+      }
+      if(!isTH){
+        acts+='<button type="button" class="admin-permission '+(st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên</button>';
+      }
     }
-   };
+
+    return '<div class="admin-member-card" data-id="'+esc(id)+'">'+'
+      '<div class="admin-member-head">'+'
+        '<div class="admin-member-identity">'+'
+          '<div class="admin-avatar">'+esc(name.charAt(0).toUpperCase())+'</div>'+'
+          '<div><strong>'+esc(name)+'</strong><div class="muted">'+esc(contact)+'</div></div>'+'
+        '</div>'+'
+        '<span class="admin-role '+(isTH?'truongho':'member')+'">'+(isTH?'🏮 Trưởng họ':'👁️ Thành viên')+'</span>'+'
+      '</div>'+'
+      (acts?'<div class="admin-permission-switches">'+acts+'</div>':'')+'
+      '<div class="admin-member-meta"><span class="badge '+stC+'">'+stL+'</span></div>'+'
+    '</div>';
+  };
+
+  html+='<div class="admin-role-section"><h4 class="admin-role-section-title">🏮 Trưởng họ <small>('+truong.length+')</small></h4>';
+  html+=truong.length?truong.map(card).join(''):'<p class="muted admin-empty-hint">Chưa có</p>';
+  html+='</div>';
+
+  html+='<div class="admin-role-section"><h4 class="admin-role-section-title">👁️ Thành viên liên quan <small>('+related.length+')</small></h4>';
+  html+=related.length?related.map(card).join(''):'<p class="muted admin-empty-hint">Chưa có</p>';
+  html+='</div>';
+
+  html+='<div class="admin-role-section"><h4 class="admin-role-section-title">⏳ Chờ duyệt <small>('+pending.length+')</small></h4>';
+  html+=pending.length?pending.map(card).join(''):'<p class="muted admin-empty-hint">Chưa có yêu cầu</p>';
+  html+='</div>';
+
+  list.innerHTML=html;
+
+  list.querySelectorAll('[data-act]').forEach(btn=>{
+    btn.onclick=async(ev)=>{
+      ev.preventDefault(); ev.stopPropagation();
+      const id=btn.dataset.id, act=btn.dataset.act;
+      const target=rows.find(x=>String(x.id)===String(id));
+      if(!target){ await window.GiaDialog?.alert('Không tìm thấy tài khoản.','Phân quyền'); return; }
+      if(isOwnerRow(target)){ await window.GiaDialog?.alert('Tài khoản Chủ quản được bảo vệ.','Bảo vệ'); return; }
+      try{
+        btn.disabled=true;
+        if(act==='approve'){
+          if(!(await window.GiaDialog?.confirm('Duyệt « '+(target.display_name||id)+' »?','Duyệt'))){btn.disabled=false;return;}
+          await window.GiaCloud.setMemberStatus(id,'approved');
+          record('Duyệt thành viên',target.display_name||id);
+        } else if(act==='reject'){
+          if(!(await window.GiaDialog?.confirm('Từ chối « '+(target.display_name||id)+' »?','Từ chối'))){btn.disabled=false;return;}
+          await window.GiaCloud.setMemberStatus(id,'rejected');
+          record('Từ chối thành viên',target.display_name||id);
+        } else if(act==='role'){
+          const role=btn.dataset.role;
+          if(role==='truongho' && !canGrantTH){
+            await window.GiaDialog?.alert('Chỉ Chủ quản được cấp Trưởng họ.','Phân quyền');
+            btn.disabled=false; return;
+          }
+          if(role==='member' && !canManage){
+            await window.GiaDialog?.alert('Không có quyền.','Phân quyền');
+            btn.disabled=false; return;
+          }
+          const label=role==='truongho'?'Trưởng họ':'Thành viên liên quan';
+          if(!(await window.GiaDialog?.confirm('Đặt « '+label+' » cho '+(target.display_name||id)+'?','Xác nhận'))){btn.disabled=false;return;}
+          try{ await window.GiaCloud.setMemberStatus(id,'approved'); }catch(_e){}
+          await window.GiaCloud.setMemberRole(id, role);
+          record('Thay đổi quyền', label+' · '+(target.display_name||id));
+        }
+        await paint();
+      }catch(e){
+        await window.GiaDialog?.alert('Lỗi: '+(e?.message||e),'Phân quyền');
+        btn.disabled=false;
+      }
+    };
   });
  };
+
  await paint();
 }
-async function renderMembers(box){
- const auto=window.GiaCloud?.getAutoApproval?.()===true;
- box.innerHTML='<div class="admin-card"><div class="admin-section-title"><div><h3>👥 Thành viên & Duyệt</h3><p class="muted">Kiểm soát việc thành viên mới có được vào hệ thống ngay hay phải chờ duyệt.</p></div><label class="admin-toggle"><input id="autoApprovalToggle" type="checkbox" '+(auto?'checked':'')+'><span class="admin-toggle-track"><i></i></span></label></div><div class="admin-auto-row"><span class="admin-auto-dot '+(auto?'on':'')+'"></span><b>'+(auto?'Đang tự động phê duyệt thành viên mới':'Đang yêu cầu duyệt thủ công')+'</b></div><div class="admin-filter-row"><button data-filter="all">Tất cả</button><button data-filter="pending">Chờ duyệt</button><button data-filter="approved">Đã duyệt</button><button data-filter="rejected">Từ chối</button></div><div id="memberList">Đang tải…</div></div>';
- const toggle=box.querySelector('#autoApprovalToggle');
- if(toggle) toggle.onchange=async()=>{await window.GiaCloud?.setAutoApproval?.(toggle.checked);record('Đổi duyệt thành viên',toggle.checked?'Bật tự động':'Tắt tự động');renderMembers(box);};
- let rows=[];try{rows=await window.GiaCloud?.listMembers?.()||[];}catch(e){box.querySelector('#memberList').innerHTML='<p class="warn-text">'+esc(e?.message||e)+'</p>';return;}
- const render=f=>{ let r=f==='all'?rows:rows.filter(x=>(x.status||'pending')===f); box.querySelector('#memberList').innerHTML=r.map(m=>'<div class="admin-user-row"><div><strong>'+esc(m.display_name||'Chưa đặt tên')+'</strong><div class="muted">'+esc(m.email||'')+'</div></div><span class="admin-role '+esc(m.status||'pending')+'">'+esc(m.status==='pending'?'Chờ duyệt':m.status==='rejected'?'Từ chối':'Đã duyệt')+'</span><div class="admin-user-actions">'+(m.status!=='approved'?'<button data-act="approve" data-id="'+esc(m.id)+'">✅ Duyệt</button>':'')+(m.status!=='rejected'?'<button class="danger" data-act="reject" data-id="'+esc(m.id)+'">Từ chối</button>':'')+'</div></div>').join('')||'<p class="muted">Không có thành viên trong nhóm này.</p>';
-   box.querySelectorAll('[data-act]').forEach(b=>b.onclick=async()=>{ const next=b.dataset.act==='approve'?'approved':'rejected'; if(!(await window.GiaDialog?.confirm(next==='approved'?'Duyệt tài khoản này vào dòng họ?':'Từ chối tài khoản này?','Xác nhận')))return; try{await window.GiaCloud.setMemberStatus(b.dataset.id,next);record('Phê duyệt thành viên',(next==='approved'?'Duyệt: ':'Từ chối: ')+b.dataset.id);await renderMembers(box);}catch(e){await window.GiaDialog?.alert('Lỗi: '+(e?.message||e),'Phê duyệt');}});};
- box.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>render(b.dataset.filter));render('all');
-}
-function renderTreeAdmin(box){
- box.innerHTML='<div class="admin-card"><div class="admin-section-title"><div><h3>🌳 Sửa cây gia phả</h3><p class="muted">Quản lý cây gia phả trong chế độ chỉnh sửa.</p></div><span class="admin-role tech_admin">Chủ quản</span></div>'+
- '<div class="admin-note">🔐 <b>Chế độ an toàn:</b> Cây mặc định <b>Chỉ xem</b>. Chỉ phiên Admin đã xác thực mới mở thêm/sửa/xóa.</div>'+
- '<div class="admin-data-actions"><button type="button" id="adminTreeOpen" class="btn btn-primary">🌳 Mở cây — Chỉnh sửa</button><button type="button" id="adminTreeLock" class="btn btn-secondary">🔒 Khóa chỉnh sửa</button></div>'+
- '<div class="admin-note" id="adminTreeState">Đang kiểm tra…</div></div>';
- const state=box.querySelector('#adminTreeState');
- const unlockedT=window.GiaApp?.isTreeWriteUnlocked?.()===true;
- if(state)state.innerHTML=unlockedT?'🟢 <b>Đang mở quyền chỉnh sửa.</b>':'🔴 <b>Đang khóa — Chỉ xem.</b>';
- box.querySelector('#adminTreeOpen').onclick=async()=>{ const ok=await window.GiaApp?.authorizeTreeFromAdmin?.(); if(!ok)return; record('Mở quyền sửa cây','Admin mở chỉnh sửa'); if(state)state.innerHTML='🟢 <b>Đang mở quyền chỉnh sửa.</b>'; window.GiaApp?.showView?.('tree'); };
- box.querySelector('#adminTreeLock').onclick=()=>{ window.GiaApp?.lockTreeEditing?.(); record('Khóa quyền sửa cây','Về Chỉ xem'); renderTreeAdmin(box); };
-}
-function renderData(box){box.innerHTML='<div class="admin-card"><h3>💾 Dữ liệu gia phả</h3><p class="muted">Sao lưu / khôi phục dữ liệu trên thiết bị.</p><div class="admin-data-actions"><button id="adminExport">⬇️ Xuất JSON</button><button id="adminImport">⬆️ Nhập JSON</button><input id="adminImportFile" type="file" accept=".json" hidden/><button id="adminReset" class="danger">⚠️ Reset dữ liệu mẫu</button></div><div class="admin-warning">Cảnh báo: Nhập/Reset ghi đè dữ liệu trên thiết bị. Hãy Xuất JSON trước.</div></div>';box.querySelector('#adminExport').onclick=exportData;box.querySelector('#adminImport').onclick=()=>box.querySelector('#adminImportFile').click();box.querySelector('#adminImportFile').onchange=e=>importData(e.target.files?.[0]);box.querySelector('#adminReset').onclick=resetData;}
-function exportData(){const keys=['giaPhaNguyenData_v4','giaPhaEvents_v1','giaPhaPosts_v1','giaPhaChat_v1','giaPhaFamilyFund_v1','giaPhaLiaison_v1'];const payload={version:2,exportedAt:new Date().toISOString(),keys:{}};keys.forEach(k=>{const raw=localStorage.getItem(k);if(raw)try{payload.keys[k]=JSON.parse(raw);}catch(e){payload.keys[k]=raw;}});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='gia-pha-nguyen-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();record('Xuất dữ liệu','Tạo file sao lưu JSON');}
-async function importData(file){if(!file)return;try{const text=await file.text(),p=JSON.parse(text);if(!p?.keys?.giaPhaNguyenData_v4)throw new Error('Thiếu dữ liệu cây gia phả.');if(!(await window.GiaDialog?.confirm('Nhập dữ liệu sẽ ghi đè bản đang lưu. Anh đã có bản sao lưu chưa?','Xác nhận nhập JSON')))return;Object.entries(p.keys).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));record('Nhập dữ liệu','Từ file JSON');location.reload();}catch(e){await window.GiaDialog?.alert('Lỗi nhập: '+(e?.message||e),'Nhập dữ liệu');}}
-async function resetData(){if(!(await window.GiaDialog?.confirm('Reset sẽ xóa dữ liệu cây trên thiết bị này về mẫu. Tiếp tục?','Reset dữ liệu')))return;['giaPhaNguyenData_v4','giaPhaEvents_v1','giaPhaPosts_v1'].forEach(k=>localStorage.removeItem(k));record('Reset dữ liệu','Xóa local tree/events/posts');location.reload();}
-function renderLogs(box){const rows=load(LOG_KEY,[]);box.innerHTML='<div class="admin-card"><div class="admin-log-head"><h3>📜 Nhật ký hoạt động</h3><button type="button" id="clearLogs" class="danger">Xóa nhật ký</button></div><div class="admin-logs">'+(rows.length?rows.map(x=>'<div class="admin-log"><time>'+esc(x.time)+'</time><strong>'+esc(x.action)+'</strong><span>'+esc(x.detail)+'</span><small>'+esc(x.actor)+'</small></div>').join(''):'<p class="muted">Chưa có hoạt động.</p>')+'</div></div>';box.querySelector('#clearLogs').onclick=async()=>{if(await window.GiaDialog?.confirm('Xóa toàn bộ nhật ký trên thiết bị?','Nhật ký')){save(LOG_KEY,[]);renderTab();}};}
-function bootPending(){ensureMenu();}
-document.addEventListener('DOMContentLoaded',bootPending);
-setTimeout(ensureMenu,300);setTimeout(ensureMenu,1200);
-})();
