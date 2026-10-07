@@ -158,9 +158,9 @@
     if (!p) return false;
     return !p.status || p.status === 'approved';
   }
+  // Legacy role='admin' is an internal storage marker only; Tech Admin is identified separately.
   function isAdmin(){
-    const p = state.profile;
-    return !!p && p.role === 'admin' && (!p.status || p.status === 'approved');
+    return isTechAdmin();
   }
   function isTechAdmin(){
     return isOwner() && isApproved();
@@ -196,14 +196,19 @@
   }
   async function setMemberRole(memberId, role){
     await requireUser();
-    if(!['member','truongho','admin'].includes(role)) throw new Error('Quyền không hợp lệ.');
+    if(!['member','truongho'].includes(role)) throw new Error('Chỉ có hai quyền hiển thị: Trưởng họ và Thành viên.');
     if(!isTechAdmin() && !(isTruongHo() && role==='member')){
-      throw new Error('Chỉ Chủ quản mới được cấp/thu hồi Admin hoặc Trưởng họ.');
+      throw new Error('Chỉ Chủ quản mới được cấp/thu hồi Trưởng họ; Trưởng họ chỉ quản lý cấp Thành viên.');
     }
     const {data,error} = await client.rpc('set_member_role',{target_id:memberId,new_role:role});
     if(error) throw error;
     return data;
   }
+  // PIN/Admin gate may call this hook; it never mutates the role or promotes the account.
+  function claimOwner(){
+    return isOwner() && isApproved();
+  }
+
   async function ensureProfile(){
     if(!client || !user) return null;
     await refreshProfile();
