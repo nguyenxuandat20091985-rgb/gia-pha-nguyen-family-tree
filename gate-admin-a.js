@@ -59,10 +59,10 @@ async function renderRoles(box){
  const meEmail=(window.GiaCloud?.state?.user?.email||window.GiaCloud?.state?.profile?.email||'').trim().toLowerCase();
  const meName=window.GiaCloud?.state?.profile?.display_name||'dat nguyen';
  const isTech=window.GiaCloud?.isTechAdmin?.()===true||window.GiaCloud?.isOwner?.()===true||meEmail===OWNER_EMAIL;
- const myRole=isTech?'tech_admin':((window.GiaCloud?.state?.profile?.role)||'member');
+ const myRole=isTech?'tech_admin':((window.GiaCloud?.state?.profile?.family_role||window.GiaCloud?.state?.profile?.role)||'member');
  const canGrantTH=isTech;
  const canManage=isTech||myRole==='truongho';
- box.innerHTML='<div class="admin-card admin-roles-card"><h3>🛡️ Phân quyền</h3><p class="admin-roles-one-line muted">👑 Chủ quản → 🏮 Trưởng họ → 👁️ Thành viên · Chờ duyệt cần phê duyệt</p><div id="roleList" class="admin-role-list">Đang tải danh sách…</div></div>';
+ box.innerHTML='<div class="admin-card admin-roles-card"><h3>🛡️ Phân quyền</h3><p class="admin-roles-one-line muted">🛡️ Admin → 🏮 Trưởng họ → 👁️ Thành viên · Chờ duyệt cần phê duyệt</p><div id="roleList" class="admin-role-list">Đang tải danh sách…</div></div>';
  const list=box.querySelector('#roleList');
  const paint=async()=>{
   let rows=[]; let errMsg='';
@@ -74,11 +74,11 @@ async function renderRoles(box){
   let html='<div class="admin-member-card admin-member-owner"><div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc((ownerName||'C').charAt(0).toUpperCase())+'</div><div><strong>'+esc(ownerName)+'</strong><div class="muted">'+esc(ownerEmail)+'</div></div></div><span class="admin-role tech_admin">🛡️ Admin</span></div><p class="admin-owner-lock">🔒 Bảo vệ</p><div class="admin-member-meta"><span class="badge badge-ok">Đã duyệt</span><small>🔒 Bảo vệ</small></div></div>';
   if(errMsg && !rows.length){ html+='<p class="warn-text" style="margin:10px 0">'+esc(errMsg)+'</p>'; list.innerHTML=html; return; }
   const others=rows.filter(m=>!isOwnerRow(m));
-  const truong=others.filter(m=>(m.role||'')==='truongho');
+  const truong=others.filter(m=>(m.family_role||m.role||'')==='truongho');
   const pending=others.filter(m=>{ const st=m.status||'pending'; return st==='pending'||st==='rejected'; });
-  const related=others.filter(m=>(m.role||'member')!=='truongho' && (m.status||'pending')==='approved');
+  const related=others.filter(m=>(m.family_role||m.role||'member')!=='truongho' && (m.status||'pending')==='approved');
   const card=(m)=>{
-   const role=m.role||'member'; const isTH=role==='truongho'; const st=m.status||'pending';
+   const role=m.family_role||m.role||'member'; const isTH=role==='truongho'; const st=m.status||'pending';
    const stL=st==='approved'?'Đã duyệt':st==='rejected'?'Từ chối':'Chờ duyệt';
    const stC=st==='approved'?'badge-ok':st==='rejected'?'badge-no':'badge-wait';
    const name=m.display_name||'Chưa đặt tên'; const id=String(m.id); const contact=m.email||m.phone||id;
@@ -89,7 +89,7 @@ async function renderRoles(box){
     acts+='<button type="button" class="admin-permission '+(!isTH && st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên liên quan</button>';
    } else if(canManage){
     if(st!=='approved') acts+='<button type="button" class="admin-permission admin-btn-approve" data-act="approve" data-id="'+esc(id)+'">✅ Duyệt tài khoản</button>';
-    if(isTH) acts+='<p class="admin-action-hint muted">Không đổi được quyền Trưởng họ (chỉ Chủ quản).</p>';
+    if(isTH) acts+='<p class="admin-action-hint muted">Không đổi được quyền Trưởng họ (chỉ Admin).</p>';
     else acts+='<button type="button" class="admin-permission '+(st==='approved'?'active':'')+'" data-act="role" data-role="member" data-id="'+esc(id)+'">👁️ Thành viên liên quan</button>';
    } else acts='<p class="admin-action-hint muted">Bạn không có quyền thao tác.</p>';
    return '<div class="admin-member-card" data-id="'+esc(id)+'"><div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc(name.charAt(0).toUpperCase())+'</div><div><strong>'+esc(name)+'</strong><div class="muted">'+esc(contact)+'</div></div></div><span class="admin-role '+(isTH?'truongho':'member')+'">'+(isTH?'🏮 Trưởng họ':'👁️ Thành viên liên quan')+'</span></div><div class="admin-permission-switches">'+acts+'</div><div class="admin-member-meta"><span class="badge '+stC+'">'+stL+'</span></div></div>';
@@ -108,7 +108,7 @@ async function renderRoles(box){
     const id=btn.dataset.id, act=btn.dataset.act;
     const target=rows.find(x=>String(x.id)===String(id));
     if(!target){ await window.GiaDialog?.alert('Không tìm thấy tài khoản.','Phân quyền'); return; }
-    if(isOwnerRow(target)){ await window.GiaDialog?.alert('Tài khoản Chủ quản được bảo vệ, không đổi quyền.','Bảo vệ Admin'); return; }
+    if(isOwnerRow(target)){ await window.GiaDialog?.alert('Tài khoản Admin được bảo vệ, không đổi quyền.','Bảo vệ Admin'); return; }
     try{
      btn.disabled=true;
      if(act==='approve'){
