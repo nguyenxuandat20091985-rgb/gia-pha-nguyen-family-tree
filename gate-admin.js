@@ -65,32 +65,36 @@ async function renderRoles(box){
  try{
    const rows=await window.GiaCloud.listMembers();
    box.querySelector('#roleList').innerHTML=(rows||[]).map(m=>{
-     const role=m.is_owner?'admin':(m.role||'member');
+     const isOwnerMember=!!m.is_tech_admin || String(m.email||'').trim().toLowerCase()==='nguyenxuandat20091985@gmail.com';
+     const role=isOwnerMember?'admin':(m.role||'member');
      const isSelf=m.id===me;
      const isAdmin=role==='admin';
-     const canChangeAdmin=canManageRoles && !isSelf && !m.is_owner;
-     const canChangeMember=canManageRoles || myRole==='truongho';
+     const isTruongHo=role==='truongho';
+     const canChangeAdmin=canManageRoles && !isSelf && !isOwnerMember;
+     const canChangeTruongHo=canManageRoles && !isSelf && !isOwnerMember;
+     const canChangeMember=canManageRoles || (myRole==='truongho' && !isSelf && !isOwnerMember);
      const adminDisabled=(!canChangeAdmin)?'disabled':'';
-     const truongDisabled=(!(canManageRoles) || isSelf || m.is_owner)?'disabled':'';
-     const memberDisabled=(!(canChangeMember) || isSelf || m.is_owner || (isAdmin && !canManageRoles))?'disabled':'';
+     const truongDisabled=(!canChangeTruongHo)?'disabled':'';
+     const memberDisabled=(!canChangeMember)?'disabled':'';
+     const roleLabel=isOwnerMember?'Chủ quản · Tech Admin':isAdmin?'Tech Admin':isTruongHo?'Trưởng họ':'Thành viên xem';
      return '<div class="admin-member-card">'+
        '<div class="admin-member-head"><div class="admin-member-identity"><div class="admin-avatar">'+esc((m.display_name||'T').charAt(0).toUpperCase())+'</div><div><strong>'+esc(m.display_name||'Chưa đặt tên')+'</strong><div class="muted">'+esc(m.email||'')+'</div></div></div>'+
-       '<span class="admin-role '+esc(role)+'">'+(m.is_owner?'Admin · Trưởng họ':isAdmin?'Admin':role==='truongho'||m.family_role==='truongho'?'Trưởng họ':'Thành viên xem')+'</span></div>'+
+       '<span class="admin-role '+esc(role)+'">'+roleLabel+'</span></div>'+
        '<div class="admin-permission-switches">'+
          '<button type="button" class="admin-permission '+(isAdmin?'active':'')+'" data-role="admin" data-id="'+esc(m.id)+'" '+adminDisabled+'>🛡️ Admin</button>'+
          '<button type="button" class="admin-permission '+((role==='truongho'||m.family_role==='truongho')?'active':'')+'" data-role="truongho" data-id="'+esc(m.id)+'" '+truongDisabled+'>🏮 Trưởng họ</button>'+
          '<button type="button" class="admin-permission '+((role==='member')?'active':'')+'" data-role="member" data-id="'+esc(m.id)+'" '+memberDisabled+'>👁️ Thành viên xem</button>'+
        '</div>'+
-       '<div class="admin-member-meta"><span class="badge '+(m.status==='approved'?'badge-ok':m.status==='rejected'?'badge-no':'badge-wait')+'">'+(m.status==='approved'?'Đã duyệt':m.status==='rejected'?'Từ chối':'Chờ duyệt')+'</span>'+(isSelf?'<small>Tài khoản hiện tại</small>':'')+(m.is_owner?'<small>👑 Chủ quản</small>':'')+'</div>'+
+       '<div class="admin-member-meta"><span class="badge '+(m.status==='approved'?'badge-ok':m.status==='rejected'?'badge-no':'badge-wait')+'">'+(m.status==='approved'?'Đã duyệt':m.status==='rejected'?'Từ chối':'Chờ duyệt')+'</span>'+(isSelf?'<small>Tài khoản hiện tại</small>':'')+(isOwnerMember?'<small>👑 Chủ quản hệ thống</small>':'')+'</div>'+
      '</div>';
    }).join('')||'<p class="muted">Chưa có thành viên.</p>';
    box.querySelectorAll('[data-role]').forEach(b=>b.onclick=async()=>{
      const target=b.dataset.id, role=b.dataset.role, targetRow=(rows||[]).find(x=>x.id===target);
      if(!targetRow)return;
-     const targetIsOwner=!!targetRow.is_owner||String(targetRow.email||'').trim().toLowerCase()==='nguyenxuandat20091985@gmail.com';
-     if(target===me || targetIsOwner){await window.GiaDialog?.alert('Tài khoản chủ quản không thể bị hạ quyền.','Bảo vệ Admin');return;}
-     if(role==='admin' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Admin mới được cấp hoặc thu hồi quyền Admin.','Phân quyền');return;}
-     if(role==='truongho' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Admin mới được cấp hoặc thu hồi quyền Trưởng họ.','Phân quyền');return;}
+     const targetIsOwner=!!targetRow.is_tech_admin||String(targetRow.email||'').trim().toLowerCase()==='nguyenxuandat20091985@gmail.com';
+     if(target===me || targetIsOwner){await window.GiaDialog?.alert('Tài khoản Chủ quản hệ thống (Tech Admin) được bảo vệ và không thể bị hạ quyền.','Bảo vệ Chủ quản');return;}
+     if(role==='admin' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Chủ quản hệ thống (Tech Admin) mới được cấp hoặc thu hồi quyền Admin.','Phân quyền');return;}
+     if(role==='truongho' && !canManageRoles){await window.GiaDialog?.alert('Chỉ Chủ quản hệ thống (Tech Admin) mới được cấp hoặc thu hồi quyền Trưởng họ.','Phân quyền');return;}
      if(role==='member' && !(canManageRoles||myRole==='truongho')){await window.GiaDialog?.alert('Bạn không có quyền thay đổi quyền thành viên.','Phân quyền');return;}
      const label=role==='admin'?'Admin':role==='truongho'?'Trưởng họ':'Thành viên xem';
      if(!(await window.GiaDialog?.confirm('Đặt quyền "'+label+'" cho '+(targetRow.display_name||targetRow.email)+'?','Xác nhận phân quyền')))return;
