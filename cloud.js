@@ -807,6 +807,14 @@
     return data;
   }
 
+  async function writeAudit(action,detail){
+    await requireUser();
+    if(!isTechAdmin()) throw new Error('Chỉ Admin mới được ghi nhật ký quản trị.');
+    const {data,error}=await client.rpc('admin_write_audit',{p_action:String(action||''),p_detail:String(detail||'')});
+    if(error) throw error;
+    return data;
+  }
+
   async function setInviteRole(inviteId,role){
     await requireUser();
     if(!isTechAdmin()) throw new Error('Chỉ Admin mới được cấp / thu hồi Trưởng họ.');
@@ -1033,6 +1041,7 @@
     listMembers,
     setMemberStatus,
     setMemberRole,
+    writeAudit,
 
     ensureProfile,
     refreshProfile,
