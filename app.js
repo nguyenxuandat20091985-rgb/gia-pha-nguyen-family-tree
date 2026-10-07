@@ -181,6 +181,18 @@ window.addEventListener('gia-auth-changed',()=>{lockTreeEditing();});
 window.addEventListener('gia-profile-changed',()=>{if(!adminTreeWriteSession){treeWriteUnlocked=false;updateTreeAccessUI();}});
 document.getElementById('treeAccessMode')?.addEventListener('click',async()=>{if(treeWriteUnlocked){lockTreeEditing();return;}await ensureTreeWriteAccess();});
 ensureTreeUI();loadTree();seedIfEmpty();showView('home');
+
+// Global navigation bridge for the home/bottom/more menus.
+// Keep navigation delegated so dynamically-created menu items (including Admin) also work.
+document.addEventListener('click',function(e){
+  const nav=e.target.closest?.('#bottomNav [data-nav], #view-more [data-nav]');
+  if(!nav) return;
+  const name=nav.dataset.nav;
+  if(!name || !window.GiaApp?.showView) return;
+  e.preventDefault();
+  e.stopPropagation();
+  window.GiaApp.showView(name);
+});
 window.GiaApp={showView,data,saveTree,seedIfEmpty,refreshTree,requestTreeWriteAccess:ensureTreeWriteAccess,
     authorizeTreeFromAdmin:()=>ensureTreeWriteAccess({fromAdmin:true}),lockTreeEditing,isTreeWriteUnlocked:()=>!!treeWriteUnlocked,isAdminTreeWriteSession:()=>!!adminTreeWriteSession};
 })();
