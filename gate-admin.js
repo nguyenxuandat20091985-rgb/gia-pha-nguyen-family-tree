@@ -51,8 +51,16 @@ async function renderRoles(box){
  const me=window.GiaCloud?.state?.user?.sub||'', owner=window.GiaCloud?.isOwner?.()===true;
  const myProfile=window.GiaCloud?.state?.profile||{};
  const myRole=owner?'admin':(myProfile.role||'member');
- const canManageRoles=myRole==='admin'||myProfile.is_admin===true||owner;
- box.innerHTML='<div class="admin-card"><h3>🛡️ Phân quyền tài khoản</h3><p class="muted">Luồng quyền: <b>Admin → Trưởng họ → Thành viên</b>. Admin cấp quyền Trưởng họ; Trưởng họ chỉ quản lý thành viên, không thể cấp/thu hồi Admin.</p><div id="roleList">Đang tải…</div></div>';
+ const canManageRoles=owner;
+ const canManageMembers=owner||myRole==='truongho';
+ box.innerHTML='<div class="admin-card"><h3>🛡️ Phân quyền tài khoản</h3>'+
+   '<p class="muted">Ba cấp quyền được tách biệt: <b>Chủ quản hệ thống (Tech Admin)</b> → <b>Trưởng họ</b> → <b>Thành viên</b>. Chủ quản không tự động kiêm Trưởng họ.</p>'+
+   '<div class="admin-role-help">'+
+     '<div><b>🛡️ Chủ quản hệ thống (Tech Admin)</b><small>Quản lý toàn bộ tính năng kỹ thuật và là cấp duy nhất được cấp/thu hồi Admin hoặc Trưởng họ.</small></div>'+
+     '<div><b>🏮 Trưởng họ</b><small>Quản lý nội dung gia phả và duyệt thành viên; không được cấp/thu hồi Admin hoặc Trưởng họ.</small></div>'+
+     '<div><b>👁️ Thành viên</b><small>Tham gia và xem nội dung theo quyền thành viên; không có quyền phân quyền tài khoản khác.</small></div>'+
+   '</div>'+
+   '<div id="roleList">Đang tải…</div></div>';
  if(!window.GiaCloud?.listMembers){box.querySelector('#roleList').textContent='Danh sách thành viên chưa sẵn sàng.';return;}
  try{
    const rows=await window.GiaCloud.listMembers();
