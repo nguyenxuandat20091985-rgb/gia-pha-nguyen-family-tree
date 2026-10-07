@@ -112,6 +112,27 @@ async function renderMembers(box){
  };
  box.querySelectorAll('[data-filter]').forEach(b=>b.onclick=()=>render(b.dataset.filter));render('all');
 }
+function renderTreeAdmin(box){
+ box.innerHTML='<div class="admin-card"><div class="admin-section-title"><div><h3>🌳 Sửa cây gia phả</h3><p class="muted">Quản lý cây gia phả trong chế độ chỉnh sửa. Admin đã xác thực có thể mở quyền chỉnh sửa trực tiếp.</p></div><span class="admin-role admin">Admin</span></div>'+
+ '<div class="admin-note">🔐 <b>Chế độ an toàn:</b> Cây gia phả mặc định vẫn là <b>Chỉ xem</b>. Chỉ phiên Admin đã xác thực mới có thể mở thao tác thêm, sửa hoặc xóa.</div>'+
+ '<div class="admin-data-actions"><button type="button" id="adminTreeOpen" class="btn btn-primary">🌳 Mở cây gia phả — Chỉnh sửa</button><button type="button" id="adminTreeLock" class="btn btn-secondary">🔒 Khóa chỉnh sửa</button></div>'+
+ '<div class="admin-note" id="adminTreeState">Đang kiểm tra trạng thái quyền chỉnh sửa…</div></div>';
+ const state=box.querySelector('#adminTreeState');
+ const unlocked=window.GiaApp?.isTreeWriteUnlocked?.()===true;
+ if(state)state.innerHTML=unlocked?'🟢 <b>Đang mở quyền chỉnh sửa.</b>':'🔴 <b>Đang khóa — Chỉ xem.</b>';
+ box.querySelector('#adminTreeOpen').onclick=async()=>{
+   const ok=await window.GiaApp?.authorizeTreeFromAdmin?.();
+   if(!ok)return;
+   record('Mở quyền sửa cây','Admin mở Cây gia phả ở chế độ chỉnh sửa');
+   if(state)state.innerHTML='🟢 <b>Đang mở quyền chỉnh sửa.</b>';
+   window.GiaApp?.showView?.('tree');
+ };
+ box.querySelector('#adminTreeLock').onclick=()=>{
+   window.GiaApp?.lockTreeEditing?.();
+   record('Khóa quyền sửa cây','Đưa cây gia phả về Chỉ xem');
+   renderTreeAdmin(box);
+ };
+}
 function renderData(box){box.innerHTML='<div class="admin-card"><h3>💾 Dữ liệu gia phả</h3><p class="muted">Khu vực này đã được đưa vào Admin. Không còn cần một mục “Dữ liệu gia phả” riêng trong menu Thêm.</p><div class="admin-data-actions"><button id="adminExport">⬇️ Xuất JSON</button><button id="adminImport">⬆️ Nhập JSON</button><input id="adminImportFile" type="file" accept=".json" hidden/><button id="adminReset" class="danger">⚠️ Reset dữ liệu mẫu</button></div><div class="admin-warning">Cảnh báo: Nhập/Reset sẽ thay đổi dữ liệu cây đang lưu trên thiết bị. Hãy Xuất JSON trước khi thao tác.</div></div>';box.querySelector('#adminExport').onclick=exportData;box.querySelector('#adminImport').onclick=()=>box.querySelector('#adminImportFile').click();box.querySelector('#adminImportFile').onchange=e=>importData(e.target.files?.[0]);box.querySelector('#adminReset').onclick=resetData;}
 function exportData(){const keys=['giaPhaNguyenData_v4','giaPhaEvents_v1','giaPhaPosts_v1','giaPhaChat_v1','giaPhaFamilyFund_v1','giaPhaLiaison_v1'];const payload={version:2,exportedAt:new Date().toISOString(),keys:{}};keys.forEach(k=>{const raw=localStorage.getItem(k);if(raw)try{payload.keys[k]=JSON.parse(raw);}catch(e){payload.keys[k]=raw;}});const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(payload,null,2)],{type:'application/json'}));a.download='gia-pha-nguyen-backup-'+new Date().toISOString().slice(0,10)+'.json';a.click();record('Xuất dữ liệu','Tạo file sao lưu JSON');}
 async function importData(file){if(!file)return;try{const text=await file.text(),p=JSON.parse(text);if(!p?.keys?.giaPhaNguyenData_v4)throw new Error('Thiếu dữ liệu cây gia phả.');if(!(await window.GiaDialog?.confirm('Nhập dữ liệu sẽ ghi đè bản đang lưu trên thiết bị. Anh đã có bản sao lưu chưa?','Xác nhận nhập JSON')))return;Object.entries(p.keys).forEach(([k,v])=>localStorage.setItem(k,JSON.stringify(v)));record('Nhập dữ liệu','Khôi phục từ JSON');await window.GiaDialog?.alert('Đã nhập dữ liệu. Ứng dụng sẽ tải lại để dùng dữ liệu mới.','Dữ liệu gia phả');location.reload();}catch(e){await window.GiaDialog?.alert('Tệp JSON không hợp lệ: '+(e?.message||e),'Nhập dữ liệu');}}
