@@ -1,4 +1,65 @@
-/* admin.css styles - slim roles */
+/* Admin console styles for Gia Phả Họ Nguyễn */
+.admin-shell{padding:12px 14px 80px;max-width:720px;margin:0 auto}
+.admin-hero{display:flex;gap:12px;align-items:flex-start;background:linear-gradient(135deg,#7a0c0c,#9a1f1f);color:#fff;border-radius:16px;padding:16px;margin-bottom:12px}
+.admin-hero-icon{font-size:1.8rem}
+.admin-hero span{font-size:.7rem;letter-spacing:.06em;opacity:.85}
+.admin-hero h2{margin:2px 0 4px;font-size:1.15rem}
+.admin-hero p{margin:0;font-size:.82rem;opacity:.9}
+.admin-lock{margin-left:auto;background:rgba(255,255,255,.15);border:0;color:#fff;border-radius:10px;padding:8px 12px;cursor:pointer}
+.admin-status{display:flex;gap:8px;align-items:center;flex-wrap:wrap;background:#fff8ef;border:1px solid rgba(201,162,39,.35);border-radius:12px;padding:10px 12px;margin-bottom:12px;font-size:.85rem}
+.admin-status b{color:#7a0c0c}
+.admin-status em{font-style:normal;color:#8b6914}
+.admin-dashboard-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.admin-dashboard-card{display:flex;align-items:center;gap:10px;text-align:left;background:#fff;border:1px solid rgba(122,12,12,.12);border-radius:14px;padding:12px;cursor:pointer;min-height:64px}
+.admin-dashboard-card.active{border-color:#7a0c0c;box-shadow:0 0 0 2px rgba(122,12,12,.15)}
+.admin-card-icon{font-size:1.3rem}
+.admin-card-copy{display:flex;flex-direction:column;gap:2px;flex:1}
+.admin-card-copy b{font-size:.9rem;color:#3a2010}
+.admin-card-copy small{font-size:.72rem;color:#7a5c48}
+.admin-card-arrow{color:#c9a227}
+.admin-card{background:#fff;border:1px solid rgba(122,12,12,.1);border-radius:14px;padding:14px;margin-bottom:12px}
+.admin-card h3{margin:0 0 10px;color:#7a0c0c;font-size:1.05rem}
+.admin-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.admin-stat-grid>div{background:#fff8ef;border-radius:12px;padding:12px;text-align:center}
+.admin-stat-grid strong{display:block;font-size:1.2rem;color:#7a0c0c}
+.admin-stat-grid span{font-size:.75rem;color:#7a5c48}
+.admin-quick{display:flex;flex-wrap:wrap;gap:8px}
+.admin-quick button,.admin-filter-row button{min-height:42px;padding:8px 12px;border-radius:10px;border:1px solid rgba(122,12,12,.2);background:#fff;cursor:pointer;font-size:.82rem}
+.admin-note{margin-top:10px;font-size:.82rem;color:#5c4030;background:#fff8ef;border-radius:10px;padding:10px}
+.admin-member-card{border:1px solid rgba(122,12,12,.12);border-radius:12px;padding:12px;margin-bottom:10px;background:#fffdf9}
+.admin-member-owner{border-color:rgba(201,162,39,.5);background:linear-gradient(180deg,#fffdf5,#fff8e8)}
+.admin-member-head{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:6px}
+.admin-member-identity{display:flex;gap:10px;align-items:center}
+.admin-avatar{width:40px;height:40px;border-radius:50%;background:#7a0c0c;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700}
+.admin-role{font-size:.72rem;padding:4px 8px;border-radius:999px;background:#f3e6d8;color:#7a0c0c;white-space:nowrap}
+.admin-role.tech_admin{background:#7a0c0c;color:#fff}
+.admin-role.truongho{background:#c9a227;color:#3a2010}
+.badge{font-size:.72rem;padding:3px 8px;border-radius:999px}
+.badge-ok{background:#e6f4ea;color:#1d5c2c}
+.badge-wait{background:#fff3cd;color:#856404}
+.badge-no{background:#f8d7da;color:#721c24}
+.admin-member-meta{display:flex;gap:8px;align-items:center;margin-top:6px;font-size:.78rem}
+.muted{color:#7a5c48}
+.warn-text{color:#8b1a1a}
+.admin-content-enter{animation:adminFade .25s ease}
+@keyframes adminFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+.admin-section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.admin-toggle{position:relative;display:inline-flex;cursor:pointer}
+.admin-toggle input{position:absolute;opacity:0}
+.admin-toggle-track{width:46px;height:26px;background:#ccc;border-radius:999px;position:relative}
+.admin-toggle-track i{position:absolute;top:3px;left:3px;width:20px;height:20px;background:#fff;border-radius:50%;transition:.2s}
+.admin-toggle input:checked+.admin-toggle-track{background:#2d7a3e}
+.admin-toggle input:checked+.admin-toggle-track i{left:23px}
+.admin-auto-row{display:flex;align-items:center;gap:8px;margin-bottom:10px;font-size:.85rem}
+.admin-auto-dot{width:10px;height:10px;border-radius:50%;background:#ccc}
+.admin-auto-dot.on{background:#2d7a3e}
+.admin-filter-row{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.admin-user-row{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-bottom:1px solid rgba(0,0,0,.06)}
+.admin-user-actions{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.admin-log-item{padding:8px 0;border-bottom:1px solid rgba(0,0,0,.06);font-size:.85rem}
+.admin-menu-item{border:1px solid rgba(201,162,39,.4)!important}
+
+/* Slim Phân quyền */
 .admin-roles-one-line{margin:0 0 12px;font-size:.82rem;line-height:1.4}
 .admin-role-section{margin-top:14px;padding-top:10px;border-top:1px dashed rgba(122,12,12,.15)}
 .admin-role-section-title{margin:0 0 8px;font-size:.95rem;color:#7a0c0c}
