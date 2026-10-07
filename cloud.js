@@ -142,7 +142,6 @@
       .subscribe();
   }
 
-  // Phân quyền chuẩn: Chủ quản hệ thống (Tech Admin) ≠ Trưởng họ ≠ Thành viên.
   const TECH_ADMIN_ID = 'cf17b596-f674-4431-aa7f-506f955624ab';
   const TECH_ADMIN_EMAIL = 'nguyenxuandat20091985@gmail.com';
 
@@ -158,12 +157,11 @@
     if (!p) return false;
     return !p.status || p.status === 'approved';
   }
-  // Legacy role='admin' is an internal storage marker only; Tech Admin is identified separately.
   function isAdmin(){
     return isTechAdmin();
   }
   function isTechAdmin(){
-    return isOwner() && isApproved();
+    return isOwner();
   }
   function isTruongHo(){
     const p = state.profile;
@@ -182,7 +180,7 @@
   async function listMembers(){
     await requireUser();
     if(!canManageMembers()) throw new Error('Chỉ Chủ quản hoặc Trưởng họ mới xem danh sách thành viên.');
-    const {data,error} = await client.from('profiles').select('id,display_name,phone,role,status,created_at,avatar_url,is_tech_admin').order('created_at',{ascending:false});
+    const {data,error} = await client.from('profiles').select('id,display_name,email,phone,role,status,created_at,avatar_url,is_tech_admin').order('created_at',{ascending:false});
     if(error) throw error;
     return data || [];
   }
@@ -204,9 +202,8 @@
     if(error) throw error;
     return data;
   }
-  // PIN/Admin gate may call this hook; it never mutates the role or promotes the account.
   function claimOwner(){
-    return isOwner() && isApproved();
+    return isOwner();
   }
 
   async function ensureProfile(){
@@ -216,6 +213,7 @@
     const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email || user.phone || 'Thành viên mới';
     try {
       const row = { id: user.id, display_name: name, role: 'member' };
+      if (isOwner()) { row.role = 'admin'; row.status = 'approved'; row.is_tech_admin = true; }
       const {data,error} = await client.from('profiles').upsert(row, {onConflict:'id'}).select().single();
       if(!error) { state.profile = data; emit('gia-profile-changed',{profile:data}); }
       return state.profile;
