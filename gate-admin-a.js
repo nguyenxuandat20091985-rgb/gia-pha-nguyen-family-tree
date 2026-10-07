@@ -62,8 +62,9 @@ async function renderRoles(box){
  const myRole=isTech?'tech_admin':((window.GiaCloud?.state?.profile?.family_role||window.GiaCloud?.state?.profile?.role)||'member');
  const canGrantTH=isTech;
  const canManage=isTech||myRole==='truongho';
- box.innerHTML='<div class="admin-card admin-roles-card"><h3>🛡️ Phân quyền</h3><p class="admin-roles-one-line muted">🛡️ Admin → 🏮 Trưởng họ → 👁️ Thành viên · Chờ duyệt cần phê duyệt</p><div id="roleList" class="admin-role-list">Đang tải danh sách…</div></div>';
+ box.innerHTML='<div class="admin-card admin-roles-card"><h3>🛡️ Phân quyền</h3><p class="admin-roles-one-line muted">🛡️ Admin → 🏮 Trưởng họ → 👁️ Thành viên · Chờ duyệt cần phê duyệt</p><div style="margin:12px 0"><button type="button" id="btnAddMemberPermission" class="admin-permission">➕ Thêm tên + Gmail</button></div><div id="roleList" class="admin-role-list">Đang tải danh sách…</div></div>';
  const list=box.querySelector('#roleList');
+ const addBtn=box.querySelector('#btnAddMemberPermission');
  const paint=async()=>{
   let rows=[]; let errMsg='';
   try{ if(window.GiaCloud?.listMembers){ rows=await window.GiaCloud.listMembers()||[]; } else { errMsg='Chưa kết nối Supabase / GiaCloud.'; } }catch(e){ errMsg=String(e?.message||e); rows=[]; }
@@ -112,6 +113,7 @@ async function renderRoles(box){
     try{
      btn.disabled=true;
      if(act==='approve'){
+      if(target.is_invite){ await window.GiaDialog?.alert('Người này chưa đăng nhập/liên kết tài khoản. Khi họ đăng nhập đúng Gmail, hệ thống sẽ tự liên kết.','Phân quyền'); btn.disabled=false; return; }
       if(!(await window.GiaDialog?.confirm('Duyệt « '+(target.display_name||id)+' » vào dòng họ?','Duyệt thành viên'))){btn.disabled=false;return;}
       await window.GiaCloud.setMemberStatus(id,'approved');
       record('Duyệt thành viên',target.display_name||id);
@@ -122,8 +124,8 @@ async function renderRoles(box){
       if(role==='member' && !canManage){ await window.GiaDialog?.alert('Bạn không có quyền đặt Thành viên liên quan.','Phân quyền'); btn.disabled=false; return; }
       const label=role==='truongho'?'Trưởng họ':'Thành viên liên quan';
       if(!(await window.GiaDialog?.confirm('Đặt quyền « '+label+' » cho '+(target.display_name||id)+'?','Xác nhận phân quyền'))){btn.disabled=false;return;}
-      try{ await window.GiaCloud.setMemberStatus(id,'approved'); }catch(_e){}
-      await window.GiaCloud.setMemberRole(id, role);
+      if(target.is_invite){ await window.GiaCloud.setInviteRole(target.invite_id,role); }
+      else { try{ await window.GiaCloud.setMemberStatus(id,'approved'); }catch(_e){} await window.GiaCloud.setMemberRole(id, role); }
       record('Thay đổi quyền', label+' · '+(target.display_name||id));
       await window.GiaDialog?.alert('Đã cập nhật: « '+label+' ».','Phân quyền');
      }
@@ -136,4 +138,5 @@ async function renderRoles(box){
   });
  };
  await paint();
+ if(addBtn){ addBtn.onclick=async()=>{ if(!canGrantTH){await window.GiaDialog?.alert('Chỉ Admin mới được thêm người vào danh sách phân quyền.','Phân quyền');return;} const name=await window.GiaDialog?.prompt('Nhập họ tên người cần thêm.','','➕ Thêm thành viên','Họ và tên'); if(name==null)return; const email=await window.GiaDialog?.prompt('Nhập Gmail của người này.','','➕ Thêm thành viên','Gmail'); if(email==null)return; try{addBtn.disabled=true;await window.GiaCloud.createMemberInvite(name,email);record('Thêm thành viên phân quyền',String(name).trim()+' · '+String(email).trim().toLowerCase());await window.GiaDialog?.alert('Đã thêm người vào danh sách phân quyền.','Phân quyền');await paint();}catch(e){await window.GiaDialog?.alert('Không thêm được: '+(e?.message||e),'Phân quyền');}finally{addBtn.disabled=false;} }; }
 }
