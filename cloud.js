@@ -142,16 +142,35 @@
       .subscribe();
   }
 
-  // status null/undefined = chưa bật hệ thống duyệt → coi như đã duyệt
-  function isAdmin(){
-    const p = state.profile;
-    if (!p || p.role !== 'admin') return false;
-    return !p.status || p.status === 'approved';
+  // Phân quyền chuẩn: Chủ quản hệ thống (Tech Admin) ≠ Trưởng họ ≠ Thành viên.
+  const TECH_ADMIN_ID = 'cf17b596-f674-4431-aa7f-506f955624ab';
+  const TECH_ADMIN_EMAIL = 'nguyenxuandat20091985@gmail.com';
+
+  function isOwner(){
+    const p = state.profile || {};
+    const email = String(state.user?.email || p.email || '').trim().toLowerCase();
+    return String(state.user?.id || state.user?.sub || '') === TECH_ADMIN_ID ||
+      String(p.id || '') === TECH_ADMIN_ID ||
+      email === TECH_ADMIN_EMAIL;
   }
   function isApproved(){
     const p = state.profile;
     if (!p) return false;
     return !p.status || p.status === 'approved';
+  }
+  function isAdmin(){
+    const p = state.profile;
+    return !!p && p.role === 'admin' && (!p.status || p.status === 'approved');
+  }
+  function isTechAdmin(){
+    return isOwner() && isApproved();
+  }
+  function isTruongHo(){
+    const p = state.profile;
+    return !!p && p.role === 'truongho' && (!p.status || p.status === 'approved');
+  }
+  function canManageMembers(){
+    return isTechAdmin() || isTruongHo();
   }
   function isPending(){
     return !!(state.user && state.profile && state.profile.status === 'pending');
@@ -162,24 +181,26 @@
 
   async function listMembers(){
     await requireUser();
-    if(!isAdmin()) throw new Error('Chỉ Admin mới xem danh sách thành viên.');
-    const {data,error} = await client.from('profiles').select('id,display_name,phone,role,status,created_at,avatar_url').order('created_at',{ascending:false});
+    if(!canManageMembers()) throw new Error('Chỉ Chủ quản hoặc Trưởng họ mới xem danh sách thành viên.');
+    const {data,error} = await client.from('profiles').select('id,display_name,phone,role,status,created_at,avatar_url,is_tech_admin').order('created_at',{ascending:false});
     if(error) throw error;
     return data || [];
   }
   async function setMemberStatus(memberId, status){
     await requireUser();
-    if(!isAdmin()) throw new Error('Chỉ Admin mới duyệt thành viên.');
+    if(!canManageMembers()) throw new Error('Bạn không có quyền duyệt thành viên.');
     if(!['pending','approved','rejected'].includes(status)) throw new Error('Trạng thái không hợp lệ.');
-    const {data,error} = await client.from('profiles').update({status}).eq('id', memberId).select().single();
+    const {data,error} = await client.rpc('set_member_status',{target_id:memberId,new_status:status});
     if(error) throw error;
     return data;
   }
   async function setMemberRole(memberId, role){
     await requireUser();
-    if(!isAdmin()) throw new Error('Chỉ Admin mới đổi quyền.');
-    if(!['member','admin'].includes(role)) throw new Error('Quyền không hợp lệ.');
-    const {data,error} = await client.from('profiles').update({role}).eq('id', memberId).select().single();
+    if(!['member','truongho','admin'].includes(role)) throw new Error('Quyền không hợp lệ.');
+    if(!isTechAdmin() && !(isTruongHo() && role==='member')){
+      throw new Error('Chỉ Chủ quản mới được cấp/thu hồi Admin hoặc Trưởng họ.');
+    }
+    const {data,error} = await client.rpc('set_member_role',{target_id:memberId,new_role:role});
     if(error) throw error;
     return data;
   }
@@ -199,7 +220,7 @@
   window.GiaCloud={
     state,init,signInGoogle,sendPhoneOtp,verifyPhoneOtp,signOut,upsertProfile,
     syncLocal,pullAll,loadRealtime,isConfigured:()=>ready,
-    isAdmin,isApproved,isPending,isRejected,listMembers,setMemberStatus,setMemberRole,ensureProfile,refreshProfile
+    isAdmin,isOwner,isTechAdmin,isTruongHo,canManageMembers,isApproved,isPending,isRejected,listMembers,setMemberStatus,setMemberRole,ensureProfile,refreshProfile
   };
   init().then(async()=>{ await ensureProfile(); await loadRealtime(); })
     .catch(e=>emit('gia-cloud-status',{ready:false,error:e.message}));
