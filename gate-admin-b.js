@@ -51,15 +51,40 @@ function renderData(box){
  box.querySelector('#btnImportData').onclick=()=>box.querySelector('#importFile').click();
  box.querySelector('#importFile').onchange=async(e)=>{const f=e.target.files?.[0];if(!f)return;try{const text=await f.text();const data=JSON.parse(text);save(TREE_KEY,data);record('Nhập dữ liệu',f.name);await window.GiaDialog?.alert('Đã nhập dữ liệu.','Dữ liệu');}catch(err){await window.GiaDialog?.alert('File không hợp lệ.','Lỗi');}};
 }
-function renderLogs(box){
- const rows=load(LOG_KEY,[]);
- box.innerHTML='<div class="admin-card"><h3>📜 Nhật ký hoạt động</h3><div style="display:flex;justify-content:flex-end;margin:10px 0"><button type="button" id="btnClearAdminLogs" class="admin-permission">🗑️ Xóa nhật ký</button></div><div class="admin-log-list">'+(rows.slice(0,50).map(r=>'<div class="admin-log-item"><strong>'+esc(r.action)+'</strong><div class="muted">'+esc(r.detail||'')+' · '+esc(r.actor||'')+' · '+esc(r.time||'')+'</div></div>').join('')||'<p class="muted">Chưa có nhật ký.</p>')+'</div></div>';
+async function renderLogs(box){
+ const localRows=load(LOG_KEY,[]);
+ let rows=localRows, remote=false;
+ try{
+  const cfg=window.GIA_SUPABASE_CONFIG||{};
+  if(cfg.url&&cfg.anonKey&&window.supabase){
+   const client=window.supabase.createClient(cfg.url,cfg.anonKey);
+   const s=await client.auth.getSession();
+   if(s.data?.session){
+    const q=await client.from('admin_audit_log').select('id,action,detail,created_at').order('created_at',{ascending:false}).limit(300);
+    if(!q.error){ rows=(q.data||[]).map(x=>({id:x.id,action:x.action,detail:x.detail||'',time:x.created_at,actor:'Admin'})); remote=true; }
+   }
+  }
+ }catch(_e){}
+ box.innerHTML='<div class="admin-card"><h3>📜 Nhật ký hoạt động</h3><p class="muted">'+(remote?'Nhật ký quản trị tập trung trên hệ thống.':'Đang hiển thị nhật ký cục bộ trên thiết bị này.')+'</p><div style="display:flex;justify-content:flex-end;margin:10px 0"><button type="button" id="btnClearAdminLogs" class="admin-permission">🗑️ Xóa nhật ký</button></div><div class="admin-log-list">'+(rows.slice(0,50).map(r=>'<div class="admin-log-item"><strong>'+esc(r.action)+'</strong><div class="muted">'+esc(r.detail||'')+' · '+esc(r.actor||'')+' · '+esc(r.time||'')+'</div></div>').join('')||'<p class="muted">Chưa có nhật ký.</p>')+'</div></div>';
  const btn=box.querySelector('#btnClearAdminLogs');
  if(btn) btn.onclick=async()=>{
-   if(!(await window.GiaDialog?.confirm('Xóa toàn bộ nhật ký hoạt động trên thiết bị này? Thao tác không thể hoàn tác.','Xóa nhật ký')))return;
-   localStorage.removeItem(LOG_KEY);
-   await window.GiaDialog?.alert('Đã xóa toàn bộ nhật ký.','Nhật ký hoạt động');
-   renderLogs(box);
+   if(!(await window.GiaDialog?.confirm('Xóa toàn bộ nhật ký quản trị? Thao tác không thể hoàn tác.','Xóa nhật ký')))return;
+   try{
+    const cfg=window.GIA_SUPABASE_CONFIG||{};
+    let done=false;
+    if(cfg.url&&cfg.anonKey&&window.supabase){
+     const client=window.supabase.createClient(cfg.url,cfg.anonKey);
+     const s=await client.auth.getSession();
+     if(s.data?.session){
+      const q=await client.rpc('admin_clear_audit_log');
+      if(!q.error) done=true;
+      else if(q.error.message) throw q.error;
+     }
+    }
+    localStorage.removeItem(LOG_KEY);
+    await window.GiaDialog?.alert(done?'Đã xóa nhật ký quản trị tập trung.':'Đã xóa nhật ký trên thiết bị này.','Nhật ký hoạt động');
+    renderLogs(box);
+   }catch(e){ await window.GiaDialog?.alert('Không xóa được nhật ký: '+(e?.message||e),'Nhật ký hoạt động'); }
  };
 }
 function bootPending(){ensureMenu();}
