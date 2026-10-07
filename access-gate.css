@@ -1,0 +1,43 @@
+/* Cổng chờ duyệt / từ chối */
+.member-access-gate{
+  position:fixed;inset:0;z-index:12000;
+  display:flex;align-items:center;justify-content:center;
+  padding:20px;
+  background:rgba(42,24,16,.62);
+  backdrop-filter:blur(4px);
+}
+.member-access-gate.hidden{display:none!important}
+.member-access-card{
+  width:min(100%,400px);
+  background:linear-gradient(180deg,#fffdf9,#fff8ef);
+  border-radius:20px;
+  padding:28px 22px 22px;
+  text-align:center;
+  border:1px solid rgba(201,162,39,.45);
+  box-shadow:0 16px 40px rgba(0,0,0,.22);
+}
+.member-access-icon{font-size:2.4rem;margin-bottom:8px}
+.member-access-card h2{
+  font-family:var(--font-serif,Georgia,serif);
+  color:#7a0c0c;margin:0 0 10px;font-size:1.2rem;
+}
+.member-access-msg{
+  font-size:.9rem;color:#5c4030;line-height:1.55;margin:0 0 8px;
+}
+.member-access-hint{
+  font-size:.78rem;color:#7a5c48;line-height:1.45;margin:0 0 18px;
+}
+.member-access-actions{
+  display:flex;flex-direction:column;gap:8px;
+}
+.member-access-actions .btn{
+  min-height:48px;width:100%;
+  pointer-events:auto!important;touch-action:manipulation;
+  cursor:pointer;
+}
+body.member-gate-active .bottom-nav{
+  pointer-events:none;opacity:.4;
+}
+body.member-gate-active .app-header{
+  pointer-events:none;
+}
