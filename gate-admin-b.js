@@ -10,13 +10,40 @@ async function renderMembers(box){
  render('all');
 }
 function renderTreeAdmin(box){
- box.innerHTML='<div class="admin-card"><h3>🌳 Sửa cây gia phả</h3><p class="muted">Mở trình sửa cây trên trang Gia phả.</p><button type="button" class="btn btn-primary" id="btnOpenTreeEdit">Mở trình sửa cây</button></div>';
- box.querySelector('#btnOpenTreeEdit').onclick=async()=>{
+ const unlocked=!!window.GiaApp?.isTreeWriteUnlocked?.();
+ const statusHtml=unlocked
+  ? '<div class="admin-auto-row"><span class="admin-auto-dot on"></span><b>Đang mở quyền chỉnh sửa cây</b></div><p class="muted" style="margin:0 0 10px">Có thể thêm / sửa / xóa thành viên trên trang Gia phả.</p>'
+  : '<div class="admin-auto-row"><span class="admin-auto-dot"></span><b>Đang khóa — chỉ xem</b></div><p class="muted" style="margin:0 0 10px">Mở khóa bên dưới rồi vào trang Gia phả để chỉnh sửa.</p>';
+ box.innerHTML='<div class="admin-card"><h3>🌳 Sửa cây gia phả</h3>'+statusHtml+
+  '<div class="admin-quick">'+
+  (unlocked
+    ? '<button type="button" class="btn" id="btnLockTreeEdit" style="border-color:#c45c5c;color:#8b1a1a">🔒 Khóa lại</button>'
+    : '<button type="button" class="btn btn-primary" id="btnUnlockTreeEdit">🔓 Mở khóa sửa cây</button>')+
+  '<button type="button" class="btn btn-primary" id="btnOpenTreeEdit" style="'+(unlocked?'':'opacity:.85')+'">🌳 Vào trang Gia phả</button>'+
+  '</div><p class="admin-note" style="margin-top:12px">ℹ️ Đã vào Admin (PIN) thì không cần nhập PIN lần nữa để mở quyền sửa cây. Nút <b>Khóa lại</b> tắt quyền chỉnh sửa ngay.</p></div>';
+ const unlockBtn=box.querySelector('#btnUnlockTreeEdit');
+ if(unlockBtn) unlockBtn.onclick=async()=>{
   const ok=await window.GiaApp?.authorizeTreeFromAdmin?.();
-  if(ok===false)return;
-  window.GiaAdminLog?.record?.('Mở quyền sửa cây','Admin mở chỉnh sửa từ Trung tâm quản trị');
+  if(ok===false){ await window.GiaDialog?.alert('Không mở được quyền sửa cây.','Sửa cây gia phả'); return; }
+  window.GiaAdminLog?.record?.('Mở quyền sửa cây','Admin mở khóa từ tab Sửa cây');
+  renderTreeAdmin(box);
+  await window.GiaDialog?.alert('Đã mở khóa chỉnh sửa cây. Bấm «Vào trang Gia phả» để sửa.','Sửa cây gia phả');
+ };
+ const lockBtn=box.querySelector('#btnLockTreeEdit');
+ if(lockBtn) lockBtn.onclick=async()=>{
+  window.GiaApp?.lockTreeEditing?.();
+  window.GiaAdminLog?.record?.('Khóa quyền sửa cây','Admin khóa lại từ tab Sửa cây');
+  renderTreeAdmin(box);
+  await window.GiaDialog?.alert('Đã khóa. Cây gia phả trở về chế độ chỉ xem.','Sửa cây gia phả');
+ };
+ box.querySelector('#btnOpenTreeEdit').onclick=async()=>{
+  if(!window.GiaApp?.isTreeWriteUnlocked?.()){
+   const ok=await window.GiaApp?.authorizeTreeFromAdmin?.();
+   if(ok===false)return;
+   window.GiaAdminLog?.record?.('Mở quyền sửa cây','Admin mở chỉnh sửa khi vào trang Gia phả');
+  }
   window.GiaApp?.showView?.('tree');
-};
+ };
 }
 function renderData(box){
  box.innerHTML='<div class="admin-card"><h3>💾 Dữ liệu gia phả</h3><p class="muted">Sao lưu / khôi phục dữ liệu local.</p><div class="admin-quick"><button type="button" id="btnExportData">Xuất JSON</button><button type="button" id="btnImportData">Nhập JSON</button></div><input type="file" id="importFile" accept="application/json" class="hidden"/></div>';

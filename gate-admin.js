@@ -10,8 +10,8 @@
     }
   }
   Promise.all([
-    fetch('gate-admin-a.js?v=20').then(function(r){ if(!r.ok) throw new Error('a '+r.status); return r.text(); }),
-    fetch('gate-admin-b.js?v=20').then(function(r){ if(!r.ok) throw new Error('b '+r.status); return r.text(); })
+    fetch('gate-admin-a.js?v=21').then(function(r){ if(!r.ok) throw new Error('a '+r.status); return r.text(); }),
+    fetch('gate-admin-b.js?v=21').then(function(r){ if(!r.ok) throw new Error('b '+r.status); return r.text(); })
   ]).then(function(parts){
     boot(parts[0] + parts[1]);
   }).catch(function(e){
