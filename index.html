@@ -29,3 +29,31 @@
 <header class="app-header"><div class="header-left"><img class="app-logo" src="logo.svg" alt="logo"/><div class="header-titles"><h1>Gia Phả Họ Nguyễn</h1><p class="subtitle">Uống nước nhớ nguồn</p></div></div><div class="header-actions"><button type="button" id="btnInstall" class="btn btn-install hidden">📥 Cài app</button></div></header>
 <div id="morningBanner" class="morning-banner hidden"><div class="morning-inner"><span class="morning-icon">🌿</span><p id="morningText"></p><button type="button" id="btnCloseMorning" class="morning-close">×</button></div></div>
 <main id="mainContent">
+<section id="view-account" class="view hidden">
+  <div class="account-shell">
+    <div class="account-hero">
+      <div class="account-avatar" id="authAvatar" aria-hidden="true">👤</div>
+      <h2>Tài khoản thành viên</h2>
+      <p class="account-tagline">Quản lý đăng nhập và tên hiển thị trong dòng họ</p>
+    </div>
+    <div class="account-card">
+      <p id="authStatus" class="auth-status">Chưa đăng nhập</p>
+      <div id="authLogin" class="account-login-block">
+        <p class="auth-hint">Đăng nhập bằng Google để tham gia dòng họ</p>
+        <div id="btnGoogle" class="btn-block google-login-host" aria-label="Đăng nhập bằng Google"></div>
+      </div>
+      <div id="authUser" class="account-user-block hidden">
+        <div class="auth-welcome" id="authWelcome"></div>
+        <div id="authRoleBadge" class="account-role-badge hidden"></div>
+        <p id="authEmailLine" class="account-email-line muted hidden"></p>
+        <label class="auth-label" for="authName">Tên hiển thị</label>
+        <input id="authName" type="text" autocomplete="name" placeholder="Nhập tên hiển thị" maxlength="80"/>
+        <div class="account-actions">
+          <button id="btnSaveProfile" class="btn btn-primary btn-block account-btn" type="button" data-account-act="save">💾 Lưu thông tin</button>
+          <button id="btnGoHome" class="btn btn-outline btn-block account-btn" type="button" data-account-act="home">🏠 Về trang chủ</button>
+          <button id="btnLogout" class="btn btn-logout btn-block account-btn" type="button" data-account-act="logout">🚪 Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
