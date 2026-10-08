@@ -129,95 +129,105 @@
     return /; wv\)|WebView/i.test(ua);
   }
 
-  function renderFallbackButton(host, reason) {
+  async function signInWithOAuthGoogle() {
+    if (!sb) initSupabase();
+    if (!sb) {
+      if (window.GiaDialog) window.GiaDialog.alert('Chưa kết nối được máy chủ đăng nhập. Thử lại sau.', 'Đăng nhập');
+      else alert('Chưa kết nối được máy chủ đăng nhập.');
+      return;
+    }
+    try {
+      var redirectTo = (window.location.origin || HOME_URL.replace(/\/$/, '')) + '/';
+      var res = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTo,
+          queryParams: { access_type: 'offline', prompt: 'select_account' },
+          skipBrowserRedirect: false
+        }
+      });
+      if (res && res.error) {
+        console.warn('OAuth', res.error);
+        if (window.GiaDialog) window.GiaDialog.alert('Không mở được Google: ' + (res.error.message || res.error), 'Đăng nhập');
+        else alert('Không mở được Google: ' + (res.error.message || res.error));
+      }
+    } catch (e) {
+      console.warn('OAuth exception', e);
+      if (window.GiaDialog) window.GiaDialog.alert('Lỗi đăng nhập: ' + (e.message || e), 'Đăng nhập');
+      else alert('Lỗi đăng nhập: ' + (e.message || e));
+    }
+  }
+
+  function renderLoginButton(host) {
     if (!host) return;
     host.innerHTML = '';
     var wrap = document.createElement('div');
-    wrap.style.cssText = 'display:flex;flex-direction:column;gap:10px;width:100%;';
+    wrap.style.cssText = 'display:flex;flex-direction:column;gap:12px;width:100%;';
     var btn = document.createElement('button');
     btn.type = 'button';
+    btn.id = 'btnGoogleOAuth';
     btn.className = 'btn btn-primary btn-block';
-    btn.style.cssText = 'padding:12px 16px;font-size:16px;font-weight:700;';
-    btn.textContent = '🔐 Đăng nhập bằng Google';
+    btn.style.cssText = 'padding:14px 16px;font-size:16px;font-weight:700;display:flex;align-items:center;justify-content:center;gap:10px;';
+    btn.innerHTML = '<span style="font-size:20px">G</span> Đăng nhập bằng Google';
     btn.addEventListener('click', function () {
-      try {
-        if (window.google && window.google.accounts && window.google.accounts.id) {
-          window.google.accounts.id.prompt();
-        } else {
-          window.location.href = HOME_URL + '?login=1';
-        }
-      } catch (e) {
-        window.open(HOME_URL, '_blank');
-      }
+      btn.disabled = true;
+      btn.textContent = 'Đang mở Google…';
+      signInWithOAuthGoogle().finally(function () {
+        setTimeout(function () {
+          btn.disabled = false;
+          btn.innerHTML = '<span style="font-size:20px">G</span> Đăng nhập bằng Google';
+        }, 2500);
+      });
     });
     wrap.appendChild(btn);
     var hint = document.createElement('p');
     hint.className = 'auth-hint';
-    hint.style.cssText = 'margin:0;font-size:13px;color:#6d5a5a;line-height:1.4;';
-    if (isWebView() || reason === 'webview') {
-      hint.innerHTML = 'Nếu không đăng nhập được trong app: mở <b>Chrome</b> vào<br><a href="' + HOME_URL + '">' + HOME_URL + '</a>';
-    } else {
-      hint.textContent = 'Bấm nút trên để đăng nhập tài khoản Google.';
-    }
+    hint.style.cssText = 'margin:0;font-size:13px;color:#6d5a5a;line-height:1.45;text-align:center;';
+    hint.innerHTML = 'Bấm nút → chọn tài khoản Google → quay lại app.<br>Trên điện thoại nên dùng <b>Chrome</b>.';
     wrap.appendChild(hint);
+    var gsi = document.createElement('div');
+    gsi.id = 'btnGoogleGsi';
+    gsi.style.cssText = 'width:100%;min-height:0;';
+    wrap.appendChild(gsi);
     host.appendChild(wrap);
-  }
-
-  function initGoogle() {
-    if (!window.google || !window.google.accounts || !window.google.accounts.id) return false;
-    try {
-      window.google.accounts.id.initialize({
-        client_id: CLIENT_ID,
-        callback: onGoogleCredential,
-        auto_select: false,
-        cancel_on_tap_outside: true,
-        use_fedcm_for_prompt: false
-      });
-      const host = document.getElementById('btnGoogle');
-      if (host) {
-        host.innerHTML = '';
-        var w = Math.max(host.offsetWidth || 0, 280);
-        try {
-          window.google.accounts.id.renderButton(host, {
+    setTimeout(function () {
+      try {
+        if (!window.google || !window.google.accounts || !window.google.accounts.id) return;
+        window.google.accounts.id.initialize({
+          client_id: CLIENT_ID,
+          callback: onGoogleCredential,
+          auto_select: false,
+          cancel_on_tap_outside: true,
+          use_fedcm_for_prompt: false
+        });
+        if (gsi && !isWebView()) {
+          window.google.accounts.id.renderButton(gsi, {
             theme: 'outline',
             size: 'large',
-            width: w,
+            width: Math.max(gsi.offsetWidth || 0, 280),
             text: 'signin_with',
             shape: 'rectangular',
             logo_alignment: 'left'
           });
-        } catch (re) {
-          renderFallbackButton(host, 'render');
         }
-        setTimeout(function () {
-          if (!host.querySelector('iframe') && !host.querySelector('div[role="button"]')) {
-            renderFallbackButton(host, isWebView() ? 'webview' : 'empty');
-          }
-        }, 1200);
-      }
-      return true;
-    } catch (e) {
-      console.warn('initGoogle', e);
-      var host2 = document.getElementById('btnGoogle');
-      if (host2) renderFallbackButton(host2, 'error');
-      return false;
-    }
+      } catch (e) { console.warn('GSI secondary', e); }
+    }, 400);
+  }
+
+  function initGoogle() {
+    var host = document.getElementById('btnGoogle');
+    if (!host) return false;
+    renderLoginButton(host);
+    return true;
   }
 
   function bootGoogle() {
+    if (document.getElementById('btnGoogleOAuth')) return;
     if (initGoogle()) return;
-    let tries = 0;
-    const t = setInterval(function () {
+    var tries = 0;
+    var t = setInterval(function () {
       tries++;
-      if (initGoogle() || tries > 40) {
-        clearInterval(t);
-        if (tries > 40) {
-          var host = document.getElementById('btnGoogle');
-          if (host && !host.querySelector('iframe') && !host.querySelector('button')) {
-            renderFallbackButton(host, 'timeout');
-          }
-        }
-      }
+      if (initGoogle() || tries > 20) clearInterval(t);
     }, 250);
   }
 
@@ -383,18 +393,6 @@
     write(PROFILE_KEY, profile);
     emit('gia-auth-changed', { user });
     emit('gia-profile-changed', { profile });
-    setTimeout(async function () {
-      try {
-        if (sb || initSupabase()) {
-          const cloud = await cloudFetchMyProfile();
-          if (cloud) {
-            mergeCloudProfileIntoState(cloud);
-            emit('gia-profile-changed', { profile: state.profile });
-            emit('gia-auth-changed', { user: state.user });
-          }
-        }
-      } catch (_) {}
-    }, 600);
   }
 
   async function signOut() {
@@ -446,7 +444,7 @@
 
   window.GiaCloud = {
     state: state,
-    signInGoogle: async function () { bootGoogle(); return true; },
+    signInGoogle: async function () { await signInWithOAuthGoogle(); return true; },
     signOut: signOut,
     upsertProfile: upsertProfile,
     refreshProfile: async function () {
@@ -551,8 +549,67 @@
     }
   };
 
+  async function restoreFromSupabaseSession() {
+    if (!sb) initSupabase();
+    if (!sb) return false;
+    try {
+      try {
+        var url = new URL(window.location.href);
+        if (url.searchParams.get('code') || window.location.hash.indexOf('access_token') >= 0) {
+          await sb.auth.exchangeCodeForSession(window.location.href).catch(function () {});
+          try {
+            window.history.replaceState({}, document.title, url.origin + url.pathname);
+          } catch (_) {}
+        }
+      } catch (_) {}
+      var res = await sb.auth.getSession();
+      var session = res && res.data && res.data.session;
+      if (!session || !session.user) return false;
+      var u = session.user;
+      var payload = {
+        sub: u.id,
+        id: u.id,
+        email: u.email || '',
+        name: (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || u.email || 'Thành viên',
+        picture: (u.user_metadata && (u.user_metadata.avatar_url || u.user_metadata.picture)) || ''
+      };
+      state.user = payload;
+      write(USER_KEY, payload);
+      claimOwnerIfNeeded(payload);
+      var profile = ensureMember(payload, {
+        id: payload.sub,
+        display_name: payload.name,
+        avatar_url: payload.picture,
+        email: payload.email,
+        status: isOwnerUser(payload) ? 'approved' : 'pending',
+        role: isOwnerUser(payload) ? 'admin' : 'member'
+      });
+      state.profile = profile;
+      write(PROFILE_KEY, profile);
+      try {
+        var cloud = await cloudFetchMyProfile();
+        if (cloud) mergeCloudProfileIntoState(cloud);
+        else await cloudUpsertMyProfile({
+          display_name: payload.name,
+          email: payload.email,
+          avatar_url: payload.picture
+        });
+      } catch (_) {}
+      emit('gia-auth-changed', { user: state.user });
+      emit('gia-profile-changed', { profile: state.profile });
+      return true;
+    } catch (e) {
+      console.warn('restoreFromSupabaseSession', e);
+      return false;
+    }
+  }
+
   initSupabase();
   restoreUser();
-  document.addEventListener('DOMContentLoaded', bootGoogle);
-  bootGoogle();
+  restoreFromSupabaseSession().then(function () {
+    bootGoogle();
+  });
+  document.addEventListener('DOMContentLoaded', function () {
+    bootGoogle();
+  });
 })();
