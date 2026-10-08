@@ -28,3 +28,92 @@
 })();
 </script>
 <header class="app-header"><div class="header-left"><img class="app-logo" src="logo.svg" alt="logo"/><div class="header-titles"><h1>Gia Phả Họ Nguyễn</h1><p class="subtitle">Uống nước nhớ nguồn</p></div></div><div class="header-actions"></div></header>
+<div id="morningBanner" class="morning-banner hidden"><div class="morning-inner"><span class="morning-icon">🌿</span><p id="morningText"></p><button type="button" id="btnCloseMorning" class="morning-close">×</button></div></div>
+<main id="mainContent">
+<section id="view-account" class="view hidden">
+  <div class="account-shell">
+    <div class="account-hero">
+      <div class="account-avatar" id="authAvatar" aria-hidden="true">👤</div>
+      <h2>Tài khoản thành viên</h2>
+      <p class="account-tagline">Quản lý đăng nhập và tên hiển thị trong dòng họ</p>
+    </div>
+    <div class="account-card">
+      <p id="authStatus" class="auth-status">Chưa đăng nhập</p>
+      <div id="authLogin" class="account-login-block">
+        <p class="auth-hint">Đăng nhập bằng Google để tham gia dòng họ</p>
+        <div id="btnGoogle" class="btn-block google-login-host" aria-label="Đăng nhập bằng Google"></div>
+      </div>
+      <div id="authUser" class="account-user-block hidden">
+        <div class="auth-welcome" id="authWelcome"></div>
+        <div id="authRoleBadge" class="account-role-badge hidden"></div>
+        <p id="authEmailLine" class="account-email-line muted hidden"></p>
+        <label class="auth-label" for="authName">Tên hiển thị</label>
+        <input id="authName" type="text" autocomplete="name" placeholder="Nhập tên hiển thị" maxlength="80"/>
+        <div class="account-actions">
+          <button id="btnSaveProfile" class="btn btn-primary btn-block account-btn" type="button" data-account-act="save">💾 Lưu thông tin</button>
+          <button id="btnGoHome" class="btn btn-outline btn-block account-btn" type="button" data-account-act="home">🏠 Về trang chủ</button>
+          <button id="btnLogout" class="btn btn-logout btn-block account-btn" type="button" data-account-act="logout">🚪 Đăng xuất</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+<section id="view-home" class="view"><div class="home-hero"><h2>🌳 Gia Phả Họ Nguyễn</h2><p>Trung tâm sinh hoạt dòng họ</p></div><div class="home-block" id="homeEvents"><h3>🕯️ Việc họ hôm nay</h3><div id="homeEventsList" class="home-list"></div></div><div class="home-block"><h3>🤖 Bản tin dòng họ</h3><div id="homeAiNews" class="ai-news-card"></div></div><div class="home-block"><h3>📅 Lịch hôm nay</h3><div id="homeCalendarToday" class="home-list"></div></div><section class="home-gallery-card" id="homeGalleryCard"><div class="home-gallery-head"><div><span class="home-gallery-kicker">KHO LƯU NIỆM</span><h3>🖼️ Thư viện Kỷ Niệm Dòng Họ</h3><p>Một vài kỷ niệm nổi bật trên trang chủ. Kho ảnh/video đầy đủ nằm ở Album chung của dòng họ.</p></div></div><div id="homeGalleryPreview" class="gallery-carousel" aria-label="Kỷ niệm dòng họ"></div><a class="home-gallery-cta" data-gallery-album href="https://photos.app.goo.gl/dpfNisTdXCJpwMYp6" target="_blank" rel="noopener"><span class="home-gallery-cta-icon">📸</span><span><strong>📸 Xem & Đóng góp Ảnh/Video Dòng Họ</strong><small>Xem ảnh chất lượng cao và đóng góp trực tiếp vào Album chung</small></span><span class="home-gallery-cta-arrow">→</span></a></section></section>
+<section id="view-tree" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddRoot" class="btn btn-primary">+ Thành viên</button><span id="treeAccessMode" class="tree-access-mode" aria-live="polite">👁️ Chỉ xem</span><button type="button" id="btnToggleView" class="btn btn-secondary">🌳 / 📋</button><input type="search" id="searchTree" placeholder="Tìm tên..." class="search-input"/></div><div id="treeView" class="tree-container"><div id="treeRoot" class="tree"></div><div id="emptyState" class="empty-state hidden"><div><h2>Chưa có dữ liệu</h2></div></div></div><div id="listView" class="list-container hidden"><div id="personList" class="person-list"></div></div></section>
+<section id="view-events" class="view hidden"><div class="view-toolbar"><button type="button" id="btnAddEvent" class="btn btn-primary">+ Tạo sự kiện</button></div><div id="eventsList" class="cards-list"></div></section>
+<section id="view-board" class="view hidden"><div class="family-news-embed" style="width:100%;min-height:calc(100vh - 150px);padding:0;margin:0;overflow:hidden;border-radius:14px;background:#fff;box-shadow:0 4px 18px rgba(0,0,0,.08);"><iframe src="https://nguyenxuandat20091985-rgb.github.io/my-ai-bot/gia-toc/" title="Tờ Báo Gia Tộc" style="display:block;width:100%;height:calc(100vh - 150px);min-height:650px;border:0;background:#fff;" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></div></section>
+<section id="view-chat" class="view hidden"><div class="family-chat"><div class="family-chat-heading"><div class="family-chat-mark">💬</div><div><h2>Trò chuyện dòng tộc</h2><p>Nơi con cháu hỏi thăm, sẻ chia và cùng giữ gìn tình thân.</p></div></div><div id="chatMessages" class="chat-messages" aria-live="polite"></div><form id="chatCompose" class="chat-compose"><input type="text" id="chatAuthor" placeholder="Tên của anh/chị" aria-label="Tên người gửi" maxlength="50"/><div class="chat-compose-bottom"><textarea id="chatInput" rows="1" placeholder="Gửi lời hỏi thăm..." aria-label="Nội dung tin nhắn" maxlength="1000"></textarea><button type="submit" id="btnSendChat" class="btn btn-primary" aria-label="Gửi tin nhắn">➤</button></div></form></div></section>
+<section id="view-more" class="view hidden"><div class="more-menu"><button type="button" class="more-item" data-nav="account">👤 Tài khoản</button><button type="button" class="more-item" data-nav="calendar">📅 Lịch dòng họ</button><button type="button" class="more-item" data-nav="rituals">🙏 Văn khấn</button><button type="button" class="more-item" data-nav="chat">💬 Trò chuyện dòng tộc</button><button type="button" class="more-item" data-nav="family-fund">🏮 Sổ vàng dòng họ</button><button type="button" class="more-item" data-nav="liaison">👥 Ban liên lạc</button><button type="button" class="more-item" data-nav="about">ℹ️ Giới thiệu</button><a class="more-item" href="qr.html" style="text-decoration:none;text-align:center;">📱 Tải ứng dụng / Mã QR</a></div></section>
+<section id="view-family-fund" class="view hidden"><div class="fund-page"><div class="fund-head"><div><span class="fund-kicker">CÔNG ĐỨC DÒNG HỌ</span><h2>🏮 Sổ vàng dòng họ</h2><p>Ghi nhận những tấm lòng đóng góp cho từng việc chung của dòng họ.</p></div></div><div class="fund-summary"><div><span>Tổng quỹ sự kiện</span><strong id="fundTotal">0 ₫</strong></div><div><span>Số lượt ghi danh</span><strong id="fundCount">0</strong></div></div><div class="fund-filter"><label for="fundEventSelect">Sự kiện</label><select id="fundEventSelect"></select></div><div id="fundList" class="fund-list"></div><button type="button" id="btnAddFund" class="btn btn-primary fund-add">＋ Đóng góp / Ghi danh</button><p class="fund-note">Dữ liệu giao diện hiện được lưu riêng trên thiết bị này, không ghi vào dữ liệu cây gia phả chính.</p></div></section>
+<section id="view-liaison" class="view hidden"><div class="liaison-page"><div class="liaison-head"><span>🏮 KẾT NỐI DÒNG HỌ</span><h2>Ban liên lạc</h2><p>Thông tin liên hệ đại diện các chi họ. Chỉ hiển thị số điện thoại do gia đình cung cấp.</p></div><div id="liaisonList" class="liaison-list"></div><button type="button" id="btnAddLiaison" class="btn btn-primary liaison-add">＋ Thêm thành viên</button><p class="liaison-note">Danh sách lưu trên thiết bị này. Chỉ thêm thông tin đã được thành viên đồng ý công khai.</p></div></section>
+<section id="view-calendar" class="view hidden"><div class="cal-nav"><button type="button" id="btnCalPrev" class="btn btn-secondary">‹</button><h3 id="calTitle"></h3><button type="button" id="btnCalNext" class="btn btn-secondary">›</button></div><div id="calGrid" class="cal-grid"></div></section>
+<section id="view-rituals" class="view hidden"><div id="ritualsList" class="cards-list"></div></section>
+<section id="view-about" class="view hidden">
+  <div class="about-history">
+    <div class="about-hero">
+      <span class="about-kicker">GIA PHẢ HỌ NGUYỄN</span>
+      <h2>Hành trình một dòng họ<br/>qua lịch sử Việt Nam</h2>
+      <p>Uống nước nhớ nguồn · Kính tổ tiên · Gìn giữ gia phong · Gắn kết con cháu</p>
+      <div class="about-ornament">❖</div>
+    </div>
+    <div class="about-intro"><p><strong>Họ Nguyễn</strong> là một trong những họ phổ biến và có lịch sử lâu dài tại Việt Nam. Trải qua nhiều thời kỳ, các chi họ Nguyễn hình thành và phát triển ở nhiều vùng đất, với những gia phả và truyền thống riêng. Vì vậy, lịch sử họ Nguyễn không nên hiểu như lịch sử của một dòng huyết thống duy nhất, mà là bức tranh rộng của nhiều chi phái cùng mang họ Nguyễn.</p></div>
+    <details class="about-section" open><summary><span class="about-num">01</span><span><b>Nguồn gốc & những dấu mốc lịch sử</b><small>Từ truyền thống gia tộc đến những trang sử dân tộc</small></span><i>⌄</i></summary><div class="about-section-body">
+      <div class="history-timeline">
+        <article class="history-item"><span class="history-dot">◆</span><div><b>Thuở đầu & truyền thống gia tộc</b><p>Nguồn gốc cụ thể của từng chi họ Nguyễn có thể khác nhau và nhiều tư liệu cổ còn cần tiếp tục đối chiếu. Gia phả, nhà thờ họ, mộ tổ, sắc phong và ký ức truyền đời là những nguồn tư liệu quan trọng để mỗi chi họ nhận diện cội nguồn của mình.</p></div></article>
+        <article class="history-item"><span class="history-dot">◆</span><div><b>Thế kỷ XV — những danh nhân trong thời Lê</b><p>Nguyễn Trãi (1380–1442) là anh hùng dân tộc, danh nhân văn hóa, có vai trò lớn trong khởi nghĩa Lam Sơn và sự nghiệp dựng nước sau chiến tranh. Nguyễn Xí (1397–1465) là khai quốc công thần, danh tướng từng phục vụ qua nhiều đời vua Lê.</p></div></article>
+        <article class="history-item"><span class="history-dot">◆</span><div><b>1558 — bước ngoặt ở Thuận Hóa</b><p>Nguyễn Hoàng vào trấn thủ Thuận Hóa, mở ra một giai đoạn lịch sử dài của các chúa Nguyễn ở phương Nam. Từ đây, lịch sử họ Nguyễn gắn với quá trình khai phá, tổ chức và phát triển vùng đất Đàng Trong.</p></div></article>
+        <article class="history-item"><span class="history-dot">◆</span><div><b>1802–1945 — triều Nguyễn</b><p>Nguyễn Ánh lên ngôi năm 1802, lấy niên hiệu Gia Long, mở đầu triều Nguyễn — triều đại quân chủ cuối cùng của Việt Nam. Triều Nguyễn kéo dài đến năm 1945 và để lại nhiều di sản về hành chính, văn hóa, kiến trúc và nghệ thuật.</p></div></article>
+        <article class="history-item"><span class="history-dot">◆</span><div><b>Từ 1945 đến hôm nay — tiếp nối truyền thống</b><p>Trong xã hội hiện đại, ý nghĩa của gia phả không chỉ là ghi tên người xưa, mà còn là giữ ký ức gia đình, đạo lý biết ơn tổ tiên, khuyến học, đoàn kết và trách nhiệm với cộng đồng.</p></div></article>
+      </div>
+      <div class="about-note">📜 <b>Lưu ý về sử liệu:</b> Các mốc trên nói về lịch sử họ Nguyễn và những nhân vật mang họ Nguyễn trong tiến trình dân tộc; không mặc định rằng tất cả các chi họ Nguyễn ngày nay có cùng một thủy tổ.</div>
+    </div></details>
+    <details class="about-section"><summary><span class="about-num">02</span><span><b>Tôn vinh người xưa — soi mình hôm nay</b><small>Những tấm gương để con cháu noi theo</small></span><i>⌄</i></summary><div class="about-section-body"><div class="honor-grid">
+      <article class="honor-card"><div class="honor-symbol">文</div><div><span class="honor-era">1380–1442</span><h3>Nguyễn Trãi</h3><p><b>Ức Trai · Anh hùng dân tộc, danh nhân văn hóa.</b> Trí tuệ, lòng yêu nước và tư tưởng vì dân là những giá trị nổi bật trong cuộc đời ông.</p><span class="honor-lesson">Bài học: Có tài phải đi cùng trách nhiệm với đất nước và nhân dân.</span></div></article>
+      <article class="honor-card"><div class="honor-symbol">武</div><div><span class="honor-era">1397–1465</span><h3>Nguyễn Xí</h3><p><b>Khai quốc công thần, danh tướng thời Lê.</b> Ông tham gia nghĩa quân Lam Sơn từ năm 1418, lập nhiều công lao và giữ những trọng trách lớn sau ngày đất nước giành độc lập.</p><span class="honor-lesson">Bài học: Trung nghĩa, bền chí và đặt việc chung lên trên lợi ích riêng.</span></div></article>
+      <article class="honor-card"><div class="honor-symbol">詩</div><div><span class="honor-era">1765–1820</span><h3>Nguyễn Du</h3><p><b>Đại thi hào, danh nhân văn hóa thế giới.</b> Tác phẩm của ông, đặc biệt <i>Truyện Kiều</i>, thể hiện tài năng văn chương và chiều sâu nhân đạo.</p><span class="honor-lesson">Bài học: Trân trọng con người, nuôi dưỡng lòng nhân ái và gìn giữ tiếng Việt.</span></div></article>
+      <article class="honor-card"><div class="honor-symbol">🏯</div><div><span class="honor-era">Thế kỷ XVI–XVII</span><h3>Nguyễn Hoàng</h3><p><b>Người đặt nền móng cho cơ nghiệp các chúa Nguyễn ở Đàng Trong.</b> Năm 1558, ông vào trấn thủ Thuận Hóa, mở ra một giai đoạn lịch sử quan trọng của vùng đất phía Nam.</p><span class="honor-lesson">Bài học: Tầm nhìn, khả năng gây dựng cơ nghiệp và thích ứng với thời cuộc.</span></div></article>
+    </div></div></details>
+    <details class="about-section"><summary><span class="about-num">03</span><span><b>Lời nhắn gửi con cháu</b><small>Giữ cội nguồn để đi xa hơn</small></span><i>⌄</i></summary><div class="about-section-body"><div class="legacy-quote">“Một cây có cội, một sông có nguồn.”</div><p class="legacy-text">Mỗi thế hệ là một mắt xích của dòng tộc. Biết tên ông bà, nhớ quê hương, gìn giữ gia phong, sống tử tế, ham học và biết đóng góp cho cộng đồng chính là cách thiết thực để tiếp nối công đức của tiền nhân.</p><div class="legacy-pill-row"><span>🌿 Nhớ cội nguồn</span><span>📚 Trọng học hành</span><span>🤝 Giữ tình thân</span><span>🇻🇳 Sống có ích</span></div></div></details>
+    <div class="about-source">Nguồn tham khảo lịch sử: Bảo tàng Lịch sử Quốc gia và các tư liệu lịch sử được dẫn trong phần nội dung. Trang này mang tính giới thiệu khái quát; gia phả của từng chi họ cần được đối chiếu với tư liệu riêng của dòng họ.</div>
+  </div>
+</section>
+</main>
+<nav class="bottom-nav" id="bottomNav"><button type="button" class="nav-item active" data-nav="home"><span>🏠</span><small>Trang chủ</small></button><button type="button" class="nav-item" data-nav="tree"><span>🌳</span><small>Gia phả</small></button><button type="button" class="nav-item" data-nav="events"><span>💐</span><small>Hiếu hỉ</small></button><button type="button" class="nav-item" data-nav="board"><span>📰</span><small>Bảng tin</small></button><button type="button" class="nav-item" data-nav="more"><span>⋯</span><small>Thêm</small></button></nav>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-config.js?v=1"></script>
+<script src="auth-google.js?v=6"></script>
+<script src="custom-dialog.js?v=1"></script>
+<script src="rituals.js?v=12"></script>
+<script src="tree-seed.js?v=10"></script>
+<script src="app.js?v=55"></script>
+<script src="data-access.js?v=2"></script>
+<script src="features-ext.js?v=16"></script>
+<script src="gallery.js?v=1"></script>
+<script src="auth-ux.js?v=2"></script>
+<script src="access-gate.js?v=1"></script>
+<script src="gate-admin.js?v=21"></script>
+<script src="admin-cards-fix.js?v=3"></script>
+<script src="pwa.js?v=2"></script>
+</body>
+</html>
