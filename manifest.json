@@ -2,7 +2,8 @@
   "name": "Gia Phả Họ Nguyễn – Trung tâm dòng họ",
   "short_name": "Gia Phả Nguyễn",
   "description": "Gia Phả Họ Nguyễn - Uống nước nhớ nguồn. Cây phả hệ, hiếu hỉ, lịch, văn khấn, bảng tin dòng họ.",
-  "start_url": "./",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#7a0c0c",
@@ -13,7 +14,25 @@
       "src": "logo.svg",
       "sizes": "any",
       "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    },
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
     }
   ]
 }
