@@ -1,4 +1,4 @@
-/* Access gate: bắt buộc đăng nhập + khóa tài khoản chờ duyệt / bị từ chối */
+/* Access gate v3: Đăng nhập/Đăng ký Google → Chờ duyệt → Vào app */
 (function () {
   'use strict';
 
@@ -19,11 +19,11 @@
     el.innerHTML =
       '<div class="member-access-card" role="dialog" aria-modal="true">' +
       '  <div class="member-access-icon" id="gateIcon">🔐</div>' +
-      '  <h2 id="gateTitle">Đăng nhập</h2>' +
+      '  <h2 id="gateTitle">Đăng nhập / Đăng ký</h2>' +
       '  <p id="gateMessage" class="member-access-msg"></p>' +
       '  <p id="gateHint" class="member-access-hint"></p>' +
       '  <div class="member-access-actions">' +
-      '    <button type="button" class="btn btn-primary" id="gateLogin">🔐 Đăng nhập bằng Google</button>' +
+      '    <button type="button" class="btn btn-primary" id="gateLogin">Tiếp tục với Google</button>' +
       '    <button type="button" class="btn btn-outline" id="gateRefresh">🔄 Kiểm tra lại</button>' +
       '    <button type="button" class="btn btn-logout" id="gateLogout">🚪 Đăng xuất</button>' +
       '  </div>' +
@@ -48,17 +48,26 @@
         setTimeout(function () {
           if (btn) {
             btn.disabled = false;
-            btn.textContent = '🔐 Đăng nhập bằng Google';
+            btn.textContent = 'Tiếp tục với Google';
           }
           paint();
-        }, 2000);
+        }, 2500);
       }
     };
 
     el.querySelector('#gateRefresh').onclick = async function () {
+      var btn = el.querySelector('#gateRefresh');
       try {
+        if (btn) {
+          btn.disabled = true;
+          btn.textContent = 'Đang kiểm tra…';
+        }
         await window.GiaCloud?.refreshProfile?.();
       } catch (_) {}
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = '🔄 Kiểm tra lại';
+      }
       paint();
     };
 
@@ -87,6 +96,40 @@
     else document.body.classList.remove('member-gate-active');
   }
 
+  function applyAutoApprovalIfNeeded() {
+    try {
+      var cloud = window.GiaCloud;
+      if (!cloud || !cloud.state || !cloud.state.user) return;
+      if (cloud.isTechAdmin?.() || cloud.isOwner?.()) return;
+      if (!cloud.getAutoApproval || !cloud.getAutoApproval()) return;
+      if (!cloud.isPending || !cloud.isPending()) return;
+
+      var profile = Object.assign({}, cloud.state.profile || {}, { status: 'approved' });
+      cloud.state.profile = profile;
+      try {
+        localStorage.setItem('giaPhaProfile_v1', JSON.stringify(profile));
+      } catch (_) {}
+
+      try {
+        var cfg = window.GIA_SUPABASE_CONFIG || {};
+        if (cfg.url && cfg.anonKey && window.supabase) {
+          var sb = window.supabase.createClient(cfg.url, cfg.anonKey, {
+            auth: { persistSession: true, autoRefreshToken: true }
+          });
+          sb.auth.getSession().then(function (res) {
+            var uid = res && res.data && res.data.session && res.data.session.user && res.data.session.user.id;
+            if (!uid) return;
+            sb.from('profiles').update({ status: 'approved' }).eq('id', uid).then(function () {
+              window.dispatchEvent(new CustomEvent('gia-profile-changed', { detail: { profile: profile } }));
+            });
+          });
+        }
+      } catch (_) {}
+
+      window.dispatchEvent(new CustomEvent('gia-profile-changed', { detail: { profile: profile } }));
+    } catch (_) {}
+  }
+
   function paint() {
     var cloud = window.GiaCloud;
     var el = ensureGate();
@@ -106,15 +149,19 @@
     if (!cloud.state?.user) {
       el.classList.remove('hidden');
       lockApp(true);
-      el.querySelector('#gateIcon').textContent = '🔐';
-      el.querySelector('#gateTitle').textContent = 'Đăng nhập để vào Gia Phả';
+      el.querySelector('#gateIcon').textContent = '🌿';
+      el.querySelector('#gateTitle').textContent = 'Đăng nhập / Đăng ký';
       el.querySelector('#gateMessage').innerHTML =
-        'Ứng dụng <b>Gia Phả Họ Nguyễn</b> dành cho thành viên dòng họ.<br>Anh/chị vui lòng đăng nhập bằng Google để tiếp tục.';
+        'Chào mừng đến <b>Gia Phả Họ Nguyễn</b>.<br>' +
+        'Thành viên mới bấm <b>Tiếp tục với Google</b> để đăng ký.<br>' +
+        'Thành viên cũ dùng cùng tài khoản Google để đăng nhập.';
       el.querySelector('#gateHint').textContent =
-        'Sau khi đăng nhập, tài khoản mới có thể cần Chủ quản hoặc Trưởng họ phê duyệt.';
+        'Tài khoản mới sẽ chờ Chủ quản hoặc Trưởng họ phê duyệt (trừ khi bật tự động duyệt).';
       setActions('login');
       return;
     }
+
+    applyAutoApprovalIfNeeded();
 
     if (cloud.isRejected?.()) {
       el.classList.remove('hidden');
@@ -122,9 +169,9 @@
       el.querySelector('#gateIcon').textContent = '🚫';
       el.querySelector('#gateTitle').textContent = 'Tài khoản bị từ chối';
       el.querySelector('#gateMessage').innerHTML =
-        'Tài khoản <b>' + esc(cloud.state.profile?.display_name || cloud.state.user?.email || '') + '</b> chưa được chấp nhận vào dòng họ.';
+        'Yêu cầu của <b>' + esc(cloud.state.profile?.display_name || cloud.state.user?.email || '') + '</b> chưa được chấp nhận vào dòng họ.';
       el.querySelector('#gateHint').textContent =
-        'Liên hệ Chủ quản hoặc Trưởng họ nếu anh/chị cần được xét duyệt lại.';
+        'Liên hệ Chủ quản hoặc Trưởng họ nếu cần xét duyệt lại. Có thể đăng xuất và dùng tài khoản khác.';
       setActions('rejected');
       return;
     }
@@ -133,11 +180,13 @@
       el.classList.remove('hidden');
       lockApp(true);
       el.querySelector('#gateIcon').textContent = '⏳';
-      el.querySelector('#gateTitle').textContent = 'Chờ duyệt vào dòng họ';
+      el.querySelector('#gateTitle').textContent = 'Đã gửi yêu cầu';
       el.querySelector('#gateMessage').innerHTML =
-        'Tài khoản <b>' + esc(cloud.state.profile?.display_name || cloud.state.user?.email || '') + '</b> đang chờ <b>Chủ quản</b> hoặc <b>Trưởng họ</b> phê duyệt.';
+        'Đã gửi yêu cầu tham gia dòng họ.<br>' +
+        'Tài khoản <b>' + esc(cloud.state.profile?.display_name || cloud.state.user?.email || '') + '</b><br>' +
+        'Vui lòng chờ <b>Chủ quản</b> hoặc <b>Trưởng họ</b> phê duyệt.';
       el.querySelector('#gateHint').textContent =
-        'Sau khi được duyệt, bấm « Kiểm tra lại » hoặc đăng nhập lại để vào app.';
+        'Sau khi được duyệt, bấm « Kiểm tra lại » để vào app.';
       setActions('pending');
       return;
     }
@@ -146,10 +195,16 @@
     lockApp(false);
   }
 
-  window.addEventListener('gia-auth-changed', paint);
-  window.addEventListener('gia-profile-changed', paint);
+  window.addEventListener('gia-auth-changed', function () {
+    setTimeout(paint, 100);
+    setTimeout(paint, 800);
+  });
+  window.addEventListener('gia-profile-changed', function () {
+    setTimeout(paint, 100);
+  });
   document.addEventListener('DOMContentLoaded', paint);
   setTimeout(paint, 300);
   setTimeout(paint, 1000);
   setTimeout(paint, 2500);
+  setTimeout(paint, 5000);
 })();
